@@ -11,7 +11,7 @@ import { api, type News } from '@/lib/api';
 
 export default function NewsDetailPage() {
   const params = useParams();
-  const id = params?.id as string;
+  const uid = params?.uid as string;
   const [news, setNews] = useState<News | null>(null);
   const [relatedNews, setRelatedNews] = useState<News[]>([]);
   const [categoryNews, setCategoryNews] = useState<News[]>([]);
@@ -21,7 +21,7 @@ export default function NewsDetailPage() {
     const fetchNews = async () => {
       try {
         // Fetch single news item
-        const response = await fetch(`http://localhost:8000/api/v1/news/${id}`);
+  const response = await fetch(`http://localhost:8000/api/v1/news/${uid}`);
         const data = await response.json();
         
         if (data.success) {
@@ -31,12 +31,12 @@ export default function NewsDetailPage() {
           const allNewsRes = await api.getNews({ page: 1 });
           if (allNewsRes.success) {
             const related = allNewsRes.data
-              .filter(n => n.category === data.data.category && n.id !== parseInt(id))
+              .filter(n => n.category === data.data.category && n.id !== parseInt(data.data.id))
               .slice(0, 3);
             setRelatedNews(related);
             
             const category = allNewsRes.data
-              .filter(n => n.id !== parseInt(id))
+              .filter(n => n.id !== parseInt(data.data.id))
               .slice(0, 4);
             setCategoryNews(category);
           }
@@ -48,10 +48,10 @@ export default function NewsDetailPage() {
       }
     };
 
-    if (id) {
+    if (uid) {
       fetchNews();
     }
-  }, [id]);
+  }, [uid]);
 
   if (loading) {
     return (
@@ -225,7 +225,7 @@ export default function NewsDetailPage() {
                   </h3>
                   <div className="space-y-4">
                     {categoryNews.slice(0, 5).map((item, index) => (
-                      <Link key={item.id} href={`/news/${item.id}`}>
+                      <Link key={item.id} href={`/news/${item.uid || item.id}`}>
                         <div className="group cursor-pointer pb-4 border-b border-gray-200 last:border-0">
                           <div className="flex gap-4">
                             <div className="relative w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-gray-200">

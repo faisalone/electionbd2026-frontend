@@ -3,8 +3,9 @@ import { ArrowRight, MapPin } from 'lucide-react';
 import { divisionsData, districtsData } from '@/lib/mockData';
 import SectionWrapper from '@/components/SectionWrapper';
 
-export default function DivisionPage({ params }: { params: { division: string } }) {
-  const division = divisionsData.find((d) => d.id === params.division);
+export default async function DivisionPage({ params }: { params: Promise<{ division: string }> }) {
+  const { division: divisionId } = await params;
+  const division = divisionsData.find((d) => d.id === divisionId);
 
   if (!division) {
     return (
@@ -44,7 +45,7 @@ export default function DivisionPage({ params }: { params: { division: string } 
       {/* Districts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {districtsData
-          .filter((d) => d.divisionId === params.division)
+          .filter((d) => d.divisionId === divisionId)
           .map((district) => (
             <div
               key={district.id}

@@ -7,6 +7,7 @@ import Link from 'next/link';
 
 interface NewsCardProps {
   id: number;
+  uid?: string;
   title: string;
   summary: string;
   image: string;
@@ -14,11 +15,11 @@ interface NewsCardProps {
   category: string;
 }
 
-export default function NewsCard({ id, title, summary, image, date, category }: NewsCardProps) {
+export default function NewsCard({ id, uid, title, summary, image, date, category }: NewsCardProps) {
   const isSvg = image.endsWith('.svg');
   
   return (
-    <Link href={`/news/${id}`}>
+    <Link href={`/news/${uid || id}`}>
       <motion.article
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

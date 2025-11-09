@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart3, CheckCircle, Clock, Calendar, XCircle, Phone, X, Loader2, Send } from 'lucide-react';
+import { LiaLongArrowAltRightSolid } from 'react-icons/lia';
 import { toBengaliNumber, formatBengaliDate } from '@/lib/utils';
 import { api } from '@/lib/api';
+import echo from '@/lib/echo';
+import ShareButton from '@/components/ShareButton';
 
 interface PollOption {
   id: string;
@@ -19,12 +22,17 @@ interface PollCardProps {
   options: PollOption[];
   totalVotes: number;
   pollId: number;
+  pollUid?: string;
   endDate: string;
   status: 'upcoming' | 'ended';
-  winnerPhone?: string;
+  winner?: {
+    phone_number: string;
+    voted_at: string;
+  } | null;
+  isDetailPage?: boolean;
 }
 
-export default function PollCard({ question, creatorName, options, totalVotes, pollId, endDate, status, winnerPhone }: PollCardProps) {
+export default function PollCard({ question, creatorName, options, totalVotes, pollId, pollUid, endDate, status, winner, isDetailPage = false }: PollCardProps) {
   const [voted, setVoted] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -39,6 +47,28 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
   useEffect(() => {
     setLiveVoteCount(totalVotes);
   }, [totalVotes]);
+
+  // Listen for real-time vote updates
+  useEffect(() => {
+    if (!echo) return; // Skip if Echo is not initialized (SSR)
+    
+    const channel = echo.channel(`poll.${pollId}`);
+    
+    channel.listen('.vote.cast', (data: any) => {
+      console.log('Vote cast event received:', data);
+      // Update live vote count
+      setLiveVoteCount(data.total_votes);
+      
+      // Update option votes in the options array (optional - for real-time percentage updates)
+      // You can enhance this further by updating individual option vote counts
+    });
+
+    return () => {
+      if (echo) {
+        echo.leaveChannel(`poll.${pollId}`);
+      }
+    };
+  }, [pollId]);
 
   useEffect(() => {
     if (status === 'upcoming') {
@@ -131,66 +161,60 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
   return (
     <div className="p-4 pb-8">
       <motion.div
+        id={`poll-card-${pollId}`}
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
         whileHover={{ y: -4 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200 h-[670px] flex flex-col"
+        className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200 min-h-[700px] flex flex-col"
       >
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
-        {/* Status and Timer Header */}
-        <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
-        {/* Status Badge */}
+        <div className="flex-1 flex flex-col">
+        
+        {/* Countdown Timer Header - Centered */}
         {status === 'upcoming' ? (
-          <div className="flex items-center gap-2 px-4 py-2 bg-red-50 rounded-full border border-red-200 h-9">
-            <div className="relative flex items-center justify-center w-4 h-4">
-              {/* Live Pulsing Rings */}
-              <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
-              <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-pulse opacity-50"></div>
-              {/* Center solid circle */}
-              <div className="relative w-2 h-2 bg-red-500 rounded-full"></div>
-            </div>
-            <span className="text-sm font-semibold text-red-700">লাইভ</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full border border-green-200 h-9">
-            <CheckCircle className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-semibold text-green-700">সম্পন্ন</span>
-          </div>
-        )}
-
-        {/* Countdown Timer or End Date */}
-        {status === 'upcoming' ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-5 pb-4 border-b border-gray-100 flex-wrap sm:flex-nowrap">
             {[
               { value: timeLeft.days, label: 'দিন' },
               { value: timeLeft.hours, label: 'ঘণ্টা' },
               { value: timeLeft.minutes, label: 'মিনিট' },
               { value: timeLeft.seconds, label: 'সেকেন্ড' },
             ].map((item, index) => (
-              <div key={index} className="flex flex-col items-center bg-linear-to-br from-blue-50 to-blue-100 rounded-lg px-2.5 py-1.5 border border-blue-200 min-w-12">
-                <span className="text-lg font-bold text-blue-700 leading-none tabular-nums">
+              <div key={index} className="flex flex-col items-center bg-linear-to-br from-blue-50 to-blue-100 rounded-lg px-2 sm:px-2.5 py-1.5 border border-blue-200 min-w-10 sm:min-w-12">
+                <span className="text-base sm:text-lg font-bold text-blue-700 leading-none tabular-nums">
                   {toBengaliNumber(item.value)}
                 </span>
-                <span className="text-[10px] text-blue-600 font-medium leading-tight mt-1">{item.label}</span>
+                <span className="text-[9px] sm:text-[10px] text-blue-600 font-medium leading-tight mt-1">{item.label}</span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-200 h-9">
+          <div className="flex items-center justify-center gap-2 mb-5 pb-4 border-b border-gray-100">
             <Calendar className="w-4 h-4 text-gray-600" />
             <span className="text-sm font-semibold text-gray-700">
               {formatBengaliDate(endDate)}
             </span>
           </div>
         )}
-      </div>
 
-      {/* Poll Question - Full Width */}
+      {/* Poll Question with Live Indicator */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 leading-tight">{question}</h3>
+        <div className="flex items-start gap-2">
+          {status === 'upcoming' && (
+            <div className="relative flex items-center justify-center w-4 h-4 mt-1 shrink-0">
+              {/* Live Pulsing Rings */}
+              <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-pulse opacity-50"></div>
+              {/* Center solid circle */}
+              <div className="relative w-2 h-2 bg-red-500 rounded-full"></div>
+            </div>
+          )}
+          {status === 'ended' && (
+            <CheckCircle className="w-4 h-4 text-green-600 mt-1 shrink-0" />
+          )}
+          <h3 className="text-lg font-bold text-gray-900 leading-tight flex-1">{question}</h3>
+        </div>
       </div>
 
       {/* Options */}
@@ -434,7 +458,7 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
       </motion.div>
 
       {/* Winner Display for Ended Polls */}
-      {status === 'ended' && winnerPhone && (
+      {status === 'ended' && winner && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -454,9 +478,9 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
               <div className="flex-1">
                 <div className="text-xs font-semibold text-amber-700 mb-1">নির্বাচিত বিজয়ী</div>
                 <div className="text-lg font-bold text-amber-900">
-                  {toBengaliNumber(winnerPhone.slice(0, 3))}
+                  {toBengaliNumber(winner.phone_number.slice(0, 3))}
                   <span className="text-amber-600">********</span>
-                  {toBengaliNumber(winnerPhone.slice(-3))}
+                  {toBengaliNumber(winner.phone_number.slice(-3))}
                 </div>
               </div>
               <motion.div
@@ -482,14 +506,41 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
         )}
       </div>
 
-      {/* Creator Name - Always at bottom */}
-      {creatorName && (
-        <div className="mt-auto pt-4 border-t border-gray-100">
+      {/* Share & Detail Section - Always at bottom */}
+      <div className="mt-auto pt-4 border-t border-gray-100 space-y-3">
+        {/* Creator Name */}
+        {creatorName && (
           <p className="text-xs text-gray-500 text-center">
             জরিপ তৈরি করেছেনঃ <span className="font-medium text-gray-700">{creatorName}</span>
           </p>
+        )}
+
+        {/* Share Buttons Row */}
+        <div className={`flex items-center ${isDetailPage ? 'justify-center' : 'justify-between'} gap-3`}>
+          {/* Share buttons */}
+          <ShareButton
+            pollId={pollId}
+            pollUid={pollUid}
+            question={question}
+            endDate={endDate}
+            totalVotes={liveVoteCount}
+            isEnded={status === 'ended'}
+          />
+          
+          {/* Detail button on right - only show if not on detail page */}
+          {!isDetailPage && (
+            <motion.a
+              href={`/poll/${pollUid || pollId}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center justify-center px-6 py-2.5 bg-purple-50 border border-purple-200 text-purple-600 hover:bg-purple-100 hover:border-purple-300 rounded-lg transition-all group shadow-sm"
+              title="বিস্তারিত দেখুন"
+            >
+              <LiaLongArrowAltRightSolid className="w-6 h-6" />
+            </motion.a>
+          )}
         </div>
-      )}
+      </div>
       </motion.div>
     </div>
   );

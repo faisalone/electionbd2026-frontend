@@ -68,7 +68,7 @@ export default function Home() {
   return (
 	<div className="w-full">
 	  {/* Hero Section with AI Search */}
-	  <SectionWrapper className="bg-linear-to-b from-white to-gray-50">
+	  <SectionWrapper className="">
 		<AiSearchBar />
 		<HeroTimeline />
 	  </SectionWrapper>
@@ -78,26 +78,28 @@ export default function Home() {
 		id="poll"
 		title="অনলাইন জরিপ"
 		subtitle="আপনার মতামত জানান এবং অন্যদের মতামত দেখুন"
-		className="bg-gray-50"
+		className=""
 		headerAction={<CreatePollButton />}
 	  >
 		{pollsLoading ? (
-		  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{[1, 2, 3].map((i) => (
+		  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+			{[1, 2].map((i) => (
 			  <div key={i} className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200">
 				<div className="animate-pulse">
-				  {/* Status and Timer Header */}
-				  <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
-					{/* Status Badge */}
-					<div className="flex items-center gap-2 px-4 py-2 bg-gray-200 rounded-full h-9 w-24"></div>
-					{/* Timer */}
-					<div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-1.5 h-12 w-48"></div>
+				  {/* Countdown Timer Header - Centered */}
+				  <div className="flex items-center justify-center gap-2 mb-5 pb-4 border-b border-gray-100">
+					{[1, 2, 3, 4].map((j) => (
+					  <div key={j} className="flex flex-col items-center bg-gray-200 rounded-lg px-2.5 py-1.5 min-w-12 h-14"></div>
+					))}
 				  </div>
 
-				  {/* Poll Question */}
-				  <div className="mb-6 space-y-2">
-					<div className="h-5 bg-gray-200 rounded w-full"></div>
-					<div className="h-5 bg-gray-200 rounded w-4/5"></div>
+				  {/* Poll Question with Icon */}
+				  <div className="mb-6 flex items-start gap-2">
+					<div className="w-4 h-4 bg-gray-200 rounded-full mt-1 shrink-0"></div>
+					<div className="flex-1 space-y-2">
+					  <div className="h-5 bg-gray-200 rounded w-full"></div>
+					  <div className="h-5 bg-gray-200 rounded w-4/5"></div>
+					</div>
 				  </div>
 
 				  {/* Poll Options */}
@@ -115,6 +117,13 @@ export default function Home() {
 					  </div>
 					))}
 				  </div>
+
+				  {/* Share buttons skeleton */}
+				  <div className="mt-6 flex items-center justify-center gap-2">
+					{[1, 2, 3, 4, 5].map((j) => (
+					  <div key={j} className="w-8 h-8 bg-gray-200 rounded"></div>
+					))}
+				  </div>
 				</div>
 			  </div>
 			))}
@@ -129,7 +138,7 @@ export default function Home() {
 				prevEl: '.poll-swiper-button-prev',
 				nextEl: '.poll-swiper-button-next',
 			  }}
-			  loop={polls.length > 3}
+			  loop={polls.length > 2}
 			  breakpoints={{
 				640: {
 				  slidesPerView: 1,
@@ -140,7 +149,7 @@ export default function Home() {
 				  spaceBetween: 24,
 				},
 				1024: {
-				  slidesPerView: 3,
+				  slidesPerView: 2,
 				  spaceBetween: 30,
 				},
 			  }}
@@ -155,8 +164,9 @@ export default function Home() {
 				  <SwiperSlide key={poll.id}>
 					<PollCard
 					  pollId={poll.id}
+					  pollUid={poll.uid}
 					  question={poll.question}
-					  creatorName={poll.creator_name}
+					  creatorName={poll.user?.name || poll.creator_name}
 					  options={poll.options?.map(opt => ({
 						id: opt.id.toString(),
 						text: opt.text,
@@ -166,15 +176,15 @@ export default function Home() {
 					  totalVotes={totalVotes}
 					  endDate={poll.end_date}
 					  status={isPollEnded ? 'ended' : 'upcoming'}
-					  winnerPhone={poll.winner_phone}
+					  winner={poll.winner}
 					/>
 				  </SwiperSlide>
 				);
 			  })}
 			</Swiper>
 			
-			{/* Custom Navigation Buttons - Only show if more than 1 poll on mobile, 2 on tablet, 3 on desktop */}
-			{polls.length > 1 && (
+			{/* Custom Navigation Buttons - Only show if more than 2 polls */}
+			{polls.length > 2 && (
 			  <>
 				<button className="poll-swiper-button-prev absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full shadow-xl hidden md:flex items-center justify-center hover:bg-gray-50 transition-all disabled:opacity-0 disabled:pointer-events-none">
 				  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,13 +197,6 @@ export default function Home() {
 				  </svg>
 				</button>
 			  </>
-			)}
-			
-			{/* Mobile Swipe Hint */}
-			{polls.length > 1 && (
-			  <div className="text-center mt-6 text-sm text-gray-500 md:hidden">
-				← সোয়াইপ করুন →
-			  </div>
 			)}
 		  </div>
 		) : (
@@ -287,7 +290,7 @@ export default function Home() {
 		id="news"
 		title="সর্বশেষ খবর"
 		subtitle="নির্বাচন সম্পর্কিত সর্বশেষ আপডেট এবং সংবাদ"
-		className="bg-white"
+		className=""
 		headerAction={
 		  <a href="/news" className="text-[#C8102E] hover:text-[#A00D27] font-medium flex items-center gap-2 transition-colors">
 			সব খবর দেখুন
@@ -342,6 +345,7 @@ export default function Home() {
 			  <NewsCard
 				key={article.id}
 				id={article.id}
+				uid={article.uid}
 				title={article.title}
 				summary={article.summary || article.content?.substring(0, 150) + '...' || ''}
 				image={article.image}
@@ -356,7 +360,7 @@ export default function Home() {
 	  {/* Division Explorer Section */}
 	  <SectionWrapper
 		id="divisions"
-		className="bg-gray-50"
+		className=""
 	  >
 		<DivisionExplorer />
 	  </SectionWrapper>
@@ -366,7 +370,7 @@ export default function Home() {
 		id="parties"
 		title="রাজনৈতিক দলসমূহ"
 		subtitle="প্রধান রাজনৈতিক দল এবং তাদের তথ্য"
-		className="bg-white"
+		className=""
 	  >
 		{partiesLoading ? (
 		  <div className="text-center py-12">

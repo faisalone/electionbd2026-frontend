@@ -4,9 +4,10 @@ import { seatsData, candidatesData, partiesData } from '@/lib/mockData';
 import SectionWrapper from '@/components/SectionWrapper';
 import CandidateCard from '@/components/CandidateCard';
 
-export default function SeatPage({ params }: { params: { seat: string } }) {
-  const seat = seatsData.find((s) => s.id === params.seat);
-  const candidates = candidatesData.filter((c) => c.seatId === params.seat);
+export default async function SeatPage({ params }: { params: Promise<{ seat: string }> }) {
+  const { seat: seatId } = await params;
+  const seat = seatsData.find((s) => s.id === seatId);
+  const candidates = candidatesData.filter((c) => c.seatId === seatId);
 
   if (!seat) {
     return (
@@ -61,6 +62,7 @@ export default function SeatPage({ params }: { params: { seat: string } }) {
                 name={candidate.name}
                 partyName={party?.name || 'স্বতন্ত্র'}
                 partySymbol={party?.symbol || '⭐'}
+                partySymbolName={party?.name || 'স্বতন্ত্র'}
                 partyColor={party?.color || '#666666'}
                 seatName={seat.name}
                 age={candidate.age}

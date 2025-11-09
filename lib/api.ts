@@ -88,16 +88,25 @@ export interface TimelineEvent {
 
 export interface Poll {
 	id: number;
+	uid?: string;
 	user_id: number;
 	question: string;
 	creator_name?: string;
 	end_date: string;
-	winner_phone?: string;
-	winner_selected_at?: string;
 	created_at: string;
 	updated_at: string;
-	options?: PollOption[];
+	options: PollOption[];
+	total_votes: number;
 	votes_count?: number;
+	winner?: {
+		phone_number: string;
+		voted_at: string;
+	} | null;
+	user?: {
+		id: number;
+		name: string;
+		phone_number: string;
+	};
 }
 
 export interface PollOption {
@@ -107,7 +116,8 @@ export interface PollOption {
 	color?: string;
 	created_at: string;
 	updated_at: string;
-	vote_count?: number;
+	vote_count: number;
+	votes: number; // Alias for vote_count for frontend compatibility
 	poll_votes?: PollVote[];
 }
 
@@ -123,6 +133,7 @@ export interface PollVote {
 
 export interface News {
 	id: number;
+	uid?: string;
 	title: string; // Bengali title
 	summary?: string; // Short summary
 	content: string; // Full content
@@ -177,7 +188,11 @@ class ApiClient {
 			});
 
 			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
+				const errorData = await response.json().catch(() => ({}));
+				const errorMessage =
+					errorData.message ||
+					`HTTP error! status: ${response.status}`;
+				throw new Error(errorMessage);
 			}
 
 			return await response.json();
@@ -185,9 +200,7 @@ class ApiClient {
 			console.error('API request failed:', error);
 			throw error;
 		}
-	}
-
-	// Division APIs
+	} // Division APIs
 	async getDivisions(): Promise<ApiResponse<Division[]>> {
 		return this.fetch<ApiResponse<Division[]>>('/divisions');
 	}
@@ -279,8 +292,8 @@ class ApiClient {
 		return this.fetch<PaginatedResponse<News>>(`/news${queryString}`);
 	}
 
-	async getNewsArticle(id: number): Promise<ApiResponse<News>> {
-		return this.fetch<ApiResponse<News>>(`/news/${id}`);
+	async getNewsArticleByUid(uid: string): Promise<ApiResponse<News>> {
+		return this.fetch<ApiResponse<News>>(`/news/${uid}`);
 	}
 
 	// Poll APIs
@@ -288,8 +301,8 @@ class ApiClient {
 		return this.fetch<ApiResponse<Poll[]>>('/polls');
 	}
 
-	async getPoll(id: number): Promise<ApiResponse<Poll>> {
-		return this.fetch<ApiResponse<Poll>>(`/polls/${id}`);
+	async getPollByUid(uid: string): Promise<ApiResponse<Poll>> {
+		return this.fetch<ApiResponse<Poll>>(`/polls/${uid}`);
 	}
 
 	async createPoll(data: {
@@ -345,6 +358,47 @@ class ApiClient {
 			method: 'POST',
 			body: JSON.stringify(data),
 		});
+	}
+
+	// Winner Ranking API
+	async getWinnerRanking(pollUidOrId: string | number): Promise<
+		ApiResponse<{
+			winner: {
+				phone_number: string;
+				voted_at: string;
+			} | null;
+			winning_option: {
+				id: number;
+				text: string;
+				color: string;
+				votes: number;
+			};
+			winning_option_voters: Array<{
+				phone_number: string;
+				voted_at: string;
+				rank: number;
+			}>;
+		}>
+	> {
+		return this.fetch<
+			ApiResponse<{
+				winner: {
+					phone_number: string;
+					voted_at: string;
+				} | null;
+				winning_option: {
+					id: number;
+					text: string;
+					color: string;
+					votes: number;
+				};
+				winning_option_voters: Array<{
+					phone_number: string;
+					voted_at: string;
+					rank: number;
+				}>;
+			}>
+		>(`/polls/${pollUidOrId}/winners`);
 	}
 }
 

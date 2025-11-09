@@ -60,14 +60,6 @@ export default function NewsPage() {
   const featuredNews = news.slice(0, 1)[0];
   const topNews = news.slice(1, 5);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C8102E]"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white">
       {/* Category Filter - Clean Minimal */}
@@ -92,7 +84,59 @@ export default function NewsPage() {
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        {selectedCategory === 'সব' ? (
+        {loading ? (
+          /* Skeleton Loading */
+          <div className="space-y-16">
+            {/* Featured Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              <div className="lg:col-span-3">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 h-full">
+                  <div className="grid md:grid-cols-2 gap-0 h-full animate-pulse">
+                    <div className="h-64 md:h-full min-h-[300px] bg-gray-200"></div>
+                    <div className="p-6 md:p-8 space-y-4">
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-8 bg-gray-200 rounded w-full"></div>
+                      <div className="h-8 bg-gray-200 rounded w-4/5"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-6 bg-gray-200 rounded w-full"></div>
+                    <div className="h-6 bg-gray-200 rounded w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-6 bg-gray-200 rounded w-full"></div>
+                    <div className="h-6 bg-gray-200 rounded w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : selectedCategory === 'সব' ? (
           <>
             {/* Modern Grid Layout - Featured + Top Stories */}
             {featuredNews && topNews.length > 0 && (
