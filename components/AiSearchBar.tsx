@@ -54,7 +54,7 @@ export default function AiSearchBar() {
                   handleSubmit();
                 }
               }}
-              placeholder="নির্বাচন নিয়ে এআই মামাকে জিজ্ঞেস করুন"
+              placeholder="ভোটমামুকে জিজ্ঞেস করুন"
               rows={1}
               className="flex-1 bg-transparent outline-none text-base text-gray-900 placeholder-gray-400 resize-none overflow-hidden leading-normal py-3"
               style={{ maxHeight: '200px' }}

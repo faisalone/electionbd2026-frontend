@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart3, CheckCircle, Clock, Calendar, XCircle, Phone, X, Loader2, Send } from 'lucide-react';
 import { toBengaliNumber, formatBengaliDate } from '@/lib/utils';
+import { api } from '@/lib/api';
 
 interface PollOption {
   id: string;
@@ -32,6 +33,12 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [liveVoteCount, setLiveVoteCount] = useState(totalVotes);
+
+  // Sync live vote count when totalVotes prop changes
+  useEffect(() => {
+    setLiveVoteCount(totalVotes);
+  }, [totalVotes]);
 
   useEffect(() => {
     if (status === 'upcoming') {
@@ -64,29 +71,47 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
     }
   };
 
-  const handlePhoneSubmit = () => {
+  const handlePhoneSubmit = async () => {
     if (phoneNumber.length >= 11) {
-      // Simulate sending OTP via WhatsApp
-      setVotingStep('otp');
-      setOtpError('');
+      setIsVerifying(true);
+      try {
+        await api.sendOTP({
+          phone_number: phoneNumber,
+          purpose: 'poll_vote',
+          poll_id: pollId,
+        });
+        setVotingStep('otp');
+        setOtpError('');
+      } catch (error) {
+        setOtpError('OTP পাঠাতে ব্যর্থ। আবার চেষ্টা করুন।');
+      } finally {
+        setIsVerifying(false);
+      }
     }
   };
 
-  const handleOtpSubmit = () => {
+  const handleOtpSubmit = async () => {
+    if (!selectedOption) return;
+    
     setIsVerifying(true);
     setOtpError('');
     
-    // Simulate OTP verification (in real app, this would be an API call)
-    setTimeout(() => {
-      // For demo, accept "1234" as correct OTP
-      if (otp === '১২৩৪' || otp === '1234') {
-        setVoted(true);
-        setVotingStep('success');
-      } else {
-        setOtpError('ভুল OTP! আবার চেষ্টা করুন।');
-      }
+    try {
+      await api.votePoll(pollId, {
+        option_id: parseInt(selectedOption),
+        phone_number: phoneNumber,
+        otp_code: otp,
+      });
+      
+      setVoted(true);
+      setVotingStep('success');
+      // Increment live vote count
+      setLiveVoteCount(prev => prev + 1);
+    } catch (error: any) {
+      setOtpError(error.message || 'ভুল OTP! আবার চেষ্টা করুন।');
+    } finally {
       setIsVerifying(false);
-    }, 1500);
+    }
   };
 
   const handleCancel = () => {
@@ -98,20 +123,23 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
   };
 
   const getPercentage = (votes: number) => {
-    return ((votes / totalVotes) * 100).toFixed(1);
+    return liveVoteCount > 0 ? ((votes / liveVoteCount) * 100).toFixed(1) : '0.0';
   };
 
 
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hover:shadow-2xl transition-shadow duration-300 flex flex-col min-h-[450px]"
-    >
-      {/* Main Content */}
-      <div className="flex-1">
+    <div className="p-4 pb-8">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200 h-[670px] flex flex-col"
+      >
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar pr-1">
         {/* Status and Timer Header */}
         <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
         {/* Status Badge */}
@@ -135,19 +163,18 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
 
         {/* Countdown Timer or End Date */}
         {status === 'upcoming' ? (
-          <div className="flex items-center gap-1 bg-linear-to-r from-blue-50 to-purple-50 rounded-full px-3 py-2 border border-blue-200 h-9">
+          <div className="flex items-center gap-2">
             {[
               { value: timeLeft.days, label: 'দিন' },
               { value: timeLeft.hours, label: 'ঘণ্টা' },
               { value: timeLeft.minutes, label: 'মিনিট' },
               { value: timeLeft.seconds, label: 'সেকেন্ড' },
             ].map((item, index) => (
-              <div key={index} className="flex items-center gap-0.5">
-                {index > 0 && <span className="text-blue-400 mx-0.5 text-sm">:</span>}
-                <span className="text-sm font-bold text-blue-700">
+              <div key={index} className="flex flex-col items-center bg-linear-to-br from-blue-50 to-blue-100 rounded-lg px-2.5 py-1.5 border border-blue-200 min-w-12">
+                <span className="text-lg font-bold text-blue-700 leading-none tabular-nums">
                   {toBengaliNumber(item.value)}
                 </span>
-                <span className="text-sm text-blue-600 font-medium">{item.label}</span>
+                <span className="text-[10px] text-blue-600 font-medium leading-tight mt-1">{item.label}</span>
               </div>
             ))}
           </div>
@@ -172,26 +199,27 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
           const percentage = getPercentage(option.votes);
           const isSelected = selectedOption === option.id;
           const showResults = voted || status === 'ended';
+          const isSelectionMode = !voted && status === 'upcoming';
 
           return (
             <motion.button
-              key={option.id}
+              key={`${option.id}-${isSelected}`}
               onClick={() => handleOptionClick(option.id)}
               disabled={voted || status === 'ended'}
-              whileHover={!voted && status === 'upcoming' ? { scale: 1.01, x: 4 } : {}}
-              whileTap={!voted && status === 'upcoming' ? { scale: 0.99 } : {}}
+              whileHover={isSelectionMode ? { scale: 1.01, x: 4 } : {}}
+              whileTap={isSelectionMode ? { scale: 0.99 } : {}}
               className={`w-full text-left transition-all rounded-xl ${
-                !voted && status === 'upcoming'
+                isSelectionMode
                   ? 'cursor-pointer hover:shadow-lg border-2 hover:border-blue-200' 
                   : 'cursor-default border-2 border-transparent'
               } ${
-                isSelected && !showResults && status === 'upcoming'
+                isSelected && isSelectionMode
                   ? 'border-blue-500 bg-blue-50 shadow-md'
                   : 'border-transparent'
               }`}
             >
               <div className={`relative overflow-hidden rounded-xl border ${
-                isSelected && !showResults && status === 'upcoming'
+                isSelected && isSelectionMode
                   ? 'bg-blue-50 border-blue-300'
                   : 'bg-gray-50 border-gray-200'
               }`}>
@@ -209,24 +237,23 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
                 {/* Content */}
                 <div className="relative z-10 py-4 px-4 flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1">
-                    {/* Radio/Check indicator */}
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                      isSelected && showResults
-                        ? 'border-blue-600 bg-blue-600' 
-                        : !showResults 
-                        ? 'border-gray-300 hover:border-blue-400'
-                        : 'border-gray-300'
-                    }`}>
-                      {isSelected && showResults && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: 'spring', stiffness: 200 }}
-                        >
-                          <CheckCircle className="w-4 h-4 text-white" />
-                        </motion.div>
-                      )}
-                    </div>
+                    {/* Radio/Check indicator - Only show in selection mode */}
+                    {!showResults && (
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-600' 
+                          : 'border-gray-300 hover:border-blue-400'
+                      }`}>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 200 }}
+                            className="w-2.5 h-2.5 bg-white rounded-full"
+                          />
+                        )}
+                      </div>
+                    )}
                     
                     <span className="font-semibold text-gray-900 text-sm">
                       {option.text}
@@ -391,16 +418,20 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
         </motion.div>
       )}
 
-      {/* Total Votes */}
-      <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-600">মোট ভোটার</span>
+      {/* Total Votes - Centered and Larger */}
+      <motion.div 
+        key={liveVoteCount}
+        initial={{ scale: 1 }}
+        animate={{ scale: [1, 1.1, 1] }}
+        transition={{ duration: 0.3 }}
+        className="mt-6 pt-4 border-t border-gray-200"
+      >
+        <div className="text-center">
+          <p className="text-2xl font-bold text-gray-900">
+            {toBengaliNumber(liveVoteCount)} জন ভোট দিয়েছেন
+          </p>
         </div>
-        <span className="text-lg font-bold text-gray-900">
-          {toBengaliNumber(totalVotes)}
-        </span>
-      </div>
+      </motion.div>
 
       {/* Winner Display for Ended Polls */}
       {status === 'ended' && winnerPhone && (
@@ -459,6 +490,7 @@ export default function PollCard({ question, creatorName, options, totalVotes, p
           </p>
         </div>
       )}
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

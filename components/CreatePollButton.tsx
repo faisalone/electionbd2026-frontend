@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, CheckCircle, Plus, ArrowRight, ArrowLeft } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface PollOption {
   id: string;
@@ -45,8 +46,8 @@ export default function CreatePollButton() {
     newOptions[index] = { ...newOptions[index], text: value };
     setOptions(newOptions);
 
-    // Auto-add new empty option when user types in the last input
-    if (index === options.length - 1 && value.trim()) {
+    // Auto-add new empty option when user types in the last input (max 5 options)
+    if (index === options.length - 1 && value.trim() && options.length < 5) {
       setOptions([...newOptions, { id: Date.now().toString(), text: '' }]);
     }
   };
@@ -59,33 +60,60 @@ export default function CreatePollButton() {
 
   const handleOptionsNext = () => {
     const filledOptions = options.filter(o => o.text.trim());
-    if (filledOptions.length >= 2) {
+    if (filledOptions.length >= 2 && filledOptions.length <= 5) {
       setStep('details');
     }
   };
 
-  const handleDetailsNext = () => {
+  const handleDetailsNext = async () => {
     if (name.trim() && phone.length >= 11) {
-      setStep('otp');
+      setIsVerifying(true);
+      try {
+        await api.sendOTP({
+          phone_number: phone,
+          purpose: 'poll_create',
+        });
+        setStep('otp');
+        setOtpError('');
+      } catch (error) {
+        setOtpError('OTP পাঠাতে ব্যর্থ। আবার চেষ্টা করুন।');
+      } finally {
+        setIsVerifying(false);
+      }
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     setIsVerifying(true);
     setOtpError('');
     
-    setTimeout(() => {
-      if (otp === '১২৩৪' || otp === '1234') {
-        setStep('success');
-        setTimeout(() => {
-          setShowModal(false);
-          resetForm();
-        }, 2500);
-      } else {
-        setOtpError('ভুল OTP! আবার চেষ্টা করুন।');
-      }
+    try {
+      const filledOptions = options.filter(o => o.text.trim());
+      
+      await api.createPoll({
+        question: title,
+        creator_name: name,
+        end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        options: filledOptions.map(opt => ({
+          text: opt.text,
+          color: '#' + Math.floor(Math.random()*16777215).toString(16) // Random color
+        })),
+        phone_number: phone,
+        otp_code: otp,
+      });
+      
+      setStep('success');
+      setTimeout(() => {
+        setShowModal(false);
+        resetForm();
+        // Reload page to show new poll
+        window.location.reload();
+      }, 2500);
+    } catch (error: any) {
+      setOtpError(error.message || 'ভুল OTP! আবার চেষ্টা করুন।');
+    } finally {
       setIsVerifying(false);
-    }, 1500);
+    }
   };
 
   const filledOptions = options.filter(o => o.text.trim());
