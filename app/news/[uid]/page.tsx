@@ -1,22 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Calendar, ArrowLeft, Clock, User } from 'lucide-react';
+import NewsNavbar from '@/components/NewsNavbar';
 import NewsCard from '@/components/NewsCard';
 import NewsShareButton from '@/components/NewsShareButton';
 import { api, type News } from '@/lib/api';
 
+const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'];
+
 export default function NewsDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const uid = params?.uid as string;
   const [news, setNews] = useState<News | null>(null);
   const [relatedNews, setRelatedNews] = useState<News[]>([]);
   const [categoryNews, setCategoryNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('সব');
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    router.push(`/news${category !== 'সব' ? `?category=${encodeURIComponent(category)}` : ''}`);
+  };
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -139,19 +149,13 @@ export default function NewsDetailPage() {
   const isSvg = safeImage.endsWith('.svg');
 
   return (
-    <div className="min-h-screen">
-      {/* Breadcrumb & Back Button */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
-          <Link 
-            href="/news" 
-            className="inline-flex items-center gap-2 text-[#C8102E] hover:text-[#A00D27] transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">সব খবরে ফিরে যান</span>
-          </Link>
-        </div>
-      </div>
+    <>
+      <NewsNavbar 
+        categories={categories} 
+        selectedCategory={selectedCategory} 
+        onCategoryChange={handleCategoryChange} 
+      />
+      <div className="min-h-screen">
 
       {/* Main Content */}
       <article className="py-8">
@@ -341,5 +345,6 @@ export default function NewsDetailPage() {
         </div>
       </article>
     </div>
+    </>
   );
 }
