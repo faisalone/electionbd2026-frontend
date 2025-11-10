@@ -30,7 +30,9 @@ export interface District {
 
 export interface Seat {
 	id: number;
-	seat_number: string;
+	name: string; // Bengali name (e.g., ঢাকা-১)
+	name_en: string; // English name (e.g., dhaka-1)
+	area?: string; // Area description
 	district_id: number;
 	created_at: string;
 	updated_at: string;
@@ -40,10 +42,12 @@ export interface Seat {
 
 export interface Party {
 	id: number;
+	name: string; // Bengali name
 	name_en: string;
-	name_bn: string;
 	symbol: string;
+	symbol_name: string; // Bengali symbol name
 	color: string;
+	founded?: string;
 	is_independent: boolean;
 	created_at: string;
 	updated_at: string;
@@ -62,12 +66,15 @@ export interface Symbol {
 
 export interface Candidate {
 	id: number;
-	name_en: string;
-	name_bn: string;
+	name: string; // Bengali name
+	name_en: string; // English name
+	age: number;
+	education: string;
+	experience?: string;
+	image?: string;
 	party_id: number;
 	seat_id: number;
 	symbol_id?: number;
-	photo_url?: string;
 	created_at: string;
 	updated_at: string;
 	party?: Party;
@@ -245,6 +252,9 @@ class ApiClient {
 		district_id?: number;
 		division_id?: number;
 		search?: string;
+		is_independent?: number;
+		per_page?: number;
+		page?: number;
 	}): Promise<ApiResponse<Candidate[]>> {
 		const query = new URLSearchParams();
 		if (params?.seat_id) query.append('seat_id', params.seat_id.toString());
@@ -255,6 +265,11 @@ class ApiClient {
 		if (params?.division_id)
 			query.append('division_id', params.division_id.toString());
 		if (params?.search) query.append('search', params.search);
+		if (params?.is_independent)
+			query.append('is_independent', params.is_independent.toString());
+		if (params?.per_page)
+			query.append('per_page', params.per_page.toString());
+		if (params?.page) query.append('page', params.page.toString());
 		const queryString = query.toString() ? `?${query.toString()}` : '';
 		return this.fetch<ApiResponse<Candidate[]>>(
 			`/candidates${queryString}`

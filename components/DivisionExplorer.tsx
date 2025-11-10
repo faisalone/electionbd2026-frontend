@@ -3,99 +3,192 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Search, Filter } from 'lucide-react';
+import { ChevronRight, Search, Filter, Loader2 } from 'lucide-react';
 import CandidateCard from './CandidateCard';
 import CustomSelect from './CustomSelect';
-import {
-	divisionsData,
-	districtsData,
-	seatsData,
-	candidatesData,
-	partiesData,
-	independentSymbols,
-} from '@/lib/mockData';
+import { api, type Division, type District, type Seat, type Candidate, type Party } from '@/lib/api';
 
 export default function DivisionExplorer() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	
+	// API Data States
+	const [divisions, setDivisions] = useState<Division[]>([]);
+	const [districts, setDistricts] = useState<District[]>([]);
+	const [seats, setSeats] = useState<Seat[]>([]);
+	const [candidates, setCandidates] = useState<Candidate[]>([]);
+	const [parties, setParties] = useState<Party[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [candidatesLoading, setCandidatesLoading] = useState(false);
+	
 	// Initialize from URL params
-	const [selectedDivision, setSelectedDivision] = useState<string | null>(
-		searchParams.get('division')
+	const [selectedDivision, setSelectedDivision] = useState<number | null>(
+		searchParams.get('division') ? parseInt(searchParams.get('division')!) : null
 	);
-	const [selectedDistrict, setSelectedDistrict] = useState<string | null>(
-		searchParams.get('district')
+	const [selectedDistrict, setSelectedDistrict] = useState<number | null>(
+		searchParams.get('district') ? parseInt(searchParams.get('district')!) : null
 	);
-	const [selectedSeat, setSelectedSeat] = useState<string | null>(
-		searchParams.get('seat')
+	const [selectedSeat, setSelectedSeat] = useState<number | null>(
+		searchParams.get('seat') ? parseInt(searchParams.get('seat')!) : null
 	);
 	const [currentPage, setCurrentPage] = useState(
 		parseInt(searchParams.get('page') || '1')
 	);
 	const candidatesPerPage = 9;
 
-	// Get filtered data based on selection
-	const filteredDistricts = selectedDivision
-		? districtsData.filter((d) => d.divisionId === selectedDivision)
-		: [];
+	// Fetch initial data on mount
+	useEffect(() => {
+		const fetchInitialData = async () => {
+			try {
+				setLoading(true);
+				console.log('Fetching divisions and parties from API...');
+				const [divisionsRes, partiesRes] = await Promise.all([
+					api.getDivisions(),
+					api.getParties()
+				]);
+				
+				console.log('Divisions Response:', divisionsRes);
+				console.log('Parties Response:', partiesRes);
+				
+				if (divisionsRes.success) setDivisions(divisionsRes.data);
+				if (partiesRes.success) setParties(partiesRes.data);
+			} catch (error) {
+				console.error('Failed to fetch initial data:', error);
+			} finally {
+				setLoading(false);
+			}
+		};
 
-	const filteredSeats = selectedDistrict
-		? seatsData.filter((s) => s.districtId === selectedDistrict)
-		: [];
+		fetchInitialData();
+	}, []);
 
-	// Smart filtering: Filter candidates based on the most specific selection
-	const filteredCandidates = (() => {
-		if (selectedSeat) {
-			// If seat is selected, show only that seat's candidates
-			return candidatesData.filter((c) => c.seatId === selectedSeat);
-		} else if (selectedDistrict) {
-			// If district is selected, show all candidates from seats in that district
-			const districtSeats = seatsData
-				.filter((s) => s.districtId === selectedDistrict)
-				.map((s) => s.id);
-			return candidatesData.filter((c) => districtSeats.includes(c.seatId));
-		} else if (selectedDivision) {
-			// If division is selected, show all candidates from districts in that division
-			const divisionDistricts = districtsData
-				.filter((d) => d.divisionId === selectedDivision)
-				.map((d) => d.id);
-			const divisionSeats = seatsData
-				.filter((s) => divisionDistricts.includes(s.districtId))
-				.map((s) => s.id);
-			return candidatesData.filter((c) => divisionSeats.includes(c.seatId));
+	// Fetch districts when division selected
+	useEffect(() => {
+		if (selectedDivision) {
+			const fetchDistricts = async () => {
+				try {
+					console.log('Fetching districts for division:', selectedDivision);
+					const res = await api.getDistricts(selectedDivision);
+					console.log('Districts Response:', res);
+					if (res.success) setDistricts(res.data);
+				} catch (error) {
+					console.error('Failed to fetch districts:', error);
+				}
+			};
+			fetchDistricts();
 		} else {
-			// No selection, show all candidates
-			return candidatesData;
+			setDistricts([]);
 		}
-	})();
+	}, [selectedDivision]);
 
-	// Pagination
-	const totalPages = Math.ceil(filteredCandidates.length / candidatesPerPage);
-	const startIndex = (currentPage - 1) * candidatesPerPage;
-	const endIndex = startIndex + candidatesPerPage;
-	const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
+	// Fetch seats when district selected
+	useEffect(() => {
+		if (selectedDistrict) {
+			const fetchSeats = async () => {
+				try {
+					console.log('Fetching seats for district:', selectedDistrict);
+					const res = await api.getSeats({ district_id: selectedDistrict });
+					console.log('Seats Response:', res);
+					if (res.success) setSeats(res.data);
+				} catch (error) {
+					console.error('Failed to fetch seats:', error);
+				}
+			};
+			fetchSeats();
+		} else {
+			setSeats([]);
+		}
+	}, [selectedDistrict]);
 
-	// Get party info for candidate
-	const getPartyInfo = (partyId: string) => {
-		return partiesData.find((p) => p.id === partyId) || partiesData[0];
-	};
+	// Search and filter states
+	const [searchQuery, setSearchQuery] = useState('');
+	const [partyFilter, setPartyFilter] = useState<number | string>('all');
+	const [symbolFilter, setSymbolFilter] = useState<number | string>('all');
+	const [debouncedSearch, setDebouncedSearch] = useState('');
+	const [totalCandidates, setTotalCandidates] = useState(0);
+	const [totalPagesFromServer, setTotalPagesFromServer] = useState(1);
 
-	// Get seat info for candidate
-	const getSeatInfo = (seatId: string) => {
-		return seatsData.find((s) => s.id === seatId);
-	};
+	// Debounce search query (like Google search)
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+		}, 300); // Wait 300ms after user stops typing
+
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
+
+	// Fetch candidates with REAL server-side pagination
+	useEffect(() => {
+		const fetchCandidates = async () => {
+			try {
+				setCandidatesLoading(true);
+				const params: any = {};
+				
+				// Check if user has made any selection or filter
+				const hasSelection = selectedSeat || selectedDistrict || selectedDivision;
+				const hasSearch = debouncedSearch.trim().length > 0;
+				const hasFilter = partyFilter !== 'all' || symbolFilter !== 'all';
+				
+				// Apply location filters if selected
+				if (selectedSeat) params.seat_id = selectedSeat;
+				else if (selectedDistrict) params.district_id = selectedDistrict;
+				else if (selectedDivision) params.division_id = selectedDivision;
+				
+				// Apply search query
+				if (debouncedSearch.trim()) {
+					params.search = debouncedSearch.trim();
+				}
+				
+				// Apply party filter
+				if (partyFilter !== 'all') {
+					if (partyFilter === 'independent') {
+						params.is_independent = 1;
+					} else {
+						params.party_id = partyFilter;
+					}
+				}
+				
+				// ALWAYS add pagination parameters - this is server-side pagination!
+				params.per_page = candidatesPerPage;
+				params.page = currentPage;
+				
+				console.log('Fetching candidates with params:', params);
+				const res = await api.getCandidates(params);
+				console.log('Candidates Response:', res);
+				
+				if (res.success) {
+					setCandidates(res.data);
+					// Update total pages from server response
+					if ((res as any).pagination) {
+						setTotalPagesFromServer((res as any).pagination.last_page);
+						setTotalCandidates((res as any).pagination.total);
+					} else {
+						// Fallback if no pagination in response
+						setTotalPagesFromServer(1);
+						setTotalCandidates(res.data.length);
+					}
+				}
+			} catch (error) {
+				console.error('Failed to fetch candidates:', error);
+			} finally {
+				setCandidatesLoading(false);
+			}
+		};
+
+		fetchCandidates();
+	}, [selectedDivision, selectedDistrict, selectedSeat, debouncedSearch, partyFilter, symbolFilter, currentPage]);
 
 	// Update URL with current state
 	const updateURL = (
-		division: string | null,
-		district: string | null,
-		seat: string | null,
+		division: number | null,
+		district: number | null,
+		seat: number | null,
 		page: number
 	) => {
 		const params = new URLSearchParams();
-		if (division) params.set('division', division);
-		if (district) params.set('district', district);
-		if (seat) params.set('seat', seat);
+		if (division) params.set('division', division.toString());
+		if (district) params.set('district', district.toString());
+		if (seat) params.set('seat', seat.toString());
 		if (page > 1) params.set('page', page.toString());
 		
 		const queryString = params.toString();
@@ -105,7 +198,7 @@ export default function DivisionExplorer() {
 	};
 
 	// Reset selections
-	const handleDivisionClick = (divisionId: string) => {
+	const handleDivisionClick = (divisionId: number) => {
 		if (selectedDivision === divisionId) {
 			setSelectedDivision(null);
 			setSelectedDistrict(null);
@@ -120,7 +213,7 @@ export default function DivisionExplorer() {
 		setCurrentPage(1);
 	};
 
-	const handleDistrictClick = (districtId: string) => {
+	const handleDistrictClick = (districtId: number) => {
 		if (selectedDistrict === districtId) {
 			setSelectedDistrict(null);
 			setSelectedSeat(null);
@@ -133,7 +226,7 @@ export default function DivisionExplorer() {
 		setCurrentPage(1);
 	};
 
-	const handleSeatClick = (seatId: string) => {
+	const handleSeatClick = (seatId: number) => {
 		if (selectedSeat === seatId) {
 			setSelectedSeat(null);
 			updateURL(selectedDivision, selectedDistrict, null, 1);
@@ -156,10 +249,11 @@ export default function DivisionExplorer() {
 		exit: { opacity: 0, y: -24 }
 	};
 
-	// Search and filter states
-	const [searchQuery, setSearchQuery] = useState('');
-	const [partyFilter, setPartyFilter] = useState<string>('all');
-	const [symbolFilter, setSymbolFilter] = useState<string>('all');
+	// Helper function to convert English numbers to Bengali
+	const toBengaliNumber = (num: number): string => {
+		const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+		return num.toString().split('').map(digit => bengaliDigits[parseInt(digit)]).join('');
+	};
 
 	// Sync party and symbol filters
 	const handlePartyChange = (partyId: string) => {
@@ -169,7 +263,11 @@ export default function DivisionExplorer() {
 
 	const handleSymbolChange = (symbolId: string) => {
 		setSymbolFilter(symbolId);
-		setPartyFilter(symbolId.startsWith('ind-') ? 'independent' : symbolId);
+		const numericId = parseInt(symbolId);
+		if (!isNaN(numericId)) {
+			const party = parties.find(p => p.id === numericId);
+			setPartyFilter(party?.is_independent ? 'independent' : symbolId);
+		}
 	};
 
 	// Clear all filters
@@ -177,69 +275,19 @@ export default function DivisionExplorer() {
 		setSearchQuery('');
 		setPartyFilter('all');
 		setSymbolFilter('all');
+		setCurrentPage(1);
 	};
-
-	// Apply all filters to candidates
-	const searchFilteredCandidates = filteredCandidates.filter((candidate) => {
-		const query = searchQuery.toLowerCase();
-		const party = getPartyInfo(candidate.partyId);
-		const seat = getSeatInfo(candidate.seatId);
-		
-		// Search matches name, party, seat, education, or experience
-		const matchesSearch = !query || 
-			candidate.name.toLowerCase().includes(query) ||
-			candidate.nameEn.toLowerCase().includes(query) ||
-			seat?.name.toLowerCase().includes(query) ||
-			party?.name.toLowerCase().includes(query) ||
-			candidate.education.toLowerCase().includes(query) ||
-			candidate.experience.toLowerCase().includes(query);
-
-		// Party filter matches
-		const matchesParty = partyFilter === 'all' || candidate.partyId === partyFilter;
-
-		// Symbol filter matches (independent symbols or party symbols)
-		const matchesSymbol = symbolFilter === 'all' || 
-			candidate.symbolId === symbolFilter || 
-			candidate.partyId === symbolFilter;
-
-		return matchesSearch && matchesParty && matchesSymbol;
-	});
 
 	// Reset page when filters change
 	useEffect(() => {
 		setCurrentPage(1);
-	}, [searchQuery, partyFilter, symbolFilter]);
+	}, [debouncedSearch, partyFilter, symbolFilter]);
 
-	// Pagination for filtered results
-	const totalPagesFiltered = Math.ceil(searchFilteredCandidates.length / candidatesPerPage);
-	const paginatedFilteredCandidates = searchFilteredCandidates.slice(startIndex, endIndex);
-
-	// Get available parties and symbols from filtered candidates
-	const availableParties = partiesData.filter(party => 
-		party.id !== 'independent' && 
-		filteredCandidates.some(c => c.partyId === party.id)
-	);
-	
-	const hasIndependentCandidates = filteredCandidates.some(c => c.partyId === 'independent');
+	// Get available parties from all parties (for filter dropdown)
+	const availableParties = parties.filter(party => !party.is_independent);
 
 	return (
-		<div className="w-full max-w-7xl mx-auto">
-			{/* Header - Minimal and Clean */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-				className="text-center mb-16"
-			>
-				<h2 className="text-[56px] font-semibold tracking-tight text-gray-900 mb-4">
-					প্রার্থী অনুসন্ধান
-				</h2>
-				<p className="text-xl text-gray-600 font-normal max-w-2xl mx-auto leading-relaxed">
-					আপনার এলাকার প্রার্থীদের খুঁজুন
-				</p>
-			</motion.div>
-
-			{/* Breadcrumb Navigation */}
+		<div className="w-full">{/* Full width container */}			{/* Breadcrumb Navigation */}
 			<div className="flex items-center gap-2 mb-8 text-sm">
 				<button
 					onClick={() => {
@@ -263,7 +311,7 @@ export default function DivisionExplorer() {
 							}}
 							className="text-gray-600 hover:text-gray-900 transition-colors"
 						>
-							{divisionsData.find(d => d.id === selectedDivision)?.name}
+							{divisions.find(d => d.id === selectedDivision)?.name}
 						</button>
 					</>
 				)}
@@ -277,7 +325,7 @@ export default function DivisionExplorer() {
 							}}
 							className="text-gray-600 hover:text-gray-900 transition-colors"
 						>
-							{districtsData.find(d => d.id === selectedDistrict)?.name}
+							{districts.find(d => d.id === selectedDistrict)?.name}
 						</button>
 					</>
 				)}
@@ -285,51 +333,62 @@ export default function DivisionExplorer() {
 					<>
 						<ChevronRight className="w-4 h-4 text-gray-400" />
 						<span className="text-gray-900 font-medium">
-							{seatsData.find(s => s.id === selectedSeat)?.name}
+							{seats.find(s => s.id === selectedSeat)?.name}
 						</span>
 					</>
 				)}
 			</div>
 
-			{/* Divisions - Horizontal Scroll on Mobile, Grid on Desktop */}
+			{/* Divisions - Grid */}
 			{!selectedDivision && (
 				<motion.div
 					{...fadeInUp}
 					transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 					className="mb-24"
 				>
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto">
-						{divisionsData.map((division, index) => (
-							<motion.button
-								key={division.id}
-								initial={{ opacity: 0, y: 12 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ 
-									delay: index * 0.05,
-									duration: 0.4,
-									ease: [0.16, 1, 0.3, 1]
-								}}
-								whileTap={{ scale: 0.98 }}
-								onClick={() => handleDivisionClick(division.id)}
-								className="group relative bg-white border border-gray-200 rounded-2xl p-6 text-left transition-all duration-200 hover:border-gray-300 hover:shadow-lg active:scale-[0.98]"
-							>
-								<div className="space-y-2">
-									<div className="text-2xl font-semibold text-gray-900 group-hover:text-primary transition-colors">
-										{division.name}
-									</div>
-									<div className="text-sm text-gray-500">
-										{division.seats} আসন
-									</div>
+					{loading ? (
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+							{Array.from({ length: 8 }).map((_, i) => (
+								<div key={i} className="bg-white border border-gray-200 rounded-2xl p-6 animate-pulse">
+									<div className="h-7 bg-gray-200 rounded mb-2"></div>
+									<div className="h-4 bg-gray-100 rounded w-20 mx-auto"></div>
 								</div>
-							</motion.button>
-						))}
-					</div>
+							))}
+						</div>
+					) : (
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+							{divisions.map((division, index) => (
+								<motion.button
+									key={division.id}
+									initial={{ opacity: 0, y: 12 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ 
+										delay: index * 0.05,
+										duration: 0.4,
+										ease: [0.16, 1, 0.3, 1]
+									}}
+									whileTap={{ scale: 0.98 }}
+									onClick={() => handleDivisionClick(division.id)}
+									className="group relative bg-white border border-gray-200 rounded-2xl p-6 text-center transition-all duration-200 hover:border-gray-300 hover:shadow-lg active:scale-[0.98]"
+								>
+									<div className="space-y-2">
+										<div className="text-2xl font-semibold text-gray-900 group-hover:text-primary transition-colors">
+											{division.name}
+										</div>
+										<div className="text-sm text-gray-500">
+											{toBengaliNumber(division.seats_count || 0)} আসন
+										</div>
+									</div>
+								</motion.button>
+							))}
+						</div>
+					)}
 				</motion.div>
 			)}
 
 			{/* Districts */}
 			<AnimatePresence mode="wait">
-				{selectedDivision && !selectedDistrict && filteredDistricts.length > 0 && (
+				{selectedDivision && !selectedDistrict && districts.length > 0 && (
 					<motion.div
 						{...fadeInUp}
 						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -337,7 +396,7 @@ export default function DivisionExplorer() {
 					>
 						<h3 className="text-2xl font-semibold text-gray-900 mb-6">জেলা</h3>
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-							{filteredDistricts.map((district, index) => (
+							{districts.map((district, index) => (
 								<motion.button
 									key={district.id}
 									initial={{ opacity: 0, y: 12 }}
@@ -349,13 +408,13 @@ export default function DivisionExplorer() {
 									}}
 									whileTap={{ scale: 0.98 }}
 									onClick={() => handleDistrictClick(district.id)}
-									className="bg-white border border-gray-200 rounded-xl p-5 text-left transition-all duration-200 hover:border-gray-300 hover:shadow-md active:scale-[0.98]"
+									className="bg-white border border-gray-200 rounded-xl p-5 text-center transition-all duration-200 hover:border-gray-300 hover:shadow-md active:scale-[0.98]"
 								>
 									<div className="text-lg font-semibold text-gray-900 mb-1">
 										{district.name}
 									</div>
 									<div className="text-sm text-gray-500">
-										{district.seats} আসন
+										{toBengaliNumber(district.seats_count || 0)} আসন
 									</div>
 								</motion.button>
 							))}
@@ -366,7 +425,7 @@ export default function DivisionExplorer() {
 
 			{/* Seats */}
 			<AnimatePresence mode="wait">
-				{selectedDistrict && !selectedSeat && filteredSeats.length > 0 && (
+				{selectedDistrict && !selectedSeat && seats.length > 0 && (
 					<motion.div
 						{...fadeInUp}
 						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -374,7 +433,7 @@ export default function DivisionExplorer() {
 					>
 						<h3 className="text-2xl font-semibold text-gray-900 mb-6">আসন</h3>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-							{filteredSeats.map((seat, index) => (
+							{seats.map((seat, index) => (
 								<motion.button
 									key={seat.id}
 									initial={{ opacity: 0, y: 12 }}
@@ -386,14 +445,16 @@ export default function DivisionExplorer() {
 									}}
 									whileTap={{ scale: 0.98 }}
 									onClick={() => handleSeatClick(seat.id)}
-									className="bg-white border border-gray-200 rounded-xl p-5 text-left transition-all duration-200 hover:border-gray-300 hover:shadow-md active:scale-[0.98]"
+									className="bg-white border border-gray-200 rounded-xl p-5 text-center transition-all duration-200 hover:border-gray-300 hover:shadow-md active:scale-[0.98]"
 								>
 									<div className="text-lg font-semibold text-gray-900 mb-1">
 										{seat.name}
 									</div>
-									<div className="text-sm text-gray-500">
-										{seat.area}
-									</div>
+									{seat.area && (
+										<div className="text-sm text-gray-500">
+											{seat.area}
+										</div>
+									)}
 								</motion.button>
 							))}
 						</div>
@@ -402,25 +463,15 @@ export default function DivisionExplorer() {
 			</AnimatePresence>
 
 			{/* Candidates Section - Always Show */}
-			{filteredCandidates.length > 0 && (
+			{candidates.length > 0 && (
 				<motion.div
 					initial={{ opacity: 0, y: 12 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-					className="space-y-8 pt-12"
+					className="mb-24"
 				>
-					{/* Candidates Header */}
-					<div className="pb-6 border-b border-gray-200">
-						<h3 className="text-2xl font-bold text-gray-900 mb-1">
-							প্রার্থীবৃন্দ
-						</h3>
-						<p className="text-sm text-gray-600">
-							মোট <span className="font-semibold text-gray-900">{searchFilteredCandidates.length}</span> জন প্রার্থী পাওয়া গেছে
-						</p>
-					</div>
-
 					{/* Search and Filter Bar - Premium Design */}
-					<div className="relative" style={{ zIndex: 1 }}>
+					<div className="relative mb-12" style={{ zIndex: 1 }}>
 						{/* Gradient Background Card */}
 						<div className="relative bg-linear-to-br from-gray-50 via-white to-gray-50 border border-gray-200/60 rounded-3xl p-8 shadow-xl shadow-gray-100/50 backdrop-blur-sm" style={{ isolation: 'auto' }}>
 							{/* Decorative Elements */}
@@ -428,7 +479,7 @@ export default function DivisionExplorer() {
 							<div className="absolute bottom-0 left-0 w-48 h-48 bg-linear-to-tr from-pink-50 to-orange-50 rounded-full blur-3xl opacity-30 -z-10"></div>
 							
 							{/* Search and Filters - Single Row */}
-							<div className="flex flex-col md:flex-row gap-2 items-stretch">
+							<div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center justify-center">
 								{/* Search Input */}
 								<div className="relative flex-1 md:max-w-xs">
 									<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
@@ -444,17 +495,17 @@ export default function DivisionExplorer() {
 								{/* Party Filter */}
 								<div className="flex-1 md:max-w-[280px]">
 									<CustomSelect
-										value={partyFilter}
+										value={partyFilter.toString()}
 										onChange={handlePartyChange}
 										placeholder="দল"
 										options={[
 											{ value: 'all', label: 'সকল দল', icon: '🏛️' },
 											...availableParties.map(party => ({
-												value: party.id,
+												value: party.id.toString(),
 												label: party.name,
 												icon: party.symbol,
 											})),
-											...(hasIndependentCandidates ? [{ value: 'independent', label: 'স্বতন্ত্র', icon: '👤' }] : [])
+											{ value: 'independent', label: 'স্বতন্ত্র', icon: '👤' }
 										]}
 									/>
 								</div>
@@ -462,43 +513,17 @@ export default function DivisionExplorer() {
 								{/* Symbol Filter */}
 								<div className="flex-1 md:max-w-[280px]">
 									<CustomSelect
-										value={symbolFilter}
+										value={symbolFilter.toString()}
 										onChange={handleSymbolChange}
 										placeholder="মার্কা"
-										options={(() => {
-											const allOption = { value: 'all', label: 'সকল মার্কা', icon: '🎯' };
-											
-											if (partyFilter === 'independent') {
-												return [allOption, ...independentSymbols.map(sym => ({
-													value: sym.id,
-													label: sym.symbolName,
-													icon: sym.symbol,
-												}))];
-											}
-											
-											if (partyFilter !== 'all') {
-												const party = availableParties.find(p => p.id === partyFilter);
-												return party ? [allOption, {
-													value: party.id,
-													label: party.symbolName || party.name,
-													icon: party.symbol,
-												}] : [allOption];
-											}
-											
-											return [
-												allOption,
-												...availableParties.map(party => ({
-													value: party.id,
-													label: party.symbolName || party.name,
-													icon: party.symbol,
-												})),
-												...(hasIndependentCandidates ? independentSymbols.map(sym => ({
-													value: sym.id,
-													label: sym.symbolName,
-													icon: sym.symbol,
-												})) : [])
-											];
-										})()}
+										options={[
+											{ value: 'all', label: 'সকল মার্কা', icon: '🎯' },
+											...availableParties.map(party => ({
+												value: party.id.toString(),
+												label: party.symbol_name,
+												icon: party.symbol,
+											})),
+										]}
 									/>
 								</div>
 
@@ -524,20 +549,60 @@ export default function DivisionExplorer() {
 					</div>
 
 					{/* Candidates Grid */}
-					{paginatedFilteredCandidates.length > 0 ? (
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					{candidatesLoading ? (
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+							{Array.from({ length: 6 }).map((_, i) => (
+								<div key={i} className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300">
+									<div className="p-6 animate-pulse">
+										{/* Header: Avatar + Name + Seat */}
+										<div className="flex items-start gap-4 mb-6 pb-5 border-b border-gray-100">
+											<div className="w-16 h-16 rounded-full bg-gray-200 shrink-0"></div>
+											<div className="flex-1 min-w-0 pt-1">
+												<div className="h-5 bg-gray-200 rounded mb-2 w-3/4"></div>
+												<div className="h-4 bg-gray-100 rounded w-full"></div>
+											</div>
+										</div>
+
+										{/* Symbol Section */}
+										<div className="mb-5">
+											<div className="rounded-2xl p-8 text-center bg-gray-50 border-2 border-gray-100">
+												<div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div>
+												<div className="h-3 bg-gray-100 rounded w-16 mx-auto mb-2"></div>
+												<div className="h-5 bg-gray-200 rounded w-32 mx-auto"></div>
+											</div>
+										</div>
+
+										{/* Party Name */}
+										<div className="rounded-xl p-4 text-center bg-gray-50 mb-6">
+											<div className="h-3 bg-gray-100 rounded w-12 mx-auto mb-2"></div>
+											<div className="h-4 bg-gray-200 rounded w-28 mx-auto"></div>
+										</div>
+
+										{/* View Details */}
+										<div className="pt-5 border-t border-gray-100">
+											<div className="h-6 bg-gray-100 rounded w-32"></div>
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
+					) : candidates.length > 0 ? (
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 							<AnimatePresence mode="popLayout">
-								{paginatedFilteredCandidates.map((candidate, index) => {
-								const party = getPartyInfo(candidate.partyId);
-								const seat = getSeatInfo(candidate.seatId);
-								const indSymbol = (candidate as any).symbolId ? 
-									independentSymbols.find(s => s.id === (candidate as any).symbolId) : null;
+								{candidates.map((candidate, index) => {
+								const party = candidate.party;
+								const seat = candidate.seat;
+								const district = seat?.district;
 								
 								// Display data based on party type
-								const isIndependent = candidate.partyId === 'independent' && indSymbol;
-								const displayName = isIndependent ? 'স্বতন্ত্র প্রার্থী' : party.name;
-								const displaySymbol = isIndependent ? indSymbol.symbol : party.symbol;
-								const displaySymbolName = isIndependent ? indSymbol.symbolName : (party.symbolName || party.name);
+								const displayPartyName = party?.is_independent ? 'স্বতন্ত্র প্রার্থী' : (party?.name || 'N/A');
+								const displaySymbol = party?.symbol || '🏛️';
+								const displaySymbolName = party?.symbol_name || party?.name || 'N/A';
+								
+								// Format seat name: "১ ঢাকা (ঢাকা-১)" = district_id(Bengali) District_Name (Seat_Name)
+								const seatDisplay = seat && district 
+									? `${toBengaliNumber(district.id)} ${district.name} (${seat.name})`
+									: seat?.name || 'N/A';
 								
 								return (
 									<motion.div
@@ -552,41 +617,48 @@ export default function DivisionExplorer() {
 										}}
 									>
 									<CandidateCard
-										id={candidate.id}
-										name={candidate.name}
-										partyName={displayName}
+										id={candidate.id.toString()}
+										name={candidate.name || candidate.name_en}
+										partyName={displayPartyName}
 										partySymbol={displaySymbol}
 										partySymbolName={displaySymbolName}
-										partyColor={party.color}
-										seatName={seat?.name || 'N/A'}
+										partyColor={party?.color || '#000000'}
+										seatName={seatDisplay}
 										age={candidate.age}
 										education={candidate.education}
-										experience={candidate.experience}
-										image={candidate.image}
+										experience={candidate.experience || ''}
+										image={''}
 									/>
 									</motion.div>
 								);
 								})}
 							</AnimatePresence>
 						</div>
-					) : (
-						<div className="text-center py-12">
-							<div className="text-gray-500 mb-2">কোন প্রার্থী পাওয়া যায়নি</div>
-							<button
-								onClick={() => {
-									setSearchQuery('');
-									setPartyFilter('all');
-									setSymbolFilter('all');
-								}}
-								className="text-sm text-gray-900 underline hover:no-underline"
-							>
-								ফিল্টার সাফ করুন
-							</button>
+					) : !candidatesLoading && candidates.length === 0 ? (
+						<div className="text-center py-16">
+							<div className="mb-4">
+								<svg className="w-20 h-20 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+								</svg>
+							</div>
+							<p className="text-lg font-medium text-gray-900 mb-2">কোন প্রার্থী পাওয়া যায়নি</p>
+							<p className="text-gray-500 mb-4">অনুগ্রহ করে বিভিন্ন ফিল্টার বা সার্চ শব্দ চেষ্টা করুন</p>
+							{(searchQuery || partyFilter !== 'all' || symbolFilter !== 'all') && (
+								<button
+									onClick={clearFilters}
+									className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+								>
+									<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+									</svg>
+									ফিল্টার সাফ করুন
+								</button>
+							)}
 						</div>
-					)}
+					) : null}
 
-					{/* Pagination */}
-					{totalPagesFiltered > 1 && paginatedFilteredCandidates.length > 0 && (
+					{/* Pagination - Server-Side */}
+					{totalPagesFromServer > 1 && candidates.length > 0 && (
 						<div className="flex items-center justify-center gap-2 pt-8">
 							<button
 								onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
@@ -597,14 +669,14 @@ export default function DivisionExplorer() {
 							</button>
 							
 							<div className="flex gap-2">
-								{Array.from({ length: Math.min(totalPagesFiltered, 5) }, (_, i) => {
+								{Array.from({ length: Math.min(totalPagesFromServer, 5) }, (_, i) => {
 									let page: number;
-									if (totalPagesFiltered <= 5) {
+									if (totalPagesFromServer <= 5) {
 										page = i + 1;
 									} else if (currentPage <= 3) {
 										page = i + 1;
-									} else if (currentPage >= totalPagesFiltered - 2) {
-										page = totalPagesFiltered - 4 + i;
+									} else if (currentPage >= totalPagesFromServer - 2) {
+										page = totalPagesFromServer - 4 + i;
 									} else {
 										page = currentPage - 2 + i;
 									}
@@ -619,15 +691,15 @@ export default function DivisionExplorer() {
 													: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
 											}`}
 										>
-											{page}
+											{toBengaliNumber(page)}
 										</button>
 									);
 								})}
 							</div>
 
 							<button
-								onClick={() => handlePageChange(Math.min(totalPagesFiltered, currentPage + 1))}
-								disabled={currentPage === totalPagesFiltered}
+								onClick={() => handlePageChange(Math.min(totalPagesFromServer, currentPage + 1))}
+								disabled={currentPage === totalPagesFromServer}
 								className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95"
 							>
 								পরবর্তী

@@ -360,6 +360,8 @@ export default function Home() {
 	  {/* Division Explorer Section */}
 	  <SectionWrapper
 		id="divisions"
+		title="প্রার্থী অনুসন্ধান"
+		subtitle="প্রধান রাজনৈতিক নল এবং তাদের তথ্য"
 		className=""
 	  >
 		<DivisionExplorer />
@@ -373,15 +375,47 @@ export default function Home() {
 		className=""
 	  >
 		{partiesLoading ? (
-		  <div className="text-center py-12">
-			<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C8102E] mx-auto"></div>
+		  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+			{[1, 2, 3, 4].map((i) => (
+			  <div key={i} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+				<div className="animate-pulse">
+				  {/* Party Symbol */}
+				  <div className="relative h-48 bg-gray-200 flex items-center justify-center">
+					<div className="w-24 h-24 bg-gray-300 rounded-full"></div>
+				  </div>
+				  
+				  {/* Content Section */}
+				  <div className="p-6">
+					{/* Party Name */}
+					<div className="space-y-2 mb-4">
+					  <div className="h-7 bg-gray-200 rounded w-3/4 mx-auto"></div>
+					</div>
+					
+					{/* Stats */}
+					<div className="space-y-3">
+					  <div className="flex items-center justify-between">
+						<div className="h-4 bg-gray-200 rounded w-20"></div>
+						<div className="h-4 bg-gray-200 rounded w-12"></div>
+					  </div>
+					  <div className="flex items-center justify-between">
+						<div className="h-4 bg-gray-200 rounded w-24"></div>
+						<div className="h-4 bg-gray-200 rounded w-16"></div>
+					  </div>
+					</div>
+					
+					{/* Button */}
+					<div className="mt-4 h-10 bg-gray-200 rounded-lg"></div>
+				  </div>
+				</div>
+			  </div>
+			))}
 		  </div>
 		) : (
 		  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 			{parties.filter(p => !p.is_independent).map((party) => (
 			  <PartyCard
 				key={party.id}
-				name={party.name_bn}
+				name={party.name}
 				symbol={party.symbol}
 				color={party.color}
 				founded="১৯৭১" // Default, can be added to backend later

@@ -25,8 +25,8 @@ export default function SectionWrapper({
     >
       <div className="container mx-auto">
         {(title || subtitle || headerAction) && (
-          <div className={cn('mb-12', headerAction ? 'flex flex-col md:flex-row items-center justify-between gap-4' : 'text-center')}>
-            <div className={cn(headerAction ? 'flex-1 text-left' : 'text-center w-full')}>
+          <div className={cn('mb-12', headerAction ? 'flex flex-col md:flex-row items-center justify-between gap-4' : '')}>
+            <div className={cn(headerAction ? 'flex-1 text-left' : 'text-left w-full')}>
               {title && (
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                   {title}
