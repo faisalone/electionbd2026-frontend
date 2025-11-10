@@ -41,9 +41,16 @@ export default function PollDetailClient({ uid }: { uid: string }) {
 
   // Listen for real-time vote updates
   useEffect(() => {
-    if (!echo || !poll?.id) return;
+    if (!echo || !poll?.id) {
+      console.log('⏳ Echo or poll not ready:', { echo: !!echo, pollId: poll?.id });
+      return;
+    }
+    
+    console.log('🎧 Subscribing to channel:', `poll.${poll.id}`);
     const channel = echo.channel(`poll.${poll.id}`);
+    
     channel.listen('.vote.cast', (data: any) => {
+      console.log('🔔 Vote event received:', data);
       setLiveVoteCount(data.total_votes);
       if (poll) {
         const updatedOptions = poll.options.map((option) => {
@@ -55,7 +62,9 @@ export default function PollDetailClient({ uid }: { uid: string }) {
         setPoll({ ...poll, options: updatedOptions, total_votes: data.total_votes });
       }
     });
+    
     return () => {
+      console.log('🔇 Leaving channel:', `poll.${poll.id}`);
       if (echo) echo.leaveChannel(`poll.${poll.id}`);
     };
   }, [poll?.id]);

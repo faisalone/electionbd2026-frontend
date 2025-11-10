@@ -12,6 +12,15 @@ if (typeof window !== 'undefined') {
 		? parseInt(process.env.NEXT_PUBLIC_REVERB_PORT)
 		: 8080;
 
+	console.log('🔌 Echo Configuration:', {
+		scheme,
+		host: process.env.NEXT_PUBLIC_REVERB_HOST,
+		port,
+		wsPort: scheme === 'https' ? 443 : port,
+		wssPort: scheme === 'https' ? 443 : port,
+		forceTLS: scheme === 'https',
+	});
+
 	echo = new Echo({
 		broadcaster: 'reverb',
 		key: process.env.NEXT_PUBLIC_REVERB_APP_KEY || '',
@@ -21,6 +30,19 @@ if (typeof window !== 'undefined') {
 		forceTLS: scheme === 'https',
 		enabledTransports: ['ws', 'wss'],
 		disableStats: true,
+	});
+
+	// Debug WebSocket connection
+	echo.connector.pusher.connection.bind('connected', () => {
+		console.log('✅ WebSocket connected successfully!');
+	});
+
+	echo.connector.pusher.connection.bind('error', (err: any) => {
+		console.error('❌ WebSocket connection error:', err);
+	});
+
+	echo.connector.pusher.connection.bind('disconnected', () => {
+		console.warn('⚠️ WebSocket disconnected');
 	});
 }
 
