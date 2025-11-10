@@ -1,10 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
 import HeroTimeline from "@/components/HeroTimeline";
 import AiSearchBar from "@/components/AiSearchBar";
 import PollCard from "@/components/PollCard";
@@ -129,75 +125,89 @@ export default function Home() {
 						))}
 					</div>
 				) : polls.length > 0 ? (
-					<div className="relative py-8">
-						<Swiper
-							modules={[Navigation]}
-							spaceBetween={24}
-							slidesPerView={1}
-							style={{ overflow: 'visible' }}
-							navigation={{
-								prevEl: '.poll-swiper-button-prev',
-								nextEl: '.poll-swiper-button-next',
-							}}
-							loop={polls.length > 2}
-							breakpoints={{
-								640: {
-									slidesPerView: 1,
-									spaceBetween: 20,
-								},
-								768: {
-									slidesPerView: 2,
-									spaceBetween: 24,
-								},
-								1024: {
-									slidesPerView: 2,
-									spaceBetween: 30,
-								},
-							}}
-						>
-							{polls.map((poll) => {
-								const now = new Date();
-								const endDate = new Date(poll.end_date);
-								const isPollEnded = now > endDate;
-								const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
+					<div className="space-y-8">
+						{/* Active Polls */}
+						{polls.filter(poll => {
+							const now = new Date();
+							const endDate = new Date(poll.end_date);
+							return now <= endDate;
+						}).length > 0 && (
+							<div>
+								<h3 className="text-lg font-bold text-gray-900 mb-4">সক্রিয় জরিপ</h3>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{polls
+										.filter(poll => {
+											const now = new Date();
+											const endDate = new Date(poll.end_date);
+											return now <= endDate;
+										})
+										.map((poll) => {
+											const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
 
-								return (
-									<SwiperSlide key={poll.id}>
-										<PollCard
-											pollId={poll.id}
-											pollUid={poll.uid}
-											question={poll.question}
-											creatorName={poll.user?.name || poll.creator_name}
-											options={poll.options?.map(opt => ({
-												id: opt.id.toString(),
-												text: opt.text,
-												votes: opt.vote_count || 0,
-												color: opt.color || '#666666'
-											})) || []}
-											totalVotes={totalVotes}
-											endDate={poll.end_date}
-											status={isPollEnded ? 'ended' : 'upcoming'}
-											winner={poll.winner}
-										/>
-									</SwiperSlide>
-								);
-							})}
-						</Swiper>
+											return (
+												<PollCard
+													key={poll.id}
+													pollId={poll.id}
+													pollUid={poll.uid}
+													question={poll.question}
+													creatorName={poll.user?.name || poll.creator_name}
+													options={poll.options?.map(opt => ({
+														id: opt.id.toString(),
+														text: opt.text,
+														votes: opt.vote_count || 0,
+														color: opt.color || '#666666'
+													})) || []}
+													totalVotes={totalVotes}
+													endDate={poll.end_date}
+													status="upcoming"
+													winner={poll.winner}
+												/>
+											);
+										})}
+								</div>
+							</div>
+						)}
 
-						{/* Custom Navigation Buttons - Only show if more than 2 polls */}
-						{polls.length > 2 && (
-							<>
-								<button className="poll-swiper-button-prev absolute -left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full shadow-lg hidden md:flex items-center justify-center hover:bg-gray-50 hover:shadow-xl transition-all disabled:opacity-0 disabled:pointer-events-none">
-									<svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-									</svg>
-								</button>
-								<button className="poll-swiper-button-next absolute -right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full shadow-lg hidden md:flex items-center justify-center hover:bg-gray-50 hover:shadow-xl transition-all disabled:opacity-0 disabled:pointer-events-none">
-									<svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-									</svg>
-								</button>
-							</>
+						{/* Ended Polls */}
+						{polls.filter(poll => {
+							const now = new Date();
+							const endDate = new Date(poll.end_date);
+							return now > endDate;
+						}).length > 0 && (
+							<div>
+								<h3 className="text-lg font-bold text-gray-900 mb-4">শেষ হয়েছে</h3>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{polls
+										.filter(poll => {
+											const now = new Date();
+											const endDate = new Date(poll.end_date);
+											return now > endDate;
+										})
+										.map((poll) => {
+											const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
+
+											return (
+												<PollCard
+													key={poll.id}
+													pollId={poll.id}
+													pollUid={poll.uid}
+													question={poll.question}
+													creatorName={poll.user?.name || poll.creator_name}
+													options={poll.options?.map(opt => ({
+														id: opt.id.toString(),
+														text: opt.text,
+														votes: opt.vote_count || 0,
+														color: opt.color || '#666666'
+													})) || []}
+													totalVotes={totalVotes}
+													endDate={poll.end_date}
+													status="ended"
+													winner={poll.winner}
+												/>
+											);
+										})}
+								</div>
+							</div>
 						)}
 					</div>
 				) : (
