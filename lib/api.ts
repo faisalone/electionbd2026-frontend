@@ -160,6 +160,7 @@ export interface PaginatedResponse<T> {
 		total_pages: number;
 		total: number;
 		per_page: number;
+		has_more: boolean;
 	};
 }
 
@@ -283,11 +284,14 @@ class ApiClient {
 		category?: string;
 		ai_only?: boolean;
 		page?: number;
+		per_page?: number;
 	}): Promise<PaginatedResponse<News>> {
 		const query = new URLSearchParams();
 		if (params?.category) query.append('category', params.category);
 		if (params?.ai_only) query.append('ai_only', '1');
 		if (params?.page) query.append('page', params.page.toString());
+		if (params?.per_page)
+			query.append('per_page', params.per_page.toString());
 		const queryString = query.toString() ? `?${query.toString()}` : '';
 		return this.fetch<PaginatedResponse<News>>(`/news${queryString}`);
 	}

@@ -298,7 +298,7 @@ export default function DivisionExplorer() {
 					transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 					className="mb-24"
 				>
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto">
 						{divisionsData.map((division, index) => (
 							<motion.button
 								key={division.id}

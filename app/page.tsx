@@ -37,10 +37,10 @@ export default function Home() {
       }
     };
 
-    // Fetch news
+    // Fetch news - Get only last 4
     const fetchNews = async () => {
       try {
-        const newsRes = await api.getNews({ page: 1 });
+        const newsRes = await api.getNews({ page: 1, per_page: 4 });
         if (newsRes.success) setNews(newsRes.data);
       } catch (error) {
         console.error('Failed to fetch news:', error);
