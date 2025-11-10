@@ -4,8 +4,9 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import NewsCard from '@/components/NewsCard';
+import NewsNavbar from '@/components/NewsNavbar';
 import { api, type News } from '@/lib/api';
-import { ChevronRight, Clock, Loader2, Sparkles } from 'lucide-react';
+import { ChevronRight, Clock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -128,68 +129,12 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Category Filter - Apple Glass Effect with Logo and Generate */}
-      <div className="sticky top-4 z-50 px-4 mb-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white/70 backdrop-blur-2xl rounded-full shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] border border-white/40 px-6 py-3 backdrop-saturate-150">
-            <div className="flex items-center justify-between">
-              {/* Logo - Left */}
-              <Link href="/" className="flex items-center gap-2 shrink-0">
-                <div className="text-lg md:text-xl font-bold text-[#C8102E] hover:scale-105 transition-transform whitespace-nowrap">
-                  বাংলা নির্বাচন পোর্টাল
-                </div>
-              </Link>
-
-              {/* Categories - Center */}
-              <div className="hidden md:flex items-center gap-1.5 flex-1 justify-center mx-8">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`px-5 py-2 rounded-full font-medium transition-all duration-300 whitespace-nowrap text-sm ${
-                      selectedCategory === category
-                        ? 'bg-[#C8102E] text-white shadow-lg scale-105'
-                        : 'text-gray-700 hover:bg-gray-100 hover:scale-105'
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-
-              {/* Generate Button - Right */}
-              <div className="hidden md:flex items-center shrink-0">
-                <Link href="/generate">
-                  <button className="flex items-center gap-2 bg-[#C8102E] text-white px-6 py-2 rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
-                    <Sparkles size={16} />
-                    জেনারেট
-                  </button>
-                </Link>
-              </div>
-
-              {/* Mobile: Show category dropdown or menu */}
-              <div className="md:hidden flex items-center gap-2">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-[#C8102E] transition-all"
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                <Link href="/generate">
-                  <button className="p-2 bg-[#C8102E] text-white rounded-full">
-                    <Sparkles size={16} />
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* News-specific Navbar with Google-style dropdown */}
+      <NewsNavbar 
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
 
       <div className="container mx-auto px-4 py-12">
         {loading ? (
