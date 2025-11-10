@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Sparkles } from 'lucide-react';
@@ -33,9 +34,7 @@ export default function Navbar() {
             <div className="flex items-center justify-between">
               {/* Logo - Left */}
               <Link href="/" className="flex items-center gap-2 shrink-0">
-                <div className="text-lg md:text-xl font-bold text-[#C8102E] hover:scale-105 transition-transform whitespace-nowrap">
-                  বাংলা নির্বাচন পোর্টাল
-                </div>
+                <Logo height={40} className="hover:scale-105 transition-transform" alt="ভোটমামু" />
               </Link>
 
               {/* Desktop Navigation - Center */}

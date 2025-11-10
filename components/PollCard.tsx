@@ -97,6 +97,8 @@ export default function PollCard({
     }
   }, [endDate, status]);
 
+  // no-op
+
   const handleOptionClick = (optionId: string) => {
     if (!voted && status === 'upcoming') {
       setSelectedOption(optionId);
@@ -203,68 +205,71 @@ export default function PollCard({
         </div>
 
         {/* Options */}
-        <div className="space-y-3 mb-6">
-          {options.map((option) => {
-            const percentage = getPercentage(option.votes);
-            const isSelected = selectedOption === option.id;
+        <div className="mb-6">
+          {(() => {
             const showResults = voted || status === 'ended';
             const isSelectionMode = !voted && status === 'upcoming';
 
-            return (
-              <motion.button
-                key={option.id}
-                onClick={() => handleOptionClick(option.id)}
-                disabled={voted || status === 'ended'}
-                whileHover={isSelectionMode ? { scale: 1.01, x: 4 } : {}}
-                whileTap={isSelectionMode ? { scale: 0.99 } : {}}
-                className={`w-full text-left transition-all rounded-xl ${
-                  isSelectionMode ? 'cursor-pointer' : 'cursor-default'
-                } ${isSelected && isSelectionMode ? 'ring-2 ring-blue-500' : ''}`}
-              >
-                <div className={`relative overflow-hidden rounded-xl border ${
-                  isSelected && isSelectionMode
-                    ? 'bg-blue-50 border-blue-300'
-                    : 'bg-gray-50 border-gray-200'
-                }`}>
-                  {showResults && (
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${percentage}%` }}
-                      transition={{ duration: 1, ease: 'easeOut', delay: 0.1 }}
-                      className="absolute inset-0 opacity-20"
-                      style={{ backgroundColor: option.color }}
-                    />
-                  )}
-                  
-                  <div className="relative z-10 py-4 px-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      {!showResults && (
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                          isSelected ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
-                        }`}>
-                          {isSelected && (
-                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
-                          )}
+            if (showResults) {
+              return (
+                <div className="space-y-3">
+                  {options.map((option) => {
+                    const percentage = getPercentage(option.votes);
+                    return (
+                      <div key={option.id} className="w-full">
+                        <div className="relative overflow-hidden rounded-xl border bg-gray-50 border-gray-200">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ duration: 1, ease: 'easeOut', delay: 0.1 }}
+                            className="absolute inset-0 opacity-20"
+                            style={{ backgroundColor: option.color }}
+                          />
+                          <div className="relative z-10 py-4 px-4 flex items-center justify-between">
+                            <span className="font-semibold text-gray-900 text-sm wrap-break-word whitespace-normal">
+                              {option.text}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl font-bold" style={{ color: option.color }}>
+                                {toBengaliNumber(percentage)}%
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ({toBengaliNumber(option.votes)})
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                      <span className="font-semibold text-gray-900 text-sm">{option.text}</span>
-                    </div>
-
-                    {showResults && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold" style={{ color: option.color }}>
-                          {toBengaliNumber(percentage)}%
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({toBengaliNumber(option.votes)})
-                        </span>
                       </div>
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
-              </motion.button>
+              );
+            }
+
+            // Selection Mode: show chips that wrap to use available space
+            return (
+              <div className="flex flex-wrap items-start gap-3">
+                {options.map((option) => {
+                  const isSelected = selectedOption === option.id;
+                  return (
+                    <motion.button
+                      key={option.id}
+                      onClick={() => handleOptionClick(option.id)}
+                      disabled={!isSelectionMode}
+                      whileHover={isSelectionMode ? { scale: 1.02 } : {}}
+                      whileTap={isSelectionMode ? { scale: 0.98 } : {}}
+                      className={`inline-flex max-w-full text-left transition-all rounded-xl border px-4 py-3 text-sm font-semibold ${
+                        isSelectionMode ? 'cursor-pointer' : 'cursor-default'
+                      } ${isSelected ? 'text-white' : 'text-gray-900 bg-gray-50 border-gray-200 hover:border-gray-300'}`}
+                      style={isSelected ? { backgroundColor: option.color, borderColor: option.color } : {}}
+                    >
+                      <span className="whitespace-normal wrap-break-word">{option.text}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
             );
-          })}
+          })()}
         </div>
 
         {/* Voting Flow */}
