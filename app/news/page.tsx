@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import NewsCard from '@/components/NewsCard';
@@ -12,7 +12,7 @@ import Image from 'next/image';
 
 const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'];
 
-export default function NewsPage() {
+function NewsContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams?.get('category');
   
@@ -413,5 +413,17 @@ export default function NewsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function NewsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-b from-gray-50 to-white flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+      </div>
+    }>
+      <NewsContent />
+    </Suspense>
   );
 }
