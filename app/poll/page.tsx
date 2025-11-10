@@ -21,12 +21,21 @@ async function PollList() {
     );
   }
 
-  const polls = await response.json();
+  const result = await response.json();
+  const polls = result.data || [];
+
+  if (polls.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">কোনো জরিপ পাওয়া যায়নি</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {polls.map((poll: any) => (
-        <Link key={poll.uid} href={`/poll/${poll.uid}`}>
+        <Link key={poll.id} href={`/poll/${poll.uid || poll.id}`}>
           <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <h3 className="text-xl font-bold mb-2">{poll.question}</h3>
             <p className="text-gray-600 mb-4">মোট ভোট: {poll.total_votes}</p>
