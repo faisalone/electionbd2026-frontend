@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Search, Filter, Loader2 } from 'lucide-react';
@@ -8,7 +8,7 @@ import CandidateCard from './CandidateCard';
 import CustomSelect from './CustomSelect';
 import { api, type Division, type District, type Seat, type Candidate, type Party } from '@/lib/api';
 
-export default function DivisionExplorer() {
+function DivisionExplorerContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	
@@ -709,5 +709,17 @@ export default function DivisionExplorer() {
 				</motion.div>
 			)}
 		</div>
+	);
+}
+
+export default function DivisionExplorer() {
+	return (
+		<Suspense fallback={
+			<div className="flex items-center justify-center py-20">
+				<Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+			</div>
+		}>
+			<DivisionExplorerContent />
+		</Suspense>
 	);
 }
