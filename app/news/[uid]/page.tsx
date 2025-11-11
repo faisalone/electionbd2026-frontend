@@ -145,9 +145,6 @@ export default function NewsDetailPage() {
     );
   }
 
-  const safeImage = news.image || '/news-placeholder.svg';
-  const isSvg = safeImage.endsWith('.svg');
-
   return (
     <>
       <NewsNavbar 
@@ -198,18 +195,20 @@ export default function NewsDetailPage() {
                   </div>
                 </div>
 
-                {/* Featured Image */}
-                <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 mb-8 overflow-hidden rounded-lg">
-                  <Image
-                    src={safeImage}
-                    alt={news.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 66vw"
-                    unoptimized={isSvg}
-                    className="object-cover"
-                    priority
-                  />
-                </div>
+                {/* Featured Image - Only show if backend provides one */}
+                {news.image && (
+                  <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 mb-8 overflow-hidden rounded-lg">
+                    <Image
+                      src={news.image}
+                      alt={news.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      unoptimized={news.image.endsWith('.svg')}
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                )}
 
                 {/* Article Content */}
                 <div className="px-6 pb-8">
