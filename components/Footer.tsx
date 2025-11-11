@@ -73,6 +73,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
           <p>© ২০২৫ ভোটমামু। সর্বস্বত্ব সংরক্ষিত।</p>
+          <p className="text-xs mt-2 text-gray-500">Version 1.0.1</p>
         </div>
       </div>
     </footer>
