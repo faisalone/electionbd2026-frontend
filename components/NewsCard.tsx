@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatBengaliDateTime } from '@/lib/dateUtils';
 
 interface NewsCardProps {
   id: number;
@@ -11,11 +12,11 @@ interface NewsCardProps {
   title: string;
   summary: string;
   image: string;
-  date: string;
+  created_at: string;
   category: string;
 }
 
-export default function NewsCard({ id, uid, title, summary, image, date, category }: NewsCardProps) {
+export default function NewsCard({ id, uid, title, summary, image, created_at, category }: NewsCardProps) {
   // Fallback to placeholder if image is null/undefined
   const safeImage = image || '/news-placeholder.svg';
   const isSvg = safeImage.endsWith('.svg');
@@ -49,10 +50,10 @@ export default function NewsCard({ id, uid, title, summary, image, date, categor
 
       {/* Content */}
       <div className="p-6">
-        {/* Date */}
+        {/* Date & Time */}
         <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
-          <Calendar className="w-4 h-4" />
-          <span>{date}</span>
+          <Clock className="w-4 h-4" />
+          <span>{formatBengaliDateTime(created_at)}</span>
         </div>
 
         {/* Title */}

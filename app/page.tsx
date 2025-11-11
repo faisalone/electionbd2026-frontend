@@ -400,13 +400,8 @@ export default function Home() {
 						{news.map((article) => (
 							<NewsCard
 								key={article.id}
-								id={article.id}
-								uid={article.uid}
-								title={article.title}
+								{...article}
 								summary={article.summary || article.content?.substring(0, 150) + '...' || ''}
-								image={article.image}
-								date={article.date}
-								category={article.category}
 							/>
 						))}
 					</div>

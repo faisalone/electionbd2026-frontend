@@ -5,11 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Calendar, ArrowLeft, Clock, User } from 'lucide-react';
+import { ArrowLeft, Clock, User } from 'lucide-react';
 import NewsNavbar from '@/components/NewsNavbar';
 import NewsCard from '@/components/NewsCard';
 import NewsShareButton from '@/components/NewsShareButton';
 import { api, type News } from '@/lib/api';
+import { formatBengaliDateTime } from '@/lib/dateUtils';
 
 const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'];
 
@@ -181,12 +182,8 @@ export default function NewsDetailPage() {
                   {/* Meta Info */}
                   <div className="flex flex-wrap items-center gap-4 text-gray-600 text-sm border-b border-gray-200 pb-6">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>{news.date}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      <span>৫ মিনিট পড়ার সময়</span>
+                      <span>{formatBengaliDateTime(news.created_at)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4" />
@@ -258,13 +255,8 @@ export default function NewsDetailPage() {
                     {relatedNews.map((item) => (
                       <NewsCard
                         key={item.id}
-                        id={item.id}
-                        uid={item.uid}
-                        title={item.title}
+                        {...item}
                         summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
-                        image={item.image}
-                        date={item.date}
-                        category={item.category}
                       />
                     ))}
                   </div>

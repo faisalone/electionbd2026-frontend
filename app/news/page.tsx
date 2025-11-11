@@ -253,13 +253,8 @@ function NewsContent() {
                     className="lg:col-span-1"
                   >
                     <NewsCard
-                      id={topNews[0].id}
-                      uid={topNews[0].uid}
-                      title={topNews[0].title}
+                      {...topNews[0]}
                       summary={topNews[0].summary || topNews[0].content?.substring(0, 100) + '...' || ''}
-                      image={topNews[0].image}
-                      date={topNews[0].date}
-                      category={topNews[0].category}
                     />
                   </motion.div>
                 </div>
@@ -278,13 +273,8 @@ function NewsContent() {
                       transition={{ delay: index * 0.1 }}
                     >
                       <NewsCard
-                        id={item.id}
-                        uid={item.uid}
-                        title={item.title}
+                        {...item}
                         summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
-                        image={item.image}
-                        date={item.date}
-                        category={item.category}
                       />
                     </motion.div>
                   ))}
@@ -304,13 +294,8 @@ function NewsContent() {
                       transition={{ delay: index * 0.05 }}
                     >
                       <NewsCard
-                        id={item.id}
-                        uid={item.uid}
-                        title={item.title}
+                        {...item}
                         summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
-                        image={item.image}
-                        date={item.date}
-                        category={item.category}
                       />
                     </motion.div>
                   ))}
@@ -366,13 +351,8 @@ function NewsContent() {
                       transition={{ delay: index * 0.05 }}
                     >
                       <NewsCard
-                        id={item.id}
-                        uid={item.uid}
-                        title={item.title}
+                        {...item}
                         summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
-                        image={item.image}
-                        date={item.date}
-                        category={item.category}
                       />
                     </motion.div>
                   ))}
