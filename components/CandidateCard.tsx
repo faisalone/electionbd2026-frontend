@@ -1,8 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { GraduationCap, Briefcase } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface CandidateCardProps {
@@ -27,100 +25,107 @@ export default function CandidateCard({
   partySymbolName,
   partyColor,
   seatName,
-  age,
-  education,
-  experience,
-  image,
 }: CandidateCardProps) {
+  // Get first letter of name for avatar
+  const firstLetter = name.charAt(0).toUpperCase();
+  
+  // Generate a consistent color based on name
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', 
+      '#10b981', '#06b6d4', '#6366f1', '#f97316'
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const avatarBgColor = getAvatarColor(name);
+
   return (
     <Link href={`/candidate/${id}`}>
       <motion.div
-        whileHover={{ y: -2 }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-lg transition-all duration-200"
+        whileHover={{ y: -4, scale: 1.01 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300"
       >
-        <div className="flex flex-col">
-          {/* Top Section: Image + Party Symbol Side by Side */}
-          <div className="relative border-b border-gray-200">
-            <div className="p-4 flex items-center gap-4">
-              {/* Image */}
-              <div className="relative w-28 h-32 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                <Image
-                  src={image}
-                  alt={name}
-                  fill
-                  sizes="112px"
-                  className="object-cover"
-                />
-              </div>
+        <div className="p-6">
+          {/* Header: Avatar + Name + Seat */}
+          <div className="flex items-start gap-4 mb-6 pb-5 border-b border-gray-100">
+            <div 
+              className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-md"
+              style={{ backgroundColor: avatarBgColor }}
+            >
+              {firstLetter}
+            </div>
+            <div className="flex-1 min-w-0 pt-1">
+              <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors mb-1.5 leading-tight">
+                {name}
+              </h3>
+              <p className="text-sm text-gray-500 flex items-center gap-1.5">
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="truncate">{seatName}</span>
+              </p>
+            </div>
+          </div>
 
-              {/* Symbol + Symbol Name + Party Name */}
-              <div className="flex-1 space-y-2">
-                <div 
-                  className="flex items-center justify-center gap-3 p-4 rounded-lg"
-                  style={{ backgroundColor: `${partyColor}10` }}
-                >
-                  <span className="text-6xl leading-none">{partySymbol}</span>
-                  <span className="text-sm font-semibold" style={{ color: partyColor }}>
-                    ({partySymbolName})
-                  </span>
+          {/* Symbol Section - Large & Prominent */}
+          <div className="mb-5">
+            <div 
+              className="relative rounded-2xl p-8 text-center overflow-hidden"
+              style={{ 
+                backgroundColor: `${partyColor}08`,
+                border: `2px solid ${partyColor}20`
+              }}
+            >
+              {/* Decorative gradient background */}
+              <div 
+                className="absolute inset-0 opacity-5"
+                style={{
+                  background: `radial-gradient(circle at 30% 50%, ${partyColor}, transparent 70%)`
+                }}
+              />
+              
+              <div className="relative">
+                <div className="text-8xl mb-4 leading-none inline-block transform group-hover:scale-110 transition-transform duration-300">
+                  {partySymbol}
                 </div>
-                
-                {/* Party Name */}
-                <div 
-                  className="p-2 rounded-lg text-center"
-                  style={{ backgroundColor: `${partyColor}05` }}
-                >
-                  <p className="text-xs font-medium" style={{ color: partyColor }}>
-                    {partyName}
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">মার্কা</p>
+                  <p className="text-xl font-bold leading-tight" style={{ color: partyColor }}>
+                    {partySymbolName}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Bottom Section: Candidate Details */}
-          <div className="p-4 flex flex-col flex-1">
-            {/* Header */}
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1.5 group-hover:text-primary transition-colors">
-                {name}
-              </h3>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span>{age} বছর</span>
-                <span>•</span>
-                <span className="truncate">{seatName}</span>
-              </div>
-            </div>
+          {/* Party Name */}
+          <div 
+            className="rounded-xl p-4 text-center"
+            style={{ backgroundColor: `${partyColor}05` }}
+          >
+            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">দল</p>
+            <p className="text-base font-bold leading-tight" style={{ color: partyColor }}>
+              {partyName}
+            </p>
+          </div>
 
-            {/* Info Grid */}
-            <div className="space-y-3 flex-1">
-              <div className="flex items-start gap-2.5">
-                <GraduationCap className="w-4 h-4 text-gray-400 shrink-0 mt-1" />
-                <div>
-                  <p className="text-xs text-gray-500 mb-1 font-medium">শিক্ষাগত যোগ্যতা</p>
-                  <p className="text-sm text-gray-900 leading-relaxed">
-                    {education}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <Briefcase className="w-4 h-4 text-gray-400 shrink-0 mt-1" />
-                <div>
-                  <p className="text-xs text-gray-500 mb-1 font-medium">পেশাগত অভিজ্ঞতা</p>
-                  <p className="text-sm text-gray-900 leading-relaxed">
-                    {experience}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* View Details Link */}
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <span className="text-sm font-medium text-primary group-hover:underline inline-flex items-center gap-1">
-                বিস্তারিত দেখুন
-                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
-              </span>
+          {/* View Details Link */}
+          <div className="mt-6 pt-5 border-t border-gray-100">
+            <div className="flex items-center justify-between text-sm font-semibold text-primary group-hover:text-primary-600 transition-colors">
+              <span>বিস্তারিত দেখুন</span>
+              <motion.span
+                className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors"
+                whileHover={{ x: 3 }}
+              >
+                →
+              </motion.span>
             </div>
           </div>
         </div>

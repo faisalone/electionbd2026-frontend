@@ -4,8 +4,9 @@ import { ArrowLeft, MapPin, User, GraduationCap, Briefcase, Calendar } from 'luc
 import { candidatesData, partiesData, seatsData } from '@/lib/mockData';
 import SectionWrapper from '@/components/SectionWrapper';
 
-export default function CandidatePage({ params }: { params: { id: string } }) {
-  const candidate = candidatesData.find((c) => c.id === params.id);
+export default async function CandidatePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const candidate = candidatesData.find((c) => c.id === id);
   const party = candidate ? partiesData.find((p) => p.id === candidate.partyId) : null;
   const seat = candidate ? seatsData.find((s) => s.id === candidate.seatId) : null;
 

@@ -30,7 +30,9 @@ export interface District {
 
 export interface Seat {
 	id: number;
-	seat_number: string;
+	name: string; // Bengali name (e.g., ঢাকা-১)
+	name_en: string; // English name (e.g., dhaka-1)
+	area?: string; // Area description
 	district_id: number;
 	created_at: string;
 	updated_at: string;
@@ -40,10 +42,12 @@ export interface Seat {
 
 export interface Party {
 	id: number;
+	name: string; // Bengali name
 	name_en: string;
-	name_bn: string;
 	symbol: string;
+	symbol_name: string; // Bengali symbol name
 	color: string;
+	founded?: string;
 	is_independent: boolean;
 	created_at: string;
 	updated_at: string;
@@ -62,12 +66,15 @@ export interface Symbol {
 
 export interface Candidate {
 	id: number;
-	name_en: string;
-	name_bn: string;
+	name: string; // Bengali name
+	name_en: string; // English name
+	age: number;
+	education: string;
+	experience?: string;
+	image?: string;
 	party_id: number;
 	seat_id: number;
 	symbol_id?: number;
-	photo_url?: string;
 	created_at: string;
 	updated_at: string;
 	party?: Party;
@@ -88,16 +95,25 @@ export interface TimelineEvent {
 
 export interface Poll {
 	id: number;
+	uid?: string;
 	user_id: number;
 	question: string;
 	creator_name?: string;
 	end_date: string;
-	winner_phone?: string;
-	winner_selected_at?: string;
 	created_at: string;
 	updated_at: string;
-	options?: PollOption[];
+	options: PollOption[];
+	total_votes: number;
 	votes_count?: number;
+	winner?: {
+		phone_number: string;
+		voted_at: string;
+	} | null;
+	user?: {
+		id: number;
+		name: string;
+		phone_number: string;
+	};
 }
 
 export interface PollOption {
@@ -107,7 +123,8 @@ export interface PollOption {
 	color?: string;
 	created_at: string;
 	updated_at: string;
-	vote_count?: number;
+	vote_count: number;
+	votes: number; // Alias for vote_count for frontend compatibility
 	poll_votes?: PollVote[];
 }
 
@@ -123,6 +140,7 @@ export interface PollVote {
 
 export interface News {
 	id: number;
+	uid?: string;
 	title: string; // Bengali title
 	summary?: string; // Short summary
 	content: string; // Full content
@@ -149,6 +167,7 @@ export interface PaginatedResponse<T> {
 		total_pages: number;
 		total: number;
 		per_page: number;
+		has_more: boolean;
 	};
 }
 
@@ -177,7 +196,11 @@ class ApiClient {
 			});
 
 			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
+				const errorData = await response.json().catch(() => ({}));
+				const errorMessage =
+					errorData.message ||
+					`HTTP error! status: ${response.status}`;
+				throw new Error(errorMessage);
 			}
 
 			return await response.json();
@@ -185,9 +208,7 @@ class ApiClient {
 			console.error('API request failed:', error);
 			throw error;
 		}
-	}
-
-	// Division APIs
+	} // Division APIs
 	async getDivisions(): Promise<ApiResponse<Division[]>> {
 		return this.fetch<ApiResponse<Division[]>>('/divisions');
 	}
@@ -231,6 +252,9 @@ class ApiClient {
 		district_id?: number;
 		division_id?: number;
 		search?: string;
+		is_independent?: number;
+		per_page?: number;
+		page?: number;
 	}): Promise<ApiResponse<Candidate[]>> {
 		const query = new URLSearchParams();
 		if (params?.seat_id) query.append('seat_id', params.seat_id.toString());
@@ -241,6 +265,11 @@ class ApiClient {
 		if (params?.division_id)
 			query.append('division_id', params.division_id.toString());
 		if (params?.search) query.append('search', params.search);
+		if (params?.is_independent)
+			query.append('is_independent', params.is_independent.toString());
+		if (params?.per_page)
+			query.append('per_page', params.per_page.toString());
+		if (params?.page) query.append('page', params.page.toString());
 		const queryString = query.toString() ? `?${query.toString()}` : '';
 		return this.fetch<ApiResponse<Candidate[]>>(
 			`/candidates${queryString}`
@@ -270,17 +299,20 @@ class ApiClient {
 		category?: string;
 		ai_only?: boolean;
 		page?: number;
+		per_page?: number;
 	}): Promise<PaginatedResponse<News>> {
 		const query = new URLSearchParams();
 		if (params?.category) query.append('category', params.category);
 		if (params?.ai_only) query.append('ai_only', '1');
 		if (params?.page) query.append('page', params.page.toString());
+		if (params?.per_page)
+			query.append('per_page', params.per_page.toString());
 		const queryString = query.toString() ? `?${query.toString()}` : '';
 		return this.fetch<PaginatedResponse<News>>(`/news${queryString}`);
 	}
 
-	async getNewsArticle(id: number): Promise<ApiResponse<News>> {
-		return this.fetch<ApiResponse<News>>(`/news/${id}`);
+	async getNewsArticleByUid(uid: string): Promise<ApiResponse<News>> {
+		return this.fetch<ApiResponse<News>>(`/news/${uid}`);
 	}
 
 	// Poll APIs
@@ -288,8 +320,8 @@ class ApiClient {
 		return this.fetch<ApiResponse<Poll[]>>('/polls');
 	}
 
-	async getPoll(id: number): Promise<ApiResponse<Poll>> {
-		return this.fetch<ApiResponse<Poll>>(`/polls/${id}`);
+	async getPollByUid(uid: string): Promise<ApiResponse<Poll>> {
+		return this.fetch<ApiResponse<Poll>>(`/polls/${uid}`);
 	}
 
 	async createPoll(data: {
@@ -345,6 +377,47 @@ class ApiClient {
 			method: 'POST',
 			body: JSON.stringify(data),
 		});
+	}
+
+	// Winner Ranking API
+	async getWinnerRanking(pollUidOrId: string | number): Promise<
+		ApiResponse<{
+			winner: {
+				phone_number: string;
+				voted_at: string;
+			} | null;
+			winning_option: {
+				id: number;
+				text: string;
+				color: string;
+				votes: number;
+			};
+			winning_option_voters: Array<{
+				phone_number: string;
+				voted_at: string;
+				rank: number;
+			}>;
+		}>
+	> {
+		return this.fetch<
+			ApiResponse<{
+				winner: {
+					phone_number: string;
+					voted_at: string;
+				} | null;
+				winning_option: {
+					id: number;
+					text: string;
+					color: string;
+					votes: number;
+				};
+				winning_option_voters: Array<{
+					phone_number: string;
+					voted_at: string;
+					rank: number;
+				}>;
+			}>
+		>(`/polls/${pollUidOrId}/winners`);
 	}
 }
 

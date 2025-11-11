@@ -1,33 +1,65 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import NewsCard from '@/components/NewsCard';
+import NewsNavbar from '@/components/NewsNavbar';
 import { api, type News } from '@/lib/api';
-import { ChevronRight, Clock } from 'lucide-react';
+import { ChevronRight, Clock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const categories = ['সব', 'নির্বাচন', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'];
+const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'];
 
-export default function NewsPage() {
+function NewsContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams?.get('category');
   
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || 'সব');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [newsByCategory, setNewsByCategory] = useState<Record<string, News[]>>({});
+  
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const response = await api.getNews({ page: 1 });
-        if (response.success) {
-          setNews(response.data);
+  const fetchNews = async (page: number, reset: boolean = false) => {
+    try {
+      if (reset) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+      
+      const category = selectedCategory === 'সব' ? undefined : selectedCategory;
+      // Always request 10 items from backend for consistent pagination
+      const response = await api.getNews({ page, category, per_page: 10 });
+      
+      if (response.success) {
+        let newItems = response.data;
+        
+        // On pages after the first, only take 8 items to display
+        if (page > 1 && newItems.length > 8) {
+          newItems = newItems.slice(0, 8);
+        }
+        
+        // Deduplicate news items by id to prevent key conflicts
+        setNews(prev => {
+          if (reset) return newItems;
           
-          // Group news by category
+          const existingIds = new Set(prev.map(item => item.id));
+          const uniqueNewItems = newItems.filter(item => !existingIds.has(item.id));
+          return [...prev, ...uniqueNewItems];
+        });
+        
+        // Set hasMore based on backend pagination info
+        setHasMore(response.pagination.has_more);
+        
+        // Group news by category only on first load
+        if (reset && selectedCategory === 'সব') {
           const grouped: Record<string, News[]> = {};
           response.data.forEach((item) => {
             if (!grouped[item.category]) {
@@ -37,15 +69,50 @@ export default function NewsPage() {
           });
           setNewsByCategory(grouped);
         }
-      } catch (error) {
-        console.error('Failed to fetch news:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch news:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
-    fetchNews();
-  }, []);
+  // Load more when scrolling to bottom
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const [target] = entries;
+    if (target.isIntersecting && hasMore && !loadingMore && !loading) {
+      setCurrentPage(prev => prev + 1);
+    }
+  }, [hasMore, loadingMore, loading]);
+
+  useEffect(() => {
+    const element = observerTarget.current;
+    const observer = new IntersectionObserver(handleObserver, {
+      threshold: 0,
+      rootMargin: '100px',
+    });
+
+    if (element) observer.observe(element);
+    return () => {
+      if (element) observer.unobserve(element);
+    };
+  }, [handleObserver]);
+
+  // Fetch news on page change
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchNews(currentPage, false);
+    }
+  }, [currentPage]);
+
+  // Reset and fetch when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setNews([]);
+    setHasMore(true);
+    fetchNews(1, true);
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (categoryParam) {
@@ -58,41 +125,71 @@ export default function NewsPage() {
     : news.filter(item => item.category === selectedCategory);
 
   const featuredNews = news.slice(0, 1)[0];
-  const topNews = news.slice(1, 5);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C8102E]"></div>
-      </div>
-    );
-  }
+  const topNews = news.slice(1, 6); // Get 5 more news (1 featured + 5 = 6 total)
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Category Filter - Clean Minimal */}
-      <div className="border-b border-gray-200 sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-5 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap text-sm ${
-                  selectedCategory === category
-                    ? 'bg-[#C8102E] text-white shadow-md'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen">
+      {/* News-specific Navbar with Google-style dropdown */}
+      <NewsNavbar 
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
 
       <div className="container mx-auto px-4 py-12">
-        {selectedCategory === 'সব' ? (
+        {loading ? (
+          /* Skeleton Loading */
+          <div className="space-y-16">
+            {/* Featured Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              <div className="lg:col-span-3">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 h-full">
+                  <div className="grid md:grid-cols-2 gap-0 h-full animate-pulse">
+                    <div className="h-64 md:h-full min-h-[300px] bg-gray-200"></div>
+                    <div className="p-6 md:p-8 space-y-4">
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-8 bg-gray-200 rounded w-full"></div>
+                      <div className="h-8 bg-gray-200 rounded w-4/5"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-6 bg-gray-200 rounded w-full"></div>
+                    <div className="h-6 bg-gray-200 rounded w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-6 bg-gray-200 rounded w-full"></div>
+                    <div className="h-6 bg-gray-200 rounded w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : selectedCategory === 'সব' ? (
           <>
             {/* Modern Grid Layout - Featured + Top Stories */}
             {featuredNews && topNews.length > 0 && (
@@ -105,20 +202,20 @@ export default function NewsPage() {
                 {/* Hero Grid: 3/4 + 1/4 layout on desktop */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
                   {/* Featured Story - 3 columns - Horizontal Card */}
-                  <Link href={`/news/${featuredNews.id}`} className="lg:col-span-3">
+                  <Link href={`/news/${featuredNews.uid || featuredNews.id}`} className="lg:col-span-3">
                     <motion.article
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="group bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all h-full"
+                      className="group rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all h-full"
                     >
                       <div className="grid md:grid-cols-2 gap-0 h-full">
                         {/* Image Left */}
                         <div className="relative h-64 md:h-full min-h-[300px] overflow-hidden bg-gray-200">
                           <Image
-                            src={featuredNews.image}
+                            src={featuredNews.image || '/news-placeholder.svg'}
                             alt={featuredNews.title}
                             fill
-                            unoptimized={featuredNews.image.endsWith('.svg')}
+                            unoptimized={(featuredNews.image || '/news-placeholder.svg').endsWith('.svg')}
                             className="object-cover group-hover:scale-105 transition-transform duration-700"
                             priority
                           />
@@ -156,12 +253,8 @@ export default function NewsPage() {
                     className="lg:col-span-1"
                   >
                     <NewsCard
-                      id={topNews[0].id}
-                      title={topNews[0].title}
+                      {...topNews[0]}
                       summary={topNews[0].summary || topNews[0].content?.substring(0, 100) + '...' || ''}
-                      image={topNews[0].image}
-                      date={topNews[0].date}
-                      category={topNews[0].category}
                     />
                   </motion.div>
                 </div>
@@ -172,20 +265,16 @@ export default function NewsPage() {
             {topNews.length > 1 && (
               <section className="mb-16">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {topNews.slice(1, 5).map((item, index) => (
+                  {topNews.slice(1).map((item, index) => (
                     <motion.div
-                      key={item.id}
+                      key={item.uid || item.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
                       <NewsCard
-                        id={item.id}
-                        title={item.title}
+                        {...item}
                         summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
-                        image={item.image}
-                        date={item.date}
-                        category={item.category}
                       />
                     </motion.div>
                   ))}
@@ -193,39 +282,48 @@ export default function NewsPage() {
               </section>
             )}
 
-            {/* Category Sections - Uniform Card Layout */}
-            {Object.entries(newsByCategory).map(([category, items]) => (
-              <section key={category} className="mb-16">
-                <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-7 bg-[#C8102E]"></div>
-                    <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide">{category}</h2>
-                  </div>
-                  <button
-                    onClick={() => setSelectedCategory(category)}
-                    className="text-[#C8102E] hover:text-[#A00D27] font-semibold flex items-center gap-1 transition-all group text-sm uppercase tracking-wide"
-                  >
-                    <span>সব দেখুন</span>
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-
-                {/* All Cards Same Size - 4 Column Grid */}
+            {/* Remaining News in Grid - Continue from where topNews ended */}
+            {news.length > 6 && (
+              <section className="mb-16">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {items.slice(0, 4).map((item) => (
-                    <NewsCard
-                      key={item.id}
-                      id={item.id}
-                      title={item.title}
-                      summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
-                      image={item.image}
-                      date={item.date}
-                      category={item.category}
-                    />
+                  {news.slice(6).map((item, index) => (
+                    <motion.div
+                      key={item.uid || item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <NewsCard
+                        {...item}
+                        summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
+                      />
+                    </motion.div>
                   ))}
                 </div>
               </section>
-            ))}
+            )}
+
+            {/* Infinite Scroll Loader for "সব" view */}
+            <div ref={observerTarget} className="flex justify-center py-12 min-h-[100px]">
+              {hasMore && loadingMore && (
+                <div className="flex items-center gap-3 text-gray-600">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span className="text-lg font-medium">আরও খবর লোড হচ্ছে...</span>
+                </div>
+              )}
+              {!hasMore && news.length > 0 && (
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-full border border-gray-200">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-gray-600 font-medium">সব খবর দেখানো হয়েছে</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Category Sections - Removed for cleaner infinite scroll */}
           </>
         ) : (
           /* Filtered Category View - Masonry Grid */
@@ -243,25 +341,43 @@ export default function NewsPage() {
             </div>
             
             {filteredNews.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredNews.map((item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <NewsCard
-                      id={item.id}
-                      title={item.title}
-                      summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
-                      image={item.image}
-                      date={item.date}
-                      category={item.category}
-                    />
-                  </motion.div>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredNews.map((item, index) => (
+                    <motion.div
+                      key={item.uid || item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <NewsCard
+                        {...item}
+                        summary={item.summary || item.content?.substring(0, 100) + '...' || ''}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+                
+                {/* Infinite Scroll Loader */}
+                <div ref={observerTarget} className="flex justify-center py-12 min-h-[100px]">
+                  {hasMore && loadingMore && (
+                    <div className="flex items-center gap-3 text-gray-600">
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                      <span className="text-lg font-medium">আরও খবর লোড হচ্ছে...</span>
+                    </div>
+                  )}
+                  {!hasMore && filteredNews.length > 0 && (
+                    <div className="text-center">
+                      <div className="inline-flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-full border border-gray-200">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-gray-600 font-medium">সব খবর দেখানো হয়েছে</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="text-center py-24">
                 <div className="mb-6">
@@ -276,15 +392,18 @@ export default function NewsPage() {
           </section>
         )}
       </div>
-
-      {/* Load More */}
-      {filteredNews.length > 12 && (
-        <div className="text-center pb-16">
-          <button className="bg-[#C8102E] hover:bg-[#A00D27] text-white px-12 py-4 rounded font-bold text-base uppercase tracking-wide transition-all shadow-lg hover:shadow-xl hover:scale-105">
-            আরও খবর দেখুন
-          </button>
-        </div>
-      )}
     </div>
+  );
+}
+
+export default function NewsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-b from-gray-50 to-white flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+      </div>
+    }>
+      <NewsContent />
+    </Suspense>
   );
 }

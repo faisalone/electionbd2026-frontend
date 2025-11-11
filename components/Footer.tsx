@@ -1,3 +1,5 @@
+import Logo from '@/components/Logo';
+
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-12 mt-20">
@@ -5,9 +7,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-xl font-bold mb-4 text-[#C8102E]">
-              বাংলা নির্বাচন পোর্টাল
-            </h3>
+            <div className="mb-4">
+              <Logo height={48} alt="ভোটমামু" />
+            </div>
             <p className="text-gray-400">
               বাংলাদেশের সবচেয়ে বিশ্বস্ত নির্বাচন তথ্য পোর্টাল
             </p>
@@ -70,7 +72,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>© 2025 বাংলা নির্বাচন পোর্টাল। সর্বস্বত্ব সংরক্ষিত।</p>
+          <p>© ২০২৫ ভোটমামু। সর্বস্বত্ব সংরক্ষিত।</p>
         </div>
       </div>
     </footer>

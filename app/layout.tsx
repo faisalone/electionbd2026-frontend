@@ -12,9 +12,13 @@ const notoSansBengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
-  title: "বাংলা নির্বাচন পোর্টাল ২০২৬ | Bangladesh Election Portal",
-  description: "বাংলাদেশের সবচেয়ে বিশ্বস্ত নির্বাচন তথ্য পোর্টাল - প্রার্থী, দল, আসন এবং লাইভ ফলাফল",
-  keywords: "বাংলাদেশ নির্বাচন, election, প্রার্থী, দল, ভোট",
+  title: "ভোটমামু এআই এজেন্ট | নির্বাচন বিষয়ক খবরাখবর - আনঅফিসিয়াল",
+  description: "বাংলাদেশের জাতীয় নির্বাচন ২০২৬ নিয়ে নানা ধরনের খবর পাবেন আমাদের সাইটে - প্রার্থী, দল, আসন এবং লাইভ ফলাফল",
+  keywords: "বাংলাদেশ, নির্বাচন, সংবাদ, খবর, কুইজ, পোল, প্রার্থী, দল, ভোট",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -26,7 +30,7 @@ export default function RootLayout({
     <html lang="bn" className={notoSansBengali.variable} suppressHydrationWarning>
       <body className="antialiased bg-gray-50" suppressHydrationWarning>
         <Navbar />
-        <main className="min-h-screen pt-20">
+        <main className="min-h-screen">
           {children}
         </main>
         <Footer />

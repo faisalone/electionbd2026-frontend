@@ -1,36 +1,41 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatBengaliDateTime } from '@/lib/dateUtils';
 
 interface NewsCardProps {
   id: number;
+  uid?: string;
   title: string;
   summary: string;
   image: string;
-  date: string;
+  created_at: string;
   category: string;
 }
 
-export default function NewsCard({ id, title, summary, image, date, category }: NewsCardProps) {
-  const isSvg = image.endsWith('.svg');
+export default function NewsCard({ id, uid, title, summary, image, created_at, category }: NewsCardProps) {
+  // Fallback to placeholder if image is null/undefined
+  const safeImage = image || '/news-placeholder.svg';
+  const isSvg = safeImage.endsWith('.svg');
+  const newsLink = uid ? `/news/${uid}` : `/news/${id}`;
   
   return (
-    <Link href={`/news/${id}`}>
+    <Link href={newsLink}>
       <motion.article
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         whileHover={{ y: -10 }}
         transition={{ duration: 0.4 }}
-        className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all cursor-pointer h-full flex flex-col"
+        className="rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col"
       >
         {/* Image */}
         <div className="relative w-full h-52 overflow-hidden bg-gray-200">
           <Image
-            src={image}
+            src={safeImage}
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -45,10 +50,10 @@ export default function NewsCard({ id, title, summary, image, date, category }: 
 
       {/* Content */}
       <div className="p-6">
-        {/* Date */}
+        {/* Date & Time */}
         <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
-          <Calendar className="w-4 h-4" />
-          <span>{date}</span>
+          <Clock className="w-4 h-4" />
+          <span>{formatBengaliDateTime(created_at)}</span>
         </div>
 
         {/* Title */}

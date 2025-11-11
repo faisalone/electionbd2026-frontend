@@ -3,9 +3,10 @@ import { ArrowRight, MapPin, Users } from 'lucide-react';
 import { districtsData, seatsData } from '@/lib/mockData';
 import SectionWrapper from '@/components/SectionWrapper';
 
-export default function DistrictPage({ params }: { params: { district: string } }) {
-  const district = districtsData.find((d) => d.id === params.district);
-  const seats = seatsData.filter((s) => s.districtId === params.district);
+export default async function DistrictPage({ params }: { params: Promise<{ district: string }> }) {
+  const { district: districtId } = await params;
+  const district = districtsData.find((d) => d.id === districtId);
+  const seats = seatsData.filter((s) => s.districtId === districtId);
 
   if (!district) {
     return (

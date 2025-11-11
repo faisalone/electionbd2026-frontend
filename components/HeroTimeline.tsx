@@ -187,10 +187,10 @@ export default function HeroTimeline() {
                 <div key={item.id} className="relative flex items-start shrink-0" style={{ width: '280px' }}>
                   {/* Timeline Item */}
                   <div className="flex flex-col items-center w-full">
-                    {/* Date - Above Icon - Larger */}
-                    <div className="mb-5 h-10 flex items-center justify-center">
+                    {/* Date - Above Icon - Responsive Text Size */}
+                    <div className="mb-3 sm:mb-5 h-8 sm:h-10 flex items-center justify-center">
                       {item.date && (
-                        <p className={`text-lg font-bold ${
+                        <p className={`text-sm sm:text-base md:text-lg font-bold ${
                           isLive ? 'text-[#C8102E]' : 'text-gray-800'
                         }`}>
                           {item.date}
@@ -198,37 +198,37 @@ export default function HeroTimeline() {
                       )}
                     </div>
 
-                    {/* Icon Circle with Live Effect */}
+                    {/* Icon Circle with Live Effect - Smaller on Mobile */}
                     <div className="relative">
                       {/* Live Pulsing Ring Effect */}
                       {isLive && (
                         <>
-                          <div className="absolute inset-0 w-20 h-20 bg-[#C8102E] rounded-full animate-ping opacity-75"></div>
-                          <div className="absolute inset-0 w-20 h-20 bg-[#C8102E] rounded-full animate-pulse opacity-50"></div>
+                          <div className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-[#C8102E] rounded-full animate-ping opacity-75"></div>
+                          <div className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-[#C8102E] rounded-full animate-pulse opacity-50"></div>
                         </>
                       )}
                       
-                      <div className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all ${
+                      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all ${
                         isLive 
                           ? 'bg-[#C8102E] text-white shadow-xl shadow-red-300' 
                           : isCompleted
                           ? 'bg-green-500 text-white shadow-lg'
                           : 'bg-white text-gray-400 border-2 border-gray-300 shadow-md'
                       }`}>
-                        <Icon className="w-9 h-9" />
+                        <Icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9" />
                       </div>
 
                       {/* Connecting Line to Next Item */}
                       {index < timelineData.length - 1 && (
-                        <div className={`absolute top-10 left-[calc(50%+40px)] w-[200px] h-0.5 ${
+                        <div className={`absolute top-7 sm:top-8 md:top-10 left-[calc(50%+28px)] sm:left-[calc(50%+32px)] md:left-[calc(50%+40px)] w-56 sm:w-[216px] md:w-[200px] h-0.5 ${
                           isCompleted ? 'bg-green-400' : 'bg-gray-300'
                         }`} />
                       )}
                     </div>
 
-                    {/* Title - Below Icon */}
-                    <div className="mt-6 text-center px-3 w-full">
-                      <h3 className={`font-bold text-base leading-snug ${
+                    {/* Title - Below Icon - Smaller on Mobile */}
+                    <div className="mt-3 sm:mt-4 md:mt-6 text-center px-2 sm:px-3 w-full">
+                      <h3 className={`font-bold text-xs sm:text-sm md:text-base leading-snug ${
                         isLive ? 'text-[#C8102E]' : 'text-gray-800'
                       }`}>
                         {item.title}
@@ -239,11 +239,6 @@ export default function HeroTimeline() {
               );
             })}
           </div>
-        </div>
-
-        {/* Mobile Scroll Hint */}
-        <div className="text-center mt-4 text-sm text-gray-500 md:hidden">
-          ← স্ক্রল করুন →
         </div>
       </div>
     </div>
