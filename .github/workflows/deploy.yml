@@ -52,22 +52,23 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
+            # Switch to webadmin user and deploy
             cd /var/www/electionbd2026-frontend
             
-            # Pull latest changes
-            git fetch origin main
-            git reset --hard origin/main
+            # Pull latest changes as webadmin
+            sudo -u webadmin git fetch origin main
+            sudo -u webadmin git reset --hard origin/main
             
-            # Install/update dependencies
-            npm ci --production=false
+            # Install/update dependencies as webadmin
+            sudo -u webadmin npm ci --production=false
             
-            # Build the application
-            npm run build
+            # Build the application as webadmin
+            sudo -u webadmin npm run build
             
-            # Restart PM2 process
-            pm2 restart electionbd2026-frontend || pm2 start npm --name "electionbd2026-frontend" -- start
+            # Restart PM2 process as webadmin
+            sudo -u webadmin pm2 restart electionbd2026-frontend || sudo -u webadmin pm2 start npm --name "electionbd2026-frontend" -- start
             
-            # Save PM2 configuration
-            pm2 save
+            # Save PM2 configuration as webadmin
+            sudo -u webadmin pm2 save
             
             echo "✅ Frontend deployment completed successfully!"
