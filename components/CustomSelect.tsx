@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check, Search } from 'lucide-react';
+import { getImageUrl } from '@/lib/admin/api';
 
 interface Option {
   value: string;
@@ -35,6 +36,25 @@ export default function CustomSelect({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
+
+  // Helper to render icon (either emoji or image URL)
+  const renderIcon = (iconValue?: string) => {
+    if (!iconValue) return null;
+    
+    // Check if it's an image URL (starts with / or http)
+    if (iconValue.startsWith('/') || iconValue.startsWith('http')) {
+      return (
+        <img 
+          src={getImageUrl(iconValue)} 
+          alt="" 
+          className="w-5 h-5 object-contain"
+        />
+      );
+    }
+    
+    // Otherwise it's an emoji or text
+    return <span>{iconValue}</span>;
+  };
 
   const closeDropdown = () => {
     setIsOpen(false);
@@ -112,7 +132,7 @@ export default function CustomSelect({
         <span className="flex-1 text-left text-sm font-medium truncate">
           {selectedOption ? (
             <span className="flex items-center gap-2">
-              {selectedOption.icon && <span>{selectedOption.icon}</span>}
+              {renderIcon(selectedOption.icon)}
               {selectedOption.label}
             </span>
           ) : (
@@ -204,7 +224,7 @@ export default function CustomSelect({
                         `}
                       >
                         <span className="flex items-center gap-2 flex-1 truncate">
-                          {option.icon && <span className="text-base">{option.icon}</span>}
+                          {renderIcon(option.icon)}
                           <span className="font-medium">{option.label}</span>
                         </span>
                         {isSelected && (

@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bn" className={notoSansBengali.variable} suppressHydrationWarning>
-      <body className="antialiased bg-gray-50" suppressHydrationWarning>
+      <body className="antialiased" suppressHydrationWarning>
         <Navbar />
         <main className="min-h-screen">
           {children}

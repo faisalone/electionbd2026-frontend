@@ -2,12 +2,13 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { getImageUrl } from '@/lib/admin/api';
 
 interface CandidateCardProps {
   id: string;
   name: string;
   partyName: string;
-  partySymbol: string;
+  partySymbol: string | { image: string; symbol_name: string };
   partySymbolName: string;
   partyColor: string;
   seatName: string;
@@ -28,6 +29,12 @@ export default function CandidateCard({
 }: CandidateCardProps) {
   // Get first letter of name for avatar
   const firstLetter = name.charAt(0).toUpperCase();
+  
+  // Extract symbol image if it's an object
+  const symbolImage = typeof partySymbol === 'object' && partySymbol?.image 
+    ? getImageUrl(partySymbol.image) 
+    : null;
+  const symbolText = typeof partySymbol === 'string' ? partySymbol : null;
   
   // Generate a consistent color based on name
   const getAvatarColor = (name: string) => {
@@ -92,9 +99,19 @@ export default function CandidateCard({
               />
               
               <div className="relative">
-                <div className="text-8xl mb-4 leading-none inline-block transform group-hover:scale-110 transition-transform duration-300">
-                  {partySymbol}
-                </div>
+                {symbolImage ? (
+                  <div className="mb-4 flex justify-center">
+                    <img 
+                      src={symbolImage} 
+                      alt={partySymbolName}
+                      className="w-32 h-32 object-contain transform group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-8xl mb-4 leading-none inline-block transform group-hover:scale-110 transition-transform duration-300">
+                    {symbolText || '🏛️'}
+                  </div>
+                )}
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">মার্কা</p>
                   <p className="text-xl font-bold leading-tight" style={{ color: partyColor }}>

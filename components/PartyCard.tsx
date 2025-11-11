@@ -1,11 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Users } from 'lucide-react';
+import { Users, Calendar } from 'lucide-react';
+import { getImageUrl } from '@/lib/admin/api';
 
 interface PartyCardProps {
   name: string;
-  symbol: string;
+  symbol: string | { id: number; symbol_name: string; image: string } | null | undefined;
+  logo?: string | null;
   color: string;
   founded: string;
   candidatesCount?: number;
@@ -13,62 +15,101 @@ interface PartyCardProps {
 
 export default function PartyCard({
   name,
-  symbol,
+  logo,
   color,
   founded,
   candidatesCount = 0,
 }: PartyCardProps) {
+  // Get first letter for fallback avatar
+  const firstLetter = name.charAt(0).toUpperCase();
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
-      whileHover={{ y: -5, scale: 1.05 }}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100"
+      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300"
     >
-      {/* Party Color Bar */}
-      <div className="h-4" style={{ backgroundColor: color }} />
-
       <div className="p-6">
-        {/* Symbol */}
-        <div className="flex justify-center mb-4">
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-5xl"
-            style={{ backgroundColor: `${color}20` }}
+        {/* Party Logo - Large & Prominent */}
+        <div className="mb-6">
+          <div 
+            className="relative rounded-2xl p-8 text-center overflow-hidden"
+            style={{ 
+              backgroundColor: `${color}08`,
+              border: `2px solid ${color}20`
+            }}
           >
-            {symbol}
+            {/* Decorative gradient background */}
+            <div 
+              className="absolute inset-0 opacity-5"
+              style={{
+                background: `radial-gradient(circle at 30% 50%, ${color}, transparent 70%)`
+              }}
+            />
+            
+            <div className="relative">
+              {logo ? (
+                <div className="mb-4 flex justify-center">
+                  <img 
+                    src={getImageUrl(logo)} 
+                    alt={name}
+                    className="w-32 h-32 object-contain transform group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="w-32 h-32 mx-auto rounded-2xl flex items-center justify-center text-white text-6xl font-bold shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                  style={{ backgroundColor: color }}
+                >
+                  {firstLetter}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Party Name */}
-        <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-          {name}
-        </h3>
-
-        {/* Founded Year */}
-        <p className="text-sm text-gray-600 text-center mb-4">
-          প্রতিষ্ঠা: {founded}
-        </p>
+        <div className="mb-5">
+          <h3 className="text-2xl font-bold text-gray-900 group-hover:text-primary transition-colors mb-2 text-center leading-tight">
+            {name}
+          </h3>
+          <p className="text-sm text-gray-500 flex items-center justify-center gap-1.5">
+            <Calendar className="w-4 h-4 shrink-0" />
+            <span>প্রতিষ্ঠা: {founded}</span>
+          </p>
+        </div>
 
         {/* Candidates Count */}
         {candidatesCount > 0 && (
-          <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-xl py-2 px-4">
-            <Users className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">
-              {candidatesCount} জন প্রার্থী
-            </span>
+          <div 
+            className="rounded-xl p-4 text-center mb-5"
+            style={{ backgroundColor: `${color}05` }}
+          >
+            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">প্রার্থী সংখ্যা</p>
+            <div className="flex items-center justify-center gap-2">
+              <Users className="w-5 h-5" style={{ color: color }} />
+              <p className="text-lg font-bold leading-tight" style={{ color: color }}>
+                {candidatesCount} জন
+              </p>
+            </div>
           </div>
         )}
 
-        {/* View Details Button */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full mt-4 text-white py-3 rounded-xl font-medium hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: color }}
-        >
-          বিস্তারিত দেখুন
-        </motion.button>
+        {/* View Details Link */}
+        <div className="pt-5 border-t border-gray-100">
+          <div className="flex items-center justify-between text-sm font-semibold text-primary group-hover:text-primary-600 transition-colors">
+            <span>বিস্তারিত দেখুন</span>
+            <motion.span
+              className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors"
+              whileHover={{ x: 3 }}
+            >
+              →
+            </motion.span>
+          </div>
+        </div>
       </div>
     </motion.div>
   );

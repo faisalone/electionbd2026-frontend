@@ -44,11 +44,11 @@ export interface Party {
 	id: number;
 	name: string; // Bengali name
 	name_en: string;
-	symbol: string;
-	symbol_name: string; // Bengali symbol name
+	logo: string; // Party logo image path
+	symbol_id?: number | null; // Foreign key to symbols table
 	color: string;
 	founded?: string;
-	is_independent: boolean;
+	symbol?: Symbol; // Eager loaded symbol relationship (when available)
 	created_at: string;
 	updated_at: string;
 	candidates_count?: number;
@@ -57,8 +57,8 @@ export interface Party {
 
 export interface Symbol {
 	id: number;
-	name: string;
-	emoji: string;
+	symbol_name: string; // Bengali name (matches backend field)
+	image: string; // Symbol image path
 	is_available: boolean;
 	created_at: string;
 	updated_at: string;
@@ -72,14 +72,15 @@ export interface Candidate {
 	education: string;
 	experience?: string;
 	image?: string;
-	party_id: number;
+	party_id?: number | null; // Nullable for independent candidates
 	seat_id: number;
-	symbol_id?: number;
+	symbol_id?: number | null; // For independent candidates
 	created_at: string;
 	updated_at: string;
 	party?: Party;
 	seat?: Seat;
 	symbol?: Symbol;
+	is_independent?: boolean; // Computed property from backend
 }
 
 export interface TimelineEvent {

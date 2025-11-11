@@ -463,13 +463,14 @@ export default function Home() {
 					</div>
 				) : (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-						{parties.filter(p => !p.is_independent).map((party) => (
+						{parties.map((party) => (
 							<PartyCard
 								key={party.id}
 								name={party.name}
 								symbol={party.symbol}
+								logo={party.logo}
 								color={party.color}
-								founded="১৯৭১" // Default, can be added to backend later
+								founded={party.founded || '১৯৭১'}
 								candidatesCount={party.candidates_count}
 							/>
 						))}

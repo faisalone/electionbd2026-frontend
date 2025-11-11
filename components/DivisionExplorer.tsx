@@ -142,7 +142,7 @@ function DivisionExplorerContent() {
 				// Apply party filter
 				if (partyFilter !== 'all') {
 					if (partyFilter === 'independent') {
-						params.is_independent = 1;
+						params.is_independent = true; // Filter candidates without party_id
 					} else {
 						params.party_id = partyFilter;
 					}
@@ -263,11 +263,7 @@ function DivisionExplorerContent() {
 
 	const handleSymbolChange = (symbolId: string) => {
 		setSymbolFilter(symbolId);
-		const numericId = parseInt(symbolId);
-		if (!isNaN(numericId)) {
-			const party = parties.find(p => p.id === numericId);
-			setPartyFilter(party?.is_independent ? 'independent' : symbolId);
-		}
+		// Party filter is separate from symbol filter
 	};
 
 	// Clear all filters
@@ -283,8 +279,8 @@ function DivisionExplorerContent() {
 		setCurrentPage(1);
 	}, [debouncedSearch, partyFilter, symbolFilter]);
 
-	// Get available parties from all parties (for filter dropdown)
-	const availableParties = parties.filter(party => !party.is_independent);
+	// Get available parties (all parties for filter dropdown)
+	const availableParties = parties;
 
 	return (
 		<div className="w-full">{/* Full width container */}			{/* Breadcrumb Navigation */}
@@ -503,7 +499,7 @@ function DivisionExplorerContent() {
 											...availableParties.map(party => ({
 												value: party.id.toString(),
 												label: party.name,
-												icon: party.symbol,
+												icon: party.symbol?.image || party.logo || '🏛️',
 											})),
 											{ value: 'independent', label: 'স্বতন্ত্র', icon: '👤' }
 										]}
@@ -520,8 +516,8 @@ function DivisionExplorerContent() {
 											{ value: 'all', label: 'সকল মার্কা', icon: '🎯' },
 											...availableParties.map(party => ({
 												value: party.id.toString(),
-												label: party.symbol_name,
-												icon: party.symbol,
+												label: party.symbol?.symbol_name || 'N/A',
+												icon: party.symbol?.image || '🎯',
 											})),
 										]}
 									/>
@@ -594,10 +590,15 @@ function DivisionExplorerContent() {
 								const seat = candidate.seat;
 								const district = seat?.district;
 								
-								// Display data based on party type
-								const displayPartyName = party?.is_independent ? 'স্বতন্ত্র প্রার্থী' : (party?.name || 'N/A');
-								const displaySymbol = party?.symbol || '🏛️';
-								const displaySymbolName = party?.symbol_name || party?.name || 'N/A';
+								// Display data: handle both party and independent candidates
+								const isIndependent = candidate.is_independent || (!candidate.party_id && candidate.symbol_id);
+								const displayPartyName = isIndependent ? 'স্বতন্ত্র প্রার্থী' : (party?.name || 'N/A');
+								
+								// Get symbol: either from party's symbol relationship or candidate's direct symbol
+								const effectiveSymbol = party?.symbol || candidate.symbol;
+								// Pass the whole symbol object if available, otherwise fallback emoji
+								const displaySymbol = effectiveSymbol || '🏛️';
+								const displaySymbolName = effectiveSymbol?.symbol_name || 'N/A';
 								
 								// Format seat name: "১ ঢাকা (ঢাকা-১)" = district_id(Bengali) District_Name (Seat_Name)
 								const seatDisplay = seat && district 

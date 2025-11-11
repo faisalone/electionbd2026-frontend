@@ -20,9 +20,10 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const isNewsPage = pathname?.startsWith('/news');
+  const isAdminPage = pathname?.startsWith('/admin');
 
-  // Hide default navbar on news pages
-  if (isNewsPage) {
+  // Hide default navbar on news pages and admin pages
+  if (isNewsPage || isAdminPage) {
     return null;
   }
 
