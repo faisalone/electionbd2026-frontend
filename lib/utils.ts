@@ -19,6 +19,18 @@ export function toBengaliNumber(num: number | string): string {
 		.join('');
 }
 
+// Convert Bengali numbers to English
+export function toEnglishNumber(num: string): string {
+	const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+	return num
+		.split('')
+		.map((char) => {
+			const index = bengaliDigits.indexOf(char);
+			return index !== -1 ? index.toString() : char;
+		})
+		.join('');
+}
+
 // Format date in Bengali locale with AM/PM in Bengali
 export function formatBengaliDate(dateString: string): string {
 	const date = new Date(dateString);

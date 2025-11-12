@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Calendar, XCircle, Loader2, Send } from 'lucide-react';
 import { LiaLongArrowAltRightSolid } from 'react-icons/lia';
-import { toBengaliNumber, formatBengaliDate } from '@/lib/utils';
+import { toBengaliNumber, toEnglishNumber, formatBengaliDate } from '@/lib/utils';
 import { api } from '@/lib/api';
 import echo from '@/lib/echo';
 import ShareButton from '@/components/ShareButton';
@@ -54,11 +54,36 @@ export default function PollCard({
   const [otpError, setOtpError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [liveVoteCount, setLiveVoteCount] = useState(totalVotes);
+  const [animatedVoteCount, setAnimatedVoteCount] = useState(totalVotes);
 
   // Sync live vote count
   useEffect(() => {
     setLiveVoteCount(totalVotes);
+    setAnimatedVoteCount(totalVotes);
   }, [totalVotes]);
+
+  // Animate number changes
+  useEffect(() => {
+    if (animatedVoteCount === liveVoteCount) return;
+
+    const diff = liveVoteCount - animatedVoteCount;
+    const step = diff > 0 ? 1 : -1;
+    const duration = Math.min(Math.abs(diff) * 50, 1000); // Max 1 second
+    const stepTime = duration / Math.abs(diff);
+
+    const timer = setInterval(() => {
+      setAnimatedVoteCount(prev => {
+        const next = prev + step;
+        if ((step > 0 && next >= liveVoteCount) || (step < 0 && next <= liveVoteCount)) {
+          clearInterval(timer);
+          return liveVoteCount;
+        }
+        return next;
+      });
+    }, stepTime);
+
+    return () => clearInterval(timer);
+  }, [liveVoteCount, animatedVoteCount]);
 
   // Real-time updates
   useEffect(() => {
@@ -127,11 +152,13 @@ export default function PollCard({
   };
 
   const handlePhoneSubmit = async () => {
-    if (phoneNumber.length >= 11) {
+    // Convert Bengali numbers to English before validation
+    const englishPhone = toEnglishNumber(phoneNumber);
+    if (englishPhone.length >= 11) {
       setIsVerifying(true);
       try {
         await api.sendOTP({
-          phone_number: phoneNumber,
+          phone_number: englishPhone,
           purpose: 'poll_vote',
           poll_id: pollId,
         });
@@ -152,10 +179,14 @@ export default function PollCard({
     setOtpError('');
     
     try {
+      // Convert Bengali numbers to English
+      const englishPhone = toEnglishNumber(phoneNumber);
+      const englishOtp = toEnglishNumber(otp);
+      
       await api.votePoll(pollId, {
         option_id: parseInt(selectedOption),
-        phone_number: phoneNumber,
-        otp_code: otp,
+        phone_number: englishPhone,
+        otp_code: englishOtp,
       });
       
       // mark voted locally and remember selection for this session
@@ -370,15 +401,15 @@ export default function PollCard({
                     <button
                       onClick={votingStep === 'phone' ? handlePhoneSubmit : handleOtpSubmit}
                       disabled={
-                        (votingStep === 'phone' && phoneNumber.length < 11) ||
-                        (votingStep === 'otp' && (otp.length < 4 || isVerifying))
+                        (votingStep === 'phone' && toEnglishNumber(phoneNumber).length < 11) ||
+                        (votingStep === 'otp' && (toEnglishNumber(otp).length < 4 || isVerifying))
                       }
-                      className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 ${
-                        (votingStep === 'phone' && phoneNumber.length >= 11) ||
-                        (votingStep === 'otp' && otp.length >= 4 && !isVerifying)
+                      className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
+                        (votingStep === 'phone' && toEnglishNumber(phoneNumber).length >= 11) ||
+                        (votingStep === 'otp' && toEnglishNumber(otp).length >= 4 && !isVerifying)
                           ? votingStep === 'otp'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-blue-500 text-white'
+                            ? 'bg-green-500 hover:bg-green-600 text-white'
+                            : 'bg-[#25D366] hover:bg-[#1da851] text-white shadow-md'
                           : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
@@ -420,7 +451,7 @@ export default function PollCard({
         {/* Total Votes */}
         <div className="mt-auto pt-4 border-t border-gray-200">
           <p className="text-2xl font-bold text-gray-900 text-center mb-4">
-            {toBengaliNumber(liveVoteCount)} জন ভোট দিয়েছেন
+            {toBengaliNumber(animatedVoteCount)} জন ভোট দিয়েছেন
           </p>
         </div>
 

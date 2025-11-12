@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Search, Filter, Loader2 } from 'lucide-react';
+import ReactPaginate from 'react-paginate';
 import CandidateCard from './CandidateCard';
 import CustomSelect from './CustomSelect';
 import { api, type Division, type District, type Seat, type Candidate, type Party } from '@/lib/api';
@@ -658,53 +659,42 @@ function DivisionExplorerContent() {
 						</div>
 					) : null}
 
-					{/* Pagination - Server-Side */}
+					{/* React Paginate Library */}
 					{totalPagesFromServer > 1 && candidates.length > 0 && (
-						<div className="flex items-center justify-center gap-2 pt-8">
-							<button
-								onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-								disabled={currentPage === 1}
-								className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95"
-							>
-								পূর্ববর্তী
-							</button>
-							
-							<div className="flex gap-2">
-								{Array.from({ length: Math.min(totalPagesFromServer, 5) }, (_, i) => {
-									let page: number;
-									if (totalPagesFromServer <= 5) {
-										page = i + 1;
-									} else if (currentPage <= 3) {
-										page = i + 1;
-									} else if (currentPage >= totalPagesFromServer - 2) {
-										page = totalPagesFromServer - 4 + i;
-									} else {
-										page = currentPage - 2 + i;
-									}
-									
-									return (
-										<button
-											key={page}
-											onClick={() => handlePageChange(page)}
-											className={`w-10 h-10 text-sm font-medium rounded-lg transition-all active:scale-95 ${
-												currentPage === page
-													? 'bg-gray-900 text-white'
-													: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-											}`}
-										>
-											{toBengaliNumber(page)}
-										</button>
-									);
-								})}
-							</div>
-
-							<button
-								onClick={() => handlePageChange(Math.min(totalPagesFromServer, currentPage + 1))}
-								disabled={currentPage === totalPagesFromServer}
-								className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95"
-							>
-								পরবর্তী
-							</button>
+						<div className="flex justify-center pt-8">
+							<ReactPaginate
+								previousLabel={
+									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+									</svg>
+								}
+								nextLabel={
+									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+									</svg>
+								}
+								breakLabel="..."
+								pageCount={totalPagesFromServer}
+								marginPagesDisplayed={1}
+								pageRangeDisplayed={2}
+								onPageChange={(selected) => handlePageChange(selected.selected + 1)}
+								forcePage={currentPage - 1}
+								pageLabelBuilder={(page) => toBengaliNumber(page)}
+								containerClassName="flex items-center gap-1"
+								pageClassName="page-item"
+								pageLinkClassName="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg font-medium text-sm transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-blue-400"
+								previousClassName="page-item"
+								previousLinkClassName="min-w-8 h-9 sm:h-10 px-2 sm:px-3 flex items-center justify-center rounded-lg font-medium text-sm transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
+								nextClassName="page-item"
+								nextLinkClassName="min-w-8 h-9 sm:h-10 px-2 sm:px-3 flex items-center justify-center rounded-lg font-medium text-sm transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
+								breakClassName="w-9 h-9 flex items-center justify-center text-gray-400"
+								breakLinkClassName="w-full h-full flex items-center justify-center"
+								activeClassName="active"
+								activeLinkClassName="!bg-blue-600 !text-white !border-blue-600 shadow-md"
+								disabledClassName="opacity-50 cursor-not-allowed"
+								disabledLinkClassName="!cursor-not-allowed hover:!bg-white hover:!border-gray-300"
+								renderOnZeroPageCount={null}
+							/>
 						</div>
 					)}
 				</motion.div>

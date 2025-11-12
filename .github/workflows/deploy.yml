@@ -65,8 +65,8 @@ jobs:
             # Build the application as webadmin
             sudo -u webadmin npm run build
             
-            # Restart PM2 process as webadmin
-            sudo -u webadmin pm2 restart electionbd2026-frontend || sudo -u webadmin pm2 start npm --name "electionbd2026-frontend" -- start
+            # Reload PM2 process (zero-downtime) as webadmin
+            sudo -u webadmin pm2 reload electionbd2026-frontend || sudo -u webadmin pm2 start npm --name "electionbd2026-frontend" -- start
             
             # Save PM2 configuration as webadmin
             sudo -u webadmin pm2 save
