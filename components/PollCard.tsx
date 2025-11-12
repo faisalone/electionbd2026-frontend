@@ -46,6 +46,7 @@ export default function PollCard({
 }: PollCardProps) {
   const [voted, setVoted] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [rememberedVote, setRememberedVote] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [votingStep, setVotingStep] = useState<'select' | 'phone' | 'otp'>('select');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -97,6 +98,22 @@ export default function PollCard({
     }
   }, [endDate, status]);
 
+  // Restore vote from this browser session/localStorage so card remembers user's choice
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem(`poll_voted_${pollId}`);
+        if (stored) {
+          setRememberedVote(stored);
+          setSelectedOption(stored);
+          setVoted(true);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [pollId]);
+
   // no-op
 
   const handleOptionClick = (optionId: string) => {
@@ -141,7 +158,16 @@ export default function PollCard({
         otp_code: otp,
       });
       
+      // mark voted locally and remember selection for this session
       setVoted(true);
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`poll_voted_${pollId}`, selectedOption);
+          setRememberedVote(selectedOption);
+        }
+      } catch (e) {
+        // ignore storage errors
+      }
       setVotingStep('select');
       setLiveVoteCount(prev => prev + 1);
     } catch (error: any) {
@@ -215,9 +241,10 @@ export default function PollCard({
                 <div className="space-y-3">
                   {options.map((option) => {
                     const percentage = getPercentage(option.votes);
+                    const isRemembered = rememberedVote === option.id;
                     return (
                       <div key={option.id} className="w-full">
-                        <div className="relative overflow-hidden rounded-xl border bg-gray-50 border-gray-200">
+                        <div className={`relative overflow-hidden rounded-xl border bg-gray-50 ${isRemembered ? 'ring-2 ring-offset-2 ring-[#C8102E]/20 border-[#C8102E]' : 'border-gray-200'}`}>
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${percentage}%` }}
@@ -236,6 +263,11 @@ export default function PollCard({
                               <span className="text-xs text-gray-500">
                                 ({toBengaliNumber(option.votes)})
                               </span>
+                              {isRemembered && (
+                                <span className="ml-3 inline-flex items-center gap-1 text-xs bg-white/90 text-[#C8102E] px-2 py-1 rounded-full font-medium">
+                                  <CheckCircle className="w-4 h-4" /> আপনি ভোট দিয়েছেন
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -246,11 +278,22 @@ export default function PollCard({
               );
             }
 
-            // Selection Mode: show chips that wrap to use available space
+            // Selection Mode: grid layout — try 2 columns, let very long options span full width.
+            // single option: center it. three options: center third item without forcing full width.
+            const gridContainerClasses = options.length === 1 ? 'grid-cols-1 justify-items-center' : 'grid-cols-2';
             return (
-              <div className="flex flex-wrap items-start gap-3">
-                {options.map((option) => {
+              <div className={`grid gap-3 ${gridContainerClasses}`}>
+                {options.map((option, idx) => {
                   const isSelected = selectedOption === option.id;
+                  // prefer full width if option text is long
+                  const isLong = option.text.length > 80;
+                  // if there are 3 options, put the third centered across both columns for nicer layout
+                  const forceCenterThird = options.length === 3 && idx === 2;
+                  const colSpanClass = isLong ? 'col-span-2' : 'col-span-1';
+                  const selfAlignClass = forceCenterThird ? 'col-span-2 justify-self-center' : '';
+                  // when item is single-column and not long, let width be auto so it wraps to content size
+                  const sizeClass = isLong ? 'w-full' : (forceCenterThird ? 'w-auto max-w-[70%]' : 'w-auto');
+
                   return (
                     <motion.button
                       key={option.id}
@@ -258,12 +301,14 @@ export default function PollCard({
                       disabled={!isSelectionMode}
                       whileHover={isSelectionMode ? { scale: 1.02 } : {}}
                       whileTap={isSelectionMode ? { scale: 0.98 } : {}}
-                      className={`inline-flex max-w-full text-left transition-all rounded-xl border px-4 py-3 text-sm font-semibold ${
+                      className={`${colSpanClass} ${selfAlignClass} inline-flex ${sizeClass} text-left transition-all rounded-xl border px-4 py-3 text-sm font-semibold ${
                         isSelectionMode ? 'cursor-pointer' : 'cursor-default'
                       } ${isSelected ? 'text-white' : 'text-gray-900 bg-gray-50 border-gray-200 hover:border-gray-300'}`}
                       style={isSelected ? { backgroundColor: option.color, borderColor: option.color } : {}}
                     >
-                      <span className="whitespace-normal wrap-break-word">{option.text}</span>
+                      <span className={`whitespace-normal wrap-break-word` }>
+                        {option.text}
+                      </span>
                     </motion.button>
                   );
                 })}
