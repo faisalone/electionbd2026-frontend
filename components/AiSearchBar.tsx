@@ -118,13 +118,55 @@ export default function AiSearchBar() {
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = async (suggestion: string) => {
     setQuery(suggestion);
     setShowSuggestions(false);
-    // Auto-submit
-    setTimeout(() => {
-      handleSubmit();
-    }, 100);
+    
+    // Auto-submit immediately - set query first, then submit
+    setIsLoading(true);
+    setAiResponse(null);
+    setDisplayedResponse('');
+    setDataFound({});
+    setResults(null);
+    setThinkingExpanded(false);
+    setIsTyping(false);
+    
+    // Show thinking immediately with generic message
+    setThinking('মামু ওয়েট, আমি বিশ্লেষণ করছি...');
+    setTopics([]);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: suggestion.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Update thinking with actual AI analysis
+        setThinking(data.thinking || 'মামু ওয়েট, আমি চিন্তা করছি...');
+        setTopics(data.topics_identified || []);
+        setDataFound(data.data_found || {});
+        setResults(data.results);
+        
+        // Small delay before showing response for better UX
+        setTimeout(() => {
+          setAiResponse(data.response);
+        }, 500);
+        
+        // Refresh suggestions after search
+        fetchSuggestions();
+      } else {
+        setAiResponse(data.message || 'কিছু খুঁজে পাওয়া যায়নি, নির্বাচন সম্পর্কিত প্রশ্ন জিজ্ঞাসা করুন।');
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setAiResponse('সার্ভার এরর হয়েছে, আবার চেষ্টা করুন।');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const removeSuggestion = async (suggestion: string, e: React.MouseEvent) => {
@@ -261,107 +303,12 @@ export default function AiSearchBar() {
             exit={{ opacity: 0, y: -20 }}
             className="mt-6 space-y-4"
           >
-            {/* Thinking Process - Collapsible with shimmer during loading */}
-            {thinking && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className={`relative overflow-hidden border rounded-2xl transition-all duration-300 ${
-                  isLoading
-                    ? 'bg-linear-to-r from-amber-50 via-amber-100 to-amber-50 bg-size-[200%_100%] animate-shimmer border-amber-300 shadow-lg shadow-amber-200/50'
-                    : 'bg-amber-50 border-amber-200'
-                }`}
-              >
-                {/* Shimmer effect during loading */}
-                {isLoading && (
-                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent animate-shimmer-sweep" />
-                )}
-                
-                <div className="relative">
-                  {/* Collapsed Header */}
-                  <button
-                    onClick={() => setThinkingExpanded(!thinkingExpanded)}
-                    className="w-full p-4 flex items-center gap-3 hover:bg-amber-100/30 transition-colors"
-                  >
-                    <div className={`p-1.5 rounded-lg shrink-0 transition-all ${
-                      isLoading ? 'bg-amber-200 animate-pulse' : 'bg-amber-100'
-                    }`}>
-                      <Brain className={`w-4 h-4 text-amber-600 ${isLoading ? 'animate-bounce' : ''}`} />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <p className="text-sm text-amber-800 font-medium flex items-center gap-2">
-                        {isLoading ? (
-                          <>
-                            <span className="inline-block w-1.5 h-1.5 bg-amber-600 rounded-full animate-ping" />
-                            মামু ওয়েট, চিন্তা করছি...
-                          </>
-                        ) : (
-                          'চিন্তা প্রক্রিয়া'
-                        )}
-                      </p>
-                    </div>
-                    <div className="shrink-0">
-                      {thinkingExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-amber-600" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-amber-600" />
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Expanded Content */}
-                  <AnimatePresence>
-                    {thinkingExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-4 space-y-3 border-t border-amber-200/50 pt-3">
-                          {/* Thinking Message */}
-                          <p className="text-sm text-amber-700 leading-relaxed">
-                            {thinking}
-                          </p>
-                          
-                          {/* Topics inside thinking box */}
-                          {topics.length > 0 && (
-                            <div className="pt-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
-                                  <Tag className="w-3.5 h-3.5" />
-                                  <span>বিষয়:</span>
-                                </div>
-                                {topics.map((topic, i) => (
-                                  <motion.span
-                                    key={i}
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="inline-flex items-center gap-1 text-xs bg-amber-200/60 text-amber-800 px-2.5 py-1 rounded-full border border-amber-300"
-                                  >
-                                    {topic}
-                                  </motion.span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Main AI Response with typing effect */}
+            {/* Main AI Response Card - Show First */}
             {aiResponse && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.1 }}
                 className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 shadow-lg border border-blue-100"
               >
                 <div className="flex items-start gap-3">
@@ -430,6 +377,88 @@ export default function AiSearchBar() {
                 </div>
               </motion.div>
             )}
+
+            {/* Compact Thinking Text - Below Response */}
+            {thinking && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center justify-center gap-2 px-2"
+              >
+                {isLoading && (
+                  <div className="flex items-center gap-2 relative">
+                    <Brain className="w-3.5 h-3.5 text-gray-400 animate-pulse" />
+                    <div className="relative">
+                      <p className="text-xs text-gray-500 font-medium">
+                        {thinking}
+                      </p>
+                      {/* Shimmer lighting effect on text */}
+                      <div className="absolute inset-0 bg-linear-to-r from-transparent via-yellow-200/50 to-transparent animate-shimmer-sweep pointer-events-none rounded" />
+                    </div>
+                  </div>
+                )}
+                
+                {!isLoading && (
+                  <button
+                    onClick={() => setThinkingExpanded(!thinkingExpanded)}
+                    className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700 transition-colors group py-1 px-2 rounded-lg hover:bg-gray-50"
+                  >
+                    <Brain className="w-3.5 h-3.5" />
+                    <span className="font-medium">চিন্তা প্রক্রিয়া দেখুন</span>
+                    {thinkingExpanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 group-hover:transform group-hover:-translate-y-0.5 transition-transform" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 group-hover:transform group-hover:translate-y-0.5 transition-transform" />
+                    )}
+                  </button>
+                )}
+              </motion.div>
+            )}
+
+            {/* Expanded Thinking Details */}
+            <AnimatePresence>
+              {thinkingExpanded && !isLoading && thinking && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="bg-gray-50/50 border border-gray-200 rounded-2xl p-4 space-y-3">
+                    {/* Thinking Message */}
+                    <div className="flex items-start gap-2">
+                      <Brain className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {thinking}
+                      </p>
+                    </div>
+                    
+                    {/* Topics */}
+                    {topics.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
+                          <Tag className="w-3.5 h-3.5" />
+                          <span>বিষয়:</span>
+                        </div>
+                        {topics.map((topic, i) => (
+                          <motion.span
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full border border-blue-200"
+                          >
+                            {topic}
+                          </motion.span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
