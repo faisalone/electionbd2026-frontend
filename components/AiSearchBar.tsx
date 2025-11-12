@@ -8,6 +8,8 @@ export default function AiSearchBar() {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<string[]>([]);
+  const [isLoadingAutocomplete, setIsLoadingAutocomplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [displayedResponse, setDisplayedResponse] = useState('');
@@ -18,6 +20,7 @@ export default function AiSearchBar() {
   const [thinkingExpanded, setThinkingExpanded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const autocompleteTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Typing animation effect
   useEffect(() => {
@@ -64,6 +67,51 @@ export default function AiSearchBar() {
       }
     } catch (error) {
       console.error('Failed to fetch suggestions:', error);
+    }
+  };
+
+  // Live autocomplete as user types (Google-like)
+  const fetchAutocomplete = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setAutocompleteSuggestions([]);
+      return;
+    }
+
+    setIsLoadingAutocomplete(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/ai/autocomplete?query=${encodeURIComponent(searchQuery)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setAutocompleteSuggestions(data.suggestions || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch autocomplete:', error);
+      setAutocompleteSuggestions([]);
+    } finally {
+      setIsLoadingAutocomplete(false);
+    }
+  };
+
+  // Handle input change with debounced autocomplete
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+    setShowSuggestions(true);
+
+    // Clear previous timer
+    if (autocompleteTimerRef.current) {
+      clearTimeout(autocompleteTimerRef.current);
+    }
+
+    // Debounce autocomplete API call (300ms)
+    if (value.trim()) {
+      autocompleteTimerRef.current = setTimeout(() => {
+        fetchAutocomplete(value);
+      }, 300);
+    } else {
+      setAutocompleteSuggestions([]);
     }
   };
 
@@ -204,12 +252,9 @@ export default function AiSearchBar() {
             <textarea
               value={query}
               onChange={(e) => {
-                setQuery(e.target.value);
+                handleInputChange(e);
                 e.target.style.height = 'auto';
                 e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-                if (!showSuggestions && e.target.value.trim()) {
-                  setShowSuggestions(true);
-                }
               }}
               onFocus={() => setShowSuggestions(true)}
               onKeyDown={(e) => {
@@ -260,8 +305,35 @@ export default function AiSearchBar() {
         </div>
       </form>
 
-      {/* Suggestions Dropdown */}
-      {showSuggestions && filtered.length > 0 && !aiResponse && (
+      {/* Live Autocomplete Dropdown (when typing) */}
+      {showSuggestions && query.trim() && autocompleteSuggestions.length > 0 && !aiResponse && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden"
+        >
+          {isLoadingAutocomplete && (
+            <div className="px-6 py-3 text-gray-400 text-sm flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              খুঁজছি...
+            </div>
+          )}
+          {autocompleteSuggestions.map((suggestion, i) => (
+            <button
+              key={i}
+              onClick={() => handleSuggestionClick(suggestion)}
+              className="group w-full flex items-center gap-2 px-6 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors text-left"
+            >
+              <Search className="w-4 h-4 text-gray-400 shrink-0" />
+              <span className="text-gray-700">{suggestion}</span>
+            </button>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Recent/Popular Suggestions Dropdown (when not typing) */}
+      {showSuggestions && !query.trim() && filtered.length > 0 && !aiResponse && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
