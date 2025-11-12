@@ -424,9 +424,17 @@ export default function Home() {
 				title="রাজনৈতিক দলসমূহ"
 				subtitle="প্রধান রাজনৈতিক দল এবং তাদের তথ্য"
 				className=""
+				headerAction={
+					<a href="/parties" className="text-[#C8102E] hover:text-[#A00D27] font-medium flex items-center gap-2 transition-colors">
+						সব দল দেখুন
+						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+						</svg>
+					</a>
+				}
 			>
 				{partiesLoading ? (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
 						{[1, 2, 3, 4].map((i) => (
 							<div key={i} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
 								<div className="animate-pulse">
@@ -462,10 +470,11 @@ export default function Home() {
 						))}
 					</div>
 				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-						{parties.map((party) => (
+					<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+						{parties.slice(0, 4).map((party) => (
 							<PartyCard
 								key={party.id}
+								id={party.id}
 								name={party.name}
 								symbol={party.symbol}
 								logo={party.logo}
