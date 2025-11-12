@@ -30,6 +30,11 @@ if (typeof window !== 'undefined') {
 		forceTLS: scheme === 'https',
 		enabledTransports: ['ws', 'wss'],
 		disableStats: true,
+		// CRITICAL: Tell Pusher to use /app/ path for WebSocket connections
+		wsPath: '/app',
+		wssPath: '/app',
+		// Enable authorization for private/presence channels
+		authEndpoint: `${scheme}://${process.env.NEXT_PUBLIC_REVERB_HOST}/broadcasting/auth`,
 	});
 
 	// Debug WebSocket connection
