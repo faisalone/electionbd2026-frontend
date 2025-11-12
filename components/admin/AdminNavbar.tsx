@@ -53,7 +53,7 @@ export default function AdminNavbar() {
           <div className="px-6 py-3">
             <div className="flex items-center justify-between">
               {/* Logo - Left */}
-              <Link href="/admin" className="flex items-center gap-2 shrink-0">
+              <Link href="/" className="flex items-center gap-2 shrink-0">
                 <Logo height={40} className="hover:scale-105 transition-transform" alt="ভোটমামু Admin" />
               </Link>
 
@@ -89,7 +89,7 @@ export default function AdminNavbar() {
                   onMouseLeave={() => setShowDropdown(false)}
                   className="flex items-center gap-2 transition-all"
                 >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C8102E] to-[#A00D24] flex items-center justify-center text-white font-semibold shadow-md hover:scale-110 transition-transform">
+                  <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#C8102E] to-[#A00D24] flex items-center justify-center text-white font-semibold shadow-md hover:scale-110 transition-transform">
                     {admin?.name.charAt(0).toUpperCase()}
                   </div>
                 </button>
@@ -134,9 +134,9 @@ export default function AdminNavbar() {
         {mobileMenuOpen && (
           <div className="lg:hidden mt-2 bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-white/40 overflow-hidden">
             {/* Profile Section */}
-            <div className="p-4 border-b border-gray-100/50 bg-gradient-to-r from-gray-50/50 to-white/50">
+            <div className="p-4 border-b border-gray-100/50 bg-linear-to-r from-gray-50/50 to-white/50">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C8102E] to-[#A00D24] flex items-center justify-center text-white font-bold text-lg shadow-md">
+                <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#C8102E] to-[#A00D24] flex items-center justify-center text-white font-bold text-lg shadow-md">
                   {admin?.name.charAt(0).toUpperCase()}
                 </div>
                 <div>

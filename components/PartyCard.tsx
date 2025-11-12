@@ -15,6 +15,7 @@ interface PartyCardProps {
 
 export default function PartyCard({
   name,
+  symbol,
   logo,
   color,
   founded,
@@ -22,6 +23,9 @@ export default function PartyCard({
 }: PartyCardProps) {
   // Get first letter for fallback avatar
   const firstLetter = name.charAt(0).toUpperCase();
+  
+  // Extract symbol data
+  const symbolData = typeof symbol === 'object' && symbol ? symbol : null;
 
   return (
     <motion.div
@@ -30,18 +34,11 @@ export default function PartyCard({
       viewport={{ once: true }}
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300"
+      className="group border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300 bg-linear-to-br from-gray-50/50 to-white/80"
     >
       <div className="p-6">
         {/* Party Logo - Large & Prominent */}
         <div className="mb-6">
-          <div 
-            className="relative rounded-2xl p-8 text-center overflow-hidden"
-            style={{ 
-              backgroundColor: `${color}08`,
-              border: `2px solid ${color}20`
-            }}
-          >
             {/* Decorative gradient background */}
             <div 
               className="absolute inset-0 opacity-5"
@@ -68,8 +65,24 @@ export default function PartyCard({
                 </div>
               )}
             </div>
-          </div>
         </div>
+
+        {/* মার্কা (Symbol) - Small area */}
+        {symbolData && (
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <span className="text-xs font-semibold text-gray-500">মার্কা:</span>
+            <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 border border-gray-200 shadow-sm">
+              {symbolData.image && (
+                <img 
+                  src={getImageUrl(symbolData.image)} 
+                  alt={symbolData.symbol_name}
+                  className="w-5 h-5 object-contain"
+                />
+              )}
+              <span className="text-sm font-medium text-gray-700">{symbolData.symbol_name}</span>
+            </div>
+          </div>
+        )}
 
         {/* Party Name */}
         <div className="mb-5">
