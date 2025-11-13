@@ -4,7 +4,7 @@ import ProtectedRoute from '@/components/admin/ProtectedRoute';
 import { useAdmin } from '@/lib/admin/context';
 import { getAll, create, update, remove, getImageUrl } from '@/lib/admin/api';
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, Loader2, X, Save, Newspaper, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, X, Save, Newspaper, Image as ImageIcon, Eye, XCircle, ExternalLink, Calendar, Clock } from 'lucide-react';
 
 interface News {
   id: number;
@@ -16,6 +16,8 @@ interface News {
   created_at: string;
   category: string;
   is_ai_generated: boolean;
+  status: string;
+  source_url?: string | null;
 }
 
 export default function NewsPage() {
@@ -23,6 +25,8 @@ export default function NewsPage() {
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingNews, setViewingNews] = useState<News | null>(null);
   const [editingNews, setEditingNews] = useState<News | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -137,6 +141,47 @@ export default function NewsPage() {
     }
   };
 
+  const handleViewNews = (newsItem: News) => {
+    setViewingNews(newsItem);
+    setShowViewModal(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setViewingNews(null);
+  };
+
+  const handleRejectNews = async (id: number) => {
+    if (!confirm('Are you sure you want to reject this news article?')) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('status', 'rejected');
+      await update('news', id, formData, token!, true);
+      await fetchNews();
+      handleCloseViewModal();
+    } catch (error) {
+      console.error('Failed to reject news:', error);
+    }
+  };
+
+  const parseSources = (sourceUrl: string | null | undefined) => {
+    if (!sourceUrl) return [];
+    try {
+      return JSON.parse(sourceUrl);
+    } catch (error) {
+      return [];
+    }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }),
+      time: date.toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
+    };
+  };
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -154,10 +199,10 @@ export default function NewsPage() {
         <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
                 <Newspaper className="text-white" size={20} />
               </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-linear-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 News Management
               </h1>
             </div>
@@ -165,7 +210,7 @@ export default function NewsPage() {
           </div>
           <button
             onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
+            className="flex items-center gap-2 bg-linear-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
           >
             <Plus size={20} />
             <span className="hidden sm:inline">Add News</span>
@@ -180,15 +225,22 @@ export default function NewsPage() {
               className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300"
             >
               <div className="p-6">
-                {/* Header: Category + Date */}
+                {/* Header: Category + DateTime */}
                 <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-gray-100">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-200 shrink-0">
                     <Newspaper className="w-3.5 h-3.5" />
                     <span className="text-xs font-semibold">{newsItem.category}</span>
                   </div>
-                  <span className="text-xs text-gray-500 pt-1">
-                    {new Date(newsItem.created_at).toLocaleDateString('bn-BD')}
-                  </span>
+                  <div className="text-xs text-gray-500 pt-1 text-right">
+                    <div className="flex items-center gap-1 justify-end">
+                      <Calendar className="w-3 h-3" />
+                      <span>{formatDateTime(newsItem.created_at).date}</span>
+                    </div>
+                    <div className="flex items-center gap-1 justify-end mt-0.5">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatDateTime(newsItem.created_at).time}</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Image Section */}
@@ -220,11 +272,17 @@ export default function NewsPage() {
 
                 <div className="flex gap-2 pt-4 border-t border-gray-100">
                   <button
+                    onClick={() => handleViewNews(newsItem)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 text-green-600 hover:bg-green-100 hover:border-green-300 rounded-xl transition-all font-medium"
+                  >
+                    <Eye size={16} />
+                    <span>View</span>
+                  </button>
+                  <button
                     onClick={() => handleOpenModal(newsItem)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300 rounded-xl transition-all font-medium"
+                    className="flex items-center justify-center px-4 py-2.5 bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300 rounded-xl transition-all"
                   >
                     <Edit2 size={16} />
-                    <span>সম্পাদনা</span>
                   </button>
                   <button
                     onClick={() => handleDelete(newsItem.id)}
@@ -237,6 +295,156 @@ export default function NewsPage() {
             </div>
           ))}
         </div>
+
+        {/* View Modal */}
+        {showViewModal && viewingNews && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white rounded-3xl p-8 max-w-4xl w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
+                <h2 className="text-2xl font-bold text-gray-900">News Details</h2>
+                <button onClick={handleCloseViewModal} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Status Badge */}
+                {viewingNews.status && (
+                  <div className="flex items-center gap-2">
+                    <span className={`px-4 py-2 rounded-xl text-sm font-semibold ${
+                      viewingNews.status === 'published' ? 'bg-green-100 text-green-700' :
+                      viewingNews.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      Status: {viewingNews.status}
+                    </span>
+                    {viewingNews.is_ai_generated && (
+                      <span className="px-4 py-2 rounded-xl text-sm font-semibold bg-purple-100 text-purple-700">
+                        AI Generated
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Image */}
+                {viewingNews.image && viewingNews.image !== '/news-placeholder.svg' && (
+                  <div className="relative h-64 rounded-2xl overflow-hidden">
+                    <img
+                      src={getImageUrl(viewingNews.image)}
+                      alt={viewingNews.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Category & DateTime */}
+                <div className="flex items-center justify-between pb-4 border-b">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl">
+                    <Newspaper className="w-4 h-4" />
+                    <span className="font-semibold">{viewingNews.category}</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>{formatDateTime(viewingNews.created_at).date}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Clock className="w-4 h-4" />
+                      <span>{formatDateTime(viewingNews.created_at).time}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 leading-tight">
+                    {viewingNews.title}
+                  </h3>
+                </div>
+
+                {/* Summary */}
+                <div className="bg-blue-50 p-4 rounded-xl">
+                  <h4 className="text-sm font-semibold text-blue-900 mb-2">সারসংক্ষেপ</h4>
+                  <p className="text-gray-700 leading-relaxed">{viewingNews.summary}</p>
+                </div>
+
+                {/* Content */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">বিস্তারিত</h4>
+                  <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {viewingNews.content}
+                  </div>
+                </div>
+
+                {/* Sources */}
+                {viewingNews.source_url && parseSources(viewingNews.source_url).length > 0 && (
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4" />
+                      Sources ({parseSources(viewingNews.source_url).length})
+                    </h4>
+                    <div className="space-y-3">
+                      {parseSources(viewingNews.source_url).map((source: any, index: number) => (
+                        <div key={index} className="bg-white p-3 rounded-lg border border-gray-200">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h5 className="font-semibold text-gray-900 text-sm flex-1">{source.title}</h5>
+                            <span className="text-xs text-gray-500 shrink-0">Source {index + 1}</span>
+                          </div>
+                          {source.link && (
+                            <a 
+                              href={source.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 mb-2"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              {source.source || source.link}
+                            </a>
+                          )}
+                          {source.published_at && (
+                            <p className="text-xs text-gray-500 mb-2">Published: {source.published_at}</p>
+                          )}
+                          {source.excerpt && (
+                            <p className="text-xs text-gray-600 leading-relaxed">{source.excerpt}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-6 border-t sticky bottom-0 bg-white">
+                  {viewingNews.status !== 'rejected' && (
+                    <button
+                      onClick={() => handleRejectNews(viewingNews.id)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 py-3 rounded-xl transition-all font-semibold"
+                    >
+                      <XCircle size={20} />
+                      Reject News
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleCloseViewModal();
+                      handleOpenModal(viewingNews);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300 py-3 rounded-xl transition-all font-semibold"
+                  >
+                    <Edit2 size={20} />
+                    Edit News
+                  </button>
+                  <button
+                    onClick={handleCloseViewModal}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Create/Edit Modal */}
         {showModal && (

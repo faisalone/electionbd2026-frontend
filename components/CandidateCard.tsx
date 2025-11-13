@@ -59,24 +59,24 @@ export default function CandidateCard({
         className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300 h-full"
       >
         <div className="p-4">
-          {/* Header: Avatar + Name + Seat */}
-          <div className="flex items-start gap-3 mb-3 pb-3 border-b border-gray-100">
+          {/* Header: Avatar + Name + Seat - Mobile Optimized */}
+          <div className="flex flex-col sm:flex-row items-start gap-3 mb-3 pb-3 border-b border-gray-100">
             <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold shrink-0 shadow-md"
+              className="w-14 h-14 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white text-xl sm:text-lg font-bold shrink-0 shadow-md mx-auto sm:mx-0"
               style={{ backgroundColor: avatarBgColor }}
             >
               {firstLetter}
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors mb-1 leading-tight line-clamp-2">
+            <div className="flex-1 w-full text-center sm:text-left">
+              <h3 className="text-base sm:text-sm font-bold text-gray-900 group-hover:text-primary transition-colors mb-2 leading-tight">
                 {name}
               </h3>
-              <p className="text-xs text-gray-500 flex items-center gap-1">
+              <p className="text-xs text-gray-500 flex items-center gap-1 justify-center sm:justify-start">
                 <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="truncate">{seatName}</span>
+                <span>{seatName}</span>
               </p>
             </div>
           </div>
@@ -111,12 +111,12 @@ export default function CandidateCard({
             </div>
           </div>
 
-          {/* Party Name */}
+          {/* Party Name - Full Display No Truncation */}
           <div 
-            className="rounded-lg p-2 text-center"
+            className="rounded-lg p-3 text-center"
             style={{ backgroundColor: `${partyColor}05` }}
           >
-            <p className="text-xs font-bold leading-tight line-clamp-1" style={{ color: partyColor }}>
+            <p className="text-xs sm:text-[11px] font-bold leading-tight" style={{ color: partyColor }}>
               {partyName}
             </p>
           </div>

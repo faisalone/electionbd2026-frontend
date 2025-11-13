@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import NewsCard from '@/components/NewsCard';
 import NewsNavbar from '@/components/NewsNavbar';
 import { api, type News } from '@/lib/api';
-import { ChevronRight, Clock, Loader2 } from 'lucide-react';
+import { ChevronRight, Clock, Calendar, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -127,6 +127,22 @@ function NewsContent() {
   const featuredNews = news.slice(0, 1)[0];
   const topNews = news.slice(1, 6); // Get 5 more news (1 featured + 5 = 6 total)
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString('bn-BD', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      time: date.toLocaleTimeString('bn-BD', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      })
+    };
+  };
+
   return (
     <div className="min-h-screen">
       {/* News-specific Navbar with Google-style dropdown */}
@@ -226,9 +242,15 @@ function NewsContent() {
 
                         {/* Content Right */}
                         <div className="p-6 md:p-8 flex flex-col justify-center">
-                          <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
-                            <Clock className="w-4 h-4" />
-                            <span>{featuredNews.date}</span>
+                          <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm mb-3">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4" />
+                              <span>{formatDateTime(featuredNews.created_at || featuredNews.date).date}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="w-4 h-4" />
+                              <span>{formatDateTime(featuredNews.created_at || featuredNews.date).time}</span>
+                            </div>
                           </div>
                           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight group-hover:text-[#C8102E] transition-colors">
                             {featuredNews.title}

@@ -89,24 +89,34 @@ export default function HeroTimeline() {
           <div className="overflow-x-auto scrollbar-hide px-4 sm:px-8 md:px-16">
             <div className="relative inline-flex items-start min-w-full pb-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="relative flex items-start shrink-0" style={{ width: '280px' }}>
+                <div 
+                  key={i} 
+                  className="relative flex items-start shrink-0" 
+                  style={{ width: 'clamp(180px, 45vw, 280px)' }}
+                >
                   <div className="flex flex-col items-center w-full animate-pulse">
                     {/* Date Skeleton */}
-                    <div className="mb-5 h-10 flex items-center justify-center">
-                      <div className="h-6 w-24 bg-gray-200 rounded"></div>
+                    <div className="mb-2 sm:mb-3 md:mb-5 h-6 sm:h-8 md:h-10 flex items-center justify-center">
+                      <div className="h-4 sm:h-5 md:h-6 w-16 sm:w-20 md:w-24 bg-gray-200 rounded"></div>
                     </div>
                     {/* Icon Circle Skeleton */}
                     <div className="relative">
-                      <div className="w-20 h-20 rounded-full bg-gray-200"></div>
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gray-200"></div>
                       {/* Connecting Line */}
                       {i < 4 && (
-                        <div className="absolute top-10 left-[calc(50%+40px)] w-[200px] h-0.5 bg-gray-200" />
+                        <div 
+                          className="absolute top-6 sm:top-8 md:top-10 h-0.5 bg-gray-200"
+                          style={{
+                            left: 'calc(50% + 24px)',
+                            width: 'clamp(132px, calc(45vw - 48px), 232px)'
+                          }}
+                        />
                       )}
                     </div>
                     {/* Title Skeleton */}
-                    <div className="mt-6 text-center px-3 w-full space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-full"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                    <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 text-center px-1 sm:px-2 md:px-3 w-full space-y-2">
+                      <div className="h-3 sm:h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
                     </div>
                   </div>
                 </div>
@@ -184,13 +194,17 @@ export default function HeroTimeline() {
               const isUpcoming = item.status === 'অপেক্ষমান';
 
               return (
-                <div key={item.id} className="relative flex items-start shrink-0" style={{ width: '280px' }}>
+                <div 
+                  key={item.id} 
+                  className="relative flex items-start shrink-0" 
+                  style={{ width: 'clamp(180px, 45vw, 280px)' }}
+                >
                   {/* Timeline Item */}
                   <div className="flex flex-col items-center w-full">
                     {/* Date - Above Icon - Responsive Text Size */}
-                    <div className="mb-3 sm:mb-5 h-8 sm:h-10 flex items-center justify-center">
+                    <div className="mb-2 sm:mb-3 md:mb-5 h-6 sm:h-8 md:h-10 flex items-center justify-center">
                       {item.date && (
-                        <p className={`text-sm sm:text-base md:text-lg font-bold ${
+                        <p className={`text-xs sm:text-sm md:text-base lg:text-lg font-bold ${
                           isLive ? 'text-[#C8102E]' : 'text-gray-800'
                         }`}>
                           {item.date}
@@ -203,32 +217,38 @@ export default function HeroTimeline() {
                       {/* Live Pulsing Ring Effect */}
                       {isLive && (
                         <>
-                          <div className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-[#C8102E] rounded-full animate-ping opacity-75"></div>
-                          <div className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-[#C8102E] rounded-full animate-pulse opacity-50"></div>
+                          <div className="absolute inset-0 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-[#C8102E] rounded-full animate-ping opacity-75"></div>
+                          <div className="absolute inset-0 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-[#C8102E] rounded-full animate-pulse opacity-50"></div>
                         </>
                       )}
                       
-                      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all ${
+                      <div className={`relative w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all ${
                         isLive 
                           ? 'bg-[#C8102E] text-white shadow-xl shadow-red-300' 
                           : isCompleted
                           ? 'bg-green-500 text-white shadow-lg'
                           : 'bg-white text-gray-400 border-2 border-gray-300 shadow-md'
                       }`}>
-                        <Icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9" />
+                        <Icon className="w-5 h-5 sm:w-7 sm:h-7 md:w-9 md:h-9" />
                       </div>
 
-                      {/* Connecting Line to Next Item */}
+                      {/* Connecting Line to Next Item - Responsive Width */}
                       {index < timelineData.length - 1 && (
-                        <div className={`absolute top-7 sm:top-8 md:top-10 left-[calc(50%+28px)] sm:left-[calc(50%+32px)] md:left-[calc(50%+40px)] w-56 sm:w-[216px] md:w-[200px] h-0.5 ${
-                          isCompleted ? 'bg-green-400' : 'bg-gray-300'
-                        }`} />
+                        <div 
+                          className={`absolute top-6 sm:top-8 md:top-10 h-0.5 ${
+                            isCompleted ? 'bg-green-400' : 'bg-gray-300'
+                          }`}
+                          style={{
+                            left: 'calc(50% + 24px)',
+                            width: 'clamp(132px, calc(45vw - 48px), 232px)'
+                          }}
+                        />
                       )}
                     </div>
 
                     {/* Title - Below Icon - Smaller on Mobile */}
-                    <div className="mt-3 sm:mt-4 md:mt-6 text-center px-2 sm:px-3 w-full">
-                      <h3 className={`font-bold text-xs sm:text-sm md:text-base leading-snug ${
+                    <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 text-center px-1 sm:px-2 md:px-3 w-full">
+                      <h3 className={`font-bold text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight ${
                         isLive ? 'text-[#C8102E]' : 'text-gray-800'
                       }`}>
                         {item.title}

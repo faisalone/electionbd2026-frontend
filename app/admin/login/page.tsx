@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { sendOTP, verifyOTP } from '@/lib/admin/api';
 import { useAdmin } from '@/lib/admin/context';
 import { useRouter } from 'next/navigation';
@@ -9,7 +9,7 @@ import { Phone, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { login } = useAdmin();
+  const { login, token, isLoading } = useAdmin();
   
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -17,6 +17,42 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && token) {
+      router.push('/admin');
+    }
+  }, [token, isLoading, router]);
+
+  // Show loading skeleton while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 via-white to-gray-100">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <Logo height={60} alt="ভোটমামু" />
+            </div>
+            <div className="h-8 bg-gray-200 rounded-lg w-32 mx-auto mb-2 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-48 mx-auto animate-pulse"></div>
+          </div>
+          <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl border border-white/40 p-8">
+            <div className="space-y-6">
+              <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+              <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+              <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render login form if already authenticated (redirect will happen)
+  if (token) {
+    return null;
+  }
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +96,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 via-white to-gray-100 p-4">
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
