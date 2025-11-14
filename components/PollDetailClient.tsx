@@ -142,7 +142,7 @@ export default function PollDetailClient({ uid }: { uid: string }) {
     );
   }
 
-  const pollStatus = new Date(poll.end_date) > new Date() ? 'upcoming' : 'ended';
+  const pollStatus = poll.end_date && new Date(poll.end_date) > new Date() ? 'upcoming' : 'ended';
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50">
@@ -156,7 +156,7 @@ export default function PollDetailClient({ uid }: { uid: string }) {
             creatorName={poll.creator_name || poll.user?.name}
             options={poll.options.map((opt) => ({ id: opt.id.toString(), text: opt.text, votes: (opt as any).votes || opt.vote_count || 0, color: opt.color || '#3b82f6' }))}
             totalVotes={liveVoteCount}
-            endDate={poll.end_date}
+            endDate={poll.end_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}
             status={pollStatus as any}
             winner={(poll as any).winner}
             isDetailPage={true}
