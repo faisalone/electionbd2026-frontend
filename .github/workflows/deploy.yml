@@ -52,7 +52,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            # Switch to webadmin user and deploy
+            # Navigate to project directory
             cd /var/www/electionbd2026-frontend
             
             # Pull latest changes as webadmin
@@ -62,11 +62,13 @@ jobs:
             # Install/update dependencies as webadmin
             sudo -u webadmin npm ci --production=false
             
-            # Build the application as webadmin
+            # Clean old build and rebuild as webadmin to ensure proper permissions
+            sudo -u webadmin rm -rf .next
             sudo -u webadmin npm run build
             
             # Reload PM2 process (zero-downtime) as webadmin
-            sudo -u webadmin pm2 reload electionbd2026-frontend || sudo -u webadmin pm2 start npm --name "electionbd2026-frontend" -- start
+            # Use reload for zero-downtime deployment
+            sudo -u webadmin pm2 reload electionbd2026-frontend
             
             # Save PM2 configuration as webadmin
             sudo -u webadmin pm2 save
