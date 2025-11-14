@@ -54,12 +54,14 @@ export default function PollCard({
   const [isVerifying, setIsVerifying] = useState(false);
   const [liveVoteCount, setLiveVoteCount] = useState(totalVotes);
   const [animatedVoteCount, setAnimatedVoteCount] = useState(totalVotes);
+  const [liveOptions, setLiveOptions] = useState(options);
 
-  // Sync live vote count
+  // Sync live vote count and options
   useEffect(() => {
     setLiveVoteCount(totalVotes);
     setAnimatedVoteCount(totalVotes);
-  }, [totalVotes]);
+    setLiveOptions(options);
+  }, [totalVotes, options]);
 
   // Animate number changes
   useEffect(() => {
@@ -91,6 +93,16 @@ export default function PollCard({
     const channel = echo.channel(`poll.${pollId}`);
     channel.listen('.vote.cast', (data: any) => {
       setLiveVoteCount(data.total_votes);
+      
+      // Update individual option vote counts
+      if (data.option_votes) {
+        setLiveOptions(prevOptions => 
+          prevOptions.map(opt => ({
+            ...opt,
+            votes: data.option_votes[opt.id] || opt.votes
+          }))
+        );
+      }
     });
 
     return () => {
@@ -98,7 +110,7 @@ export default function PollCard({
         echo.leaveChannel(`poll.${pollId}`);
       }
     };
-  }, [pollId]);
+  }, [pollId, echo]);
 
   // Countdown timer
   useEffect(() => {
@@ -265,7 +277,7 @@ export default function PollCard({
             if (showResults) {
               return (
                 <div className="space-y-3">
-                  {options.map((option) => {
+                  {liveOptions.map((option) => {
                     const percentage = getPercentage(option.votes);
                     const isRemembered = rememberedVote === option.id;
                     return (
@@ -303,13 +315,13 @@ export default function PollCard({
             }
 
             // Selection Mode
-            const gridContainerClasses = options.length === 1 ? 'grid-cols-1' : 'grid-cols-2';
+            const gridContainerClasses = liveOptions.length === 1 ? 'grid-cols-1' : 'grid-cols-2';
             return (
               <div className={`grid gap-3 ${gridContainerClasses}`}>
-                {options.map((option, idx) => {
+                {liveOptions.map((option, idx) => {
                   const isSelected = selectedOption === option.id;
                   const isLong = option.text.length > 80;
-                  const forceCenterThird = options.length === 3 && idx === 2;
+                  const forceCenterThird = liveOptions.length === 3 && idx === 2;
                   const colSpanClass = isLong ? 'col-span-2' : 'col-span-1';
                   const selfAlignClass = forceCenterThird ? 'col-span-2 justify-self-center' : '';
 
