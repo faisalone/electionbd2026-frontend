@@ -134,41 +134,41 @@ export default function Home() {
 								const endDate = new Date(poll.end_date);
 								return now <= endDate;
 							}).length > 0 && (
-								<div>
-									<h3 className="text-lg font-bold text-gray-900 mb-4">সক্রিয় জরিপ</h3>
-									<div className="grid grid-cols-1 gap-6">
-										{polls
-											.filter(poll => {
-												const now = new Date();
-												const endDate = new Date(poll.end_date);
-												return now <= endDate;
-											})
-											.map((poll) => {
-												const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
+									<div>
+										<h3 className="text-lg font-bold text-gray-900 mb-4">সক্রিয় জরিপ</h3>
+										<div className="grid grid-cols-1 gap-6">
+											{polls
+												.filter(poll => {
+													const now = new Date();
+													const endDate = new Date(poll.end_date);
+													return now <= endDate;
+												})
+												.map((poll) => {
+													const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
 
-												return (
-													<PollCard
-														key={poll.id}
-														pollId={poll.id}
-														pollUid={poll.uid}
-														question={poll.question}
-														creatorName={poll.user?.name || poll.creator_name}
-														options={poll.options?.map(opt => ({
-															id: opt.id.toString(),
-															text: opt.text,
-															votes: opt.vote_count || 0,
-															color: opt.color || '#666666'
-														})) || []}
-														totalVotes={totalVotes}
-														endDate={poll.end_date}
-														status="upcoming"
-														winner={poll.winner}
-													/>
-												);
-											})}
+													return (
+														<PollCard
+															key={poll.id}
+															pollId={poll.id}
+															pollUid={poll.uid}
+															question={poll.question}
+															creatorName={poll.user?.name || poll.creator_name}
+															options={poll.options?.map(opt => ({
+																id: opt.id.toString(),
+																text: opt.text,
+																votes: opt.vote_count || 0,
+																color: opt.color || '#666666'
+															})) || []}
+															totalVotes={totalVotes}
+															endDate={poll.end_date}
+															status="upcoming"
+															winner={poll.winner}
+														/>
+													);
+												})}
+										</div>
 									</div>
-								</div>
-							)}
+								)}
 
 							{/* Ended Polls - Mobile */}
 							{polls.filter(poll => {
@@ -176,84 +176,118 @@ export default function Home() {
 								const endDate = new Date(poll.end_date);
 								return now > endDate;
 							}).length > 0 && (
-								<div>
-									<h3 className="text-lg font-bold text-gray-900 mb-4">শেষ হয়েছে</h3>
-									<div className="grid grid-cols-1 gap-6">
-										{polls
-											.filter(poll => {
-												const now = new Date();
-												const endDate = new Date(poll.end_date);
-												return now > endDate;
-											})
-											.map((poll) => {
-												const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
+									<div>
+										<h3 className="text-lg font-bold text-gray-900 mb-4">শেষ হয়েছে</h3>
+										<div className="grid grid-cols-1 gap-6">
+											{polls
+												.filter(poll => {
+													const now = new Date();
+													const endDate = new Date(poll.end_date);
+													return now > endDate;
+												})
+												.map((poll) => {
+													const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
 
-												return (
-													<PollCard
-														key={poll.id}
-														pollId={poll.id}
-														pollUid={poll.uid}
-														question={poll.question}
-														creatorName={poll.user?.name || poll.creator_name}
-														options={poll.options?.map(opt => ({
-															id: opt.id.toString(),
-															text: opt.text,
-															votes: opt.vote_count || 0,
-															color: opt.color || '#666666'
-														})) || []}
-														totalVotes={totalVotes}
-														endDate={poll.end_date}
-														status="ended"
-														winner={poll.winner}
-													/>
-												);
-											})}
+													return (
+														<PollCard
+															key={poll.id}
+															pollId={poll.id}
+															pollUid={poll.uid}
+															question={poll.question}
+															creatorName={poll.user?.name || poll.creator_name}
+															options={poll.options?.map(opt => ({
+																id: opt.id.toString(),
+																text: opt.text,
+																votes: opt.vote_count || 0,
+																color: opt.color || '#666666'
+															})) || []}
+															totalVotes={totalVotes}
+															endDate={poll.end_date}
+															status="ended"
+															winner={poll.winner}
+														/>
+													);
+												})}
+										</div>
 									</div>
-								</div>
-							)}
+								)}
 						</div>
 
 						{/* All Polls Combined - Desktop */}
-						<div className="hidden md:grid md:grid-cols-2 gap-6">
-							{polls
-								.sort((a, b) => {
-									// Sort: Active polls first, then ended polls
-									const nowA = new Date();
-									const nowB = new Date();
-									const isActiveA = nowA <= new Date(a.end_date);
-									const isActiveB = nowB <= new Date(b.end_date);
-									
-									if (isActiveA && !isActiveB) return -1;
-									if (!isActiveA && isActiveB) return 1;
-									return 0;
-								})
-								.map((poll) => {
-									const now = new Date();
-									const endDate = new Date(poll.end_date);
-									const isPollEnded = now > endDate;
-									const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
+						{(() => {
+							// Create a stable sorted copy (active polls first)
+							const sorted = polls.slice().sort((a, b) => {
+								const now = new Date();
+								const isActiveA = now <= new Date(a.end_date);
+								const isActiveB = now <= new Date(b.end_date);
+								if (isActiveA && !isActiveB) return -1;
+								if (!isActiveA && isActiveB) return 1;
+								return 0;
+							});
 
-									return (
-										<PollCard
-											key={poll.id}
-											pollId={poll.id}
-											pollUid={poll.uid}
-											question={poll.question}
-											creatorName={poll.user?.name || poll.creator_name}
-											options={poll.options?.map(opt => ({
-												id: opt.id.toString(),
-												text: opt.text,
-												votes: opt.vote_count || 0,
-												color: opt.color || '#666666'
-											})) || []}
-											totalVotes={totalVotes}
-											endDate={poll.end_date}
-											status={isPollEnded ? 'ended' : 'upcoming'}
-											winner={poll.winner}
-										/>
-									);
-								})}
-						</div>
+							// If there's only one poll, center it on desktop
+							if (sorted.length === 1) {
+								const poll = sorted[0];
+								const now = new Date();
+								const isPollEnded = now > new Date(poll.end_date);
+								const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
+								return (
+									<div className="hidden md:flex md:justify-center">
+										<div className="w-full md:max-w-2xl">
+											<PollCard
+												key={poll.id}
+												pollId={poll.id}
+												pollUid={poll.uid}
+												question={poll.question}
+												creatorName={poll.user?.name || poll.creator_name}
+												options={poll.options?.map(opt => ({
+													id: opt.id.toString(),
+													text: opt.text,
+													votes: opt.vote_count || 0,
+													color: opt.color || '#666666'
+												})) || []}
+												totalVotes={totalVotes}
+												endDate={poll.end_date}
+												status={isPollEnded ? 'ended' : 'upcoming'}
+												winner={poll.winner}
+											/>
+										</div>
+									</div>
+								);
+							}
+
+							// Otherwise keep the 2-column grid
+							return (
+								<div className="hidden md:grid md:grid-cols-2 gap-6">
+									{sorted.map((poll) => {
+										const now = new Date();
+										const endDate = new Date(poll.end_date);
+										const isPollEnded = now > endDate;
+										const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
+
+										return (
+											<PollCard
+												key={poll.id}
+												pollId={poll.id}
+												pollUid={poll.uid}
+												question={poll.question}
+												creatorName={poll.user?.name || poll.creator_name}
+												options={poll.options?.map(opt => ({
+													id: opt.id.toString(),
+													text: opt.text,
+													votes: opt.vote_count || 0,
+													color: opt.color || '#666666'
+												})) || []}
+												totalVotes={totalVotes}
+												endDate={poll.end_date}
+												status={isPollEnded ? 'ended' : 'upcoming'}
+												winner={poll.winner}
+											/>
+										);
+									})}
+								</div>
+							);
+						})()}
 					</div>
 				) : (
 					<div className="text-center py-12 text-gray-500">
