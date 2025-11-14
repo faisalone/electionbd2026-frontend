@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import Script from "next/script";
 
 const notoSansBengali = Noto_Sans_Bengali({
   variable: "--font-noto-sans-bengali",
@@ -31,6 +32,12 @@ export default function RootLayout({
     <html lang="bn" className={notoSansBengali.variable} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
         <GoogleAnalytics />
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7729379301809021"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <Navbar />
         <main className="min-h-screen">
           {children}
