@@ -92,7 +92,7 @@ export default function HeroTimeline() {
                 <div 
                   key={i} 
                   className="relative flex items-start shrink-0" 
-                  style={{ width: 'clamp(180px, 45vw, 280px)' }}
+                  style={{ width: 'clamp(140px, 45vw, 280px)' }}
                 >
                   <div className="flex flex-col items-center w-full animate-pulse">
                     {/* Date Skeleton */}
@@ -150,11 +150,11 @@ export default function HeroTimeline() {
   return (
     <div className="w-full py-16 px-4">
       <div className="w-full max-w-7xl mx-auto relative">
-        {/* Scroll Left Button */}
+        {/* Scroll Left Button - Hidden on Mobile */}
         {canScrollLeft && timelineData.length > 3 && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-xl rounded-full flex items-center justify-center hover:bg-gray-50 transition-all"
+            className="hidden md:flex absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-xl rounded-full items-center justify-center hover:bg-gray-50 transition-all"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -162,11 +162,11 @@ export default function HeroTimeline() {
           </button>
         )}
 
-        {/* Scroll Right Button */}
+        {/* Scroll Right Button - Hidden on Mobile */}
         {canScrollRight && timelineData.length > 3 && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-xl rounded-full flex items-center justify-center hover:bg-gray-50 transition-all"
+            className="hidden md:flex absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-xl rounded-full items-center justify-center hover:bg-gray-50 transition-all"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -178,12 +178,13 @@ export default function HeroTimeline() {
         <div 
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className="overflow-x-auto scrollbar-hide px-4 sm:px-8 md:px-16"
+          className="overflow-x-auto scrollbar-hide px-4 sm:px-8 md:px-16 touch-pan-x"
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none',
             WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
-            maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)'
+            maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+            WebkitOverflowScrolling: 'touch'
           }}
         >
           <div className="relative inline-flex items-start min-w-full pb-4">
@@ -197,7 +198,7 @@ export default function HeroTimeline() {
                 <div 
                   key={item.id} 
                   className="relative flex items-start shrink-0" 
-                  style={{ width: 'clamp(180px, 45vw, 280px)' }}
+                  style={{ width: 'clamp(140px, 45vw, 280px)' }}
                 >
                   {/* Timeline Item */}
                   <div className="flex flex-col items-center w-full">
@@ -246,9 +247,9 @@ export default function HeroTimeline() {
                       )}
                     </div>
 
-                    {/* Title - Below Icon - Smaller on Mobile */}
-                    <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 text-center px-1 sm:px-2 md:px-3 w-full">
-                      <h3 className={`font-bold text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight ${
+                    {/* Title - Below Icon - Smaller on Mobile, Limited to 3 lines */}
+                    <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 text-center px-1 sm:px-2 md:px-3 w-full max-w-[120px] sm:max-w-[150px] md:max-w-full mx-auto">
+                      <h3 className={`font-bold text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight line-clamp-3 ${
                         isLive ? 'text-[#C8102E]' : 'text-gray-800'
                       }`}>
                         {item.title}
@@ -259,6 +260,17 @@ export default function HeroTimeline() {
               );
             })}
           </div>
+        </div>
+
+        {/* Swipe Indicator - Only on Mobile */}
+        <div className="md:hidden flex items-center justify-center gap-2 mt-6 text-gray-500 animate-pulse">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+          </svg>
+          <span className="text-xs font-medium">স্ক্রল করুন</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
         </div>
       </div>
     </div>

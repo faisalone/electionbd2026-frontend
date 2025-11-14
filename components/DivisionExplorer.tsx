@@ -149,6 +149,11 @@ function DivisionExplorerContent() {
 					}
 				}
 				
+				// Apply symbol filter
+				if (symbolFilter !== 'all') {
+					params.symbol_id = symbolFilter;
+				}
+				
 				// ALWAYS add pagination parameters - this is server-side pagination!
 				params.per_page = candidatesPerPage;
 				params.page = currentPage;
