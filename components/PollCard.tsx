@@ -184,13 +184,15 @@ export default function PollCard({
         otp_code: englishOtp,
       });
       
+      // Mark as voted and remember the voted option
       setVoted(true);
+      setRememberedVote(selectedOption);
       try {
         if (typeof window !== 'undefined') {
           localStorage.setItem(`poll_voted_${pollId}`, selectedOption);
         }
       } catch (e) {}
-      setVotingStep('select');
+      // Don't reset votingStep - keep selected option visible
       setLiveVoteCount(prev => prev + 1);
     } catch (error: any) {
       setOtpError(error.message || 'ভুল OTP! আবার চেষ্টা করুন।');
