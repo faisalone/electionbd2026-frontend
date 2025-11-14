@@ -210,7 +210,7 @@ export default function PollCard({
       className="group bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col max-h-[700px]"
     >
       {/* Fixed Header - Always Visible */}
-      <div className="p-6 pb-4 border-b border-gray-100 bg-linear-to-br from-blue-50 to-purple-50 shrink-0">
+      <div className="p-6 pb-4 border-b border-gray-100 bg-linear-to-br from-blue-50 to-purple-50 rounded-t-2xl shrink-0">
         {/* Countdown/Date */}
         {status === 'upcoming' ? (
           <div className="flex items-center justify-center gap-2 mb-4">
