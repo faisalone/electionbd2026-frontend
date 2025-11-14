@@ -93,7 +93,7 @@ export default function CreatePollButton() {
       await api.createPoll({
         question: title,
         creator_name: name,
-        end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        // No end_date - will be set by admin
         options: filledOptions.map(opt => ({
           text: opt.text,
           color: '#' + Math.floor(Math.random()*16777215).toString(16) // Random color

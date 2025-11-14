@@ -39,7 +39,8 @@ interface Vote {
 interface PollFormData {
   question: string;
   end_date: string;
-  options: { text: string; color: string }[];
+  options: { id?: number; text: string; color: string }[];
+  status?: 'pending' | 'active' | 'ended' | 'rejected';
 }
 
 export default function PollsPage() {
@@ -146,6 +147,20 @@ export default function PollsPage() {
     setShowCreateModal(true);
   };
 
+  const handleOpenEditModal = (poll: Poll) => {
+    setEditingPoll(poll);
+    setFormData({
+      question: poll.question,
+      end_date: poll.end_date ? new Date(poll.end_date).toISOString().slice(0, 16) : '',
+      options: poll.options.map(opt => ({
+        id: opt.id,
+        text: opt.text,
+        color: opt.color || '#3b82f6',
+      })),
+    });
+    setShowCreateModal(true);
+  };
+
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
     setEditingPoll(null);
@@ -179,17 +194,22 @@ export default function PollsPage() {
 
     setSaving(true);
     try {
-      const submitData = {
+      const submitData: any = {
         question: formData.question,
-        end_date: formData.end_date,
+        end_date: formData.end_date || null,
         options: formData.options,
-        status: 'pending', // New polls start as pending
       };
 
       if (editingPoll) {
+        // When editing, also send status if changed
+        if (formData.status) {
+          submitData.status = formData.status;
+        }
         await update('polls', editingPoll.id, submitData, token!);
         toast.success('Poll updated successfully');
       } else {
+        // New polls always start as pending
+        submitData.status = 'pending';
         await create('polls', submitData, token!);
         toast.success('Poll created successfully');
       }
@@ -254,10 +274,10 @@ export default function PollsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-2xl bg-linear-to-brrom-pink-500 to-rose-600 flex items-center justify-center shadow-lg">
                 <BarChart3 className="text-white" size={20} />
               </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-linear-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 Poll Management
               </h1>
             </div>
@@ -265,7 +285,7 @@ export default function PollsPage() {
           </div>
           <button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
+            className="flex items-center gap-2 bg-linear-to-r from-pink-500 to-rose-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
           >
             <Plus size={20} />
             <span className="hidden sm:inline">Create Poll</span>
@@ -351,17 +371,26 @@ export default function PollsPage() {
 
                   {/* Actions */}
                   {poll.status === 'pending' ? (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setApproveConfirm({ isOpen: true, id: poll.id })}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 text-green-600 hover:bg-green-100 hover:border-green-300 rounded-xl transition-all font-medium"
-                      >
-                        <CheckCircle size={16} />
-                        <span>Approve</span>
-                      </button>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => handleOpenEditModal(poll)}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300 rounded-xl transition-all font-medium"
+                        >
+                          <Edit2 size={16} />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => setApproveConfirm({ isOpen: true, id: poll.id })}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 text-green-600 hover:bg-green-100 hover:border-green-300 rounded-xl transition-all font-medium"
+                        >
+                          <CheckCircle size={16} />
+                          <span>Approve</span>
+                        </button>
+                      </div>
                       <button
                         onClick={() => setDeleteConfirm({ isOpen: true, id: poll.id })}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 rounded-xl transition-all font-medium"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 rounded-xl transition-all font-medium"
                       >
                         <XCircle size={16} />
                         <span>Reject</span>
@@ -369,6 +398,13 @@ export default function PollsPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleOpenEditModal(poll)}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 border border-purple-200 text-purple-600 hover:bg-purple-100 hover:border-purple-300 rounded-xl transition-all font-medium"
+                      >
+                        <Edit2 size={16} />
+                        <span>Edit</span>
+                      </button>
                       <button
                         onClick={() => handleViewVotes(poll)}
                         className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300 rounded-xl transition-all font-medium"
@@ -509,14 +545,31 @@ export default function PollsPage() {
                   />
                 </div>
 
+                {editingPoll && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select
+                      value={formData.status || editingPoll.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="active">Active</option>
+                      <option value="ended">Ended</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    End Date {!editingPoll && <span className="text-gray-400">(Optional - can be set later)</span>}
+                  </label>
                   <input
                     type="datetime-local"
                     value={formData.end_date}
                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all"
-                    required
                   />
                 </div>
 
@@ -581,7 +634,7 @@ export default function PollsPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                    className="flex-1 bg-linear-to-r from-pink-500 to-rose-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                   >
                     {saving ? 'Saving...' : editingPoll ? 'Update Poll' : 'Create Poll'}
                   </button>

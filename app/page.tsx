@@ -130,6 +130,7 @@ export default function Home() {
 						<div className="md:hidden space-y-8">
 							{/* Active Polls - Mobile */}
 							{polls.filter(poll => {
+								if (!poll.end_date) return false;
 								const now = new Date();
 								const endDate = new Date(poll.end_date);
 								return now <= endDate;
@@ -139,6 +140,7 @@ export default function Home() {
 										<div className="grid grid-cols-1 gap-6">
 											{polls
 												.filter(poll => {
+													if (!poll.end_date) return false;
 													const now = new Date();
 													const endDate = new Date(poll.end_date);
 													return now <= endDate;
@@ -160,7 +162,7 @@ export default function Home() {
 																color: opt.color || '#666666'
 															})) || []}
 															totalVotes={totalVotes}
-															endDate={poll.end_date}
+															endDate={poll.end_date!}
 															status="upcoming"
 															winner={poll.winner}
 														/>
@@ -172,6 +174,7 @@ export default function Home() {
 
 							{/* Ended Polls - Mobile */}
 							{polls.filter(poll => {
+								if (!poll.end_date) return false;
 								const now = new Date();
 								const endDate = new Date(poll.end_date);
 								return now > endDate;
@@ -181,6 +184,7 @@ export default function Home() {
 										<div className="grid grid-cols-1 gap-6">
 											{polls
 												.filter(poll => {
+													if (!poll.end_date) return false;
 													const now = new Date();
 													const endDate = new Date(poll.end_date);
 													return now > endDate;
@@ -202,7 +206,7 @@ export default function Home() {
 																color: opt.color || '#666666'
 															})) || []}
 															totalVotes={totalVotes}
-															endDate={poll.end_date}
+															endDate={poll.end_date!}
 															status="ended"
 															winner={poll.winner}
 														/>
@@ -215,11 +219,11 @@ export default function Home() {
 
 						{/* All Polls Combined - Desktop */}
 						{(() => {
-							// Create a stable sorted copy (active polls first)
-							const sorted = polls.slice().sort((a, b) => {
+							// Filter out polls without end_date and create a stable sorted copy
+							const sorted = polls.filter(p => p.end_date).slice().sort((a, b) => {
 								const now = new Date();
-								const isActiveA = now <= new Date(a.end_date);
-								const isActiveB = now <= new Date(b.end_date);
+								const isActiveA = now <= new Date(a.end_date!);
+								const isActiveB = now <= new Date(b.end_date!);
 								if (isActiveA && !isActiveB) return -1;
 								if (!isActiveA && isActiveB) return 1;
 								return 0;
@@ -229,7 +233,7 @@ export default function Home() {
 							if (sorted.length === 1) {
 								const poll = sorted[0];
 								const now = new Date();
-								const isPollEnded = now > new Date(poll.end_date);
+								const isPollEnded = now > new Date(poll.end_date!);
 								const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
 								return (
 									<div className="hidden md:flex md:justify-center">
@@ -247,7 +251,7 @@ export default function Home() {
 													color: opt.color || '#666666'
 												})) || []}
 												totalVotes={totalVotes}
-												endDate={poll.end_date}
+												endDate={poll.end_date!}
 												status={isPollEnded ? 'ended' : 'upcoming'}
 												winner={poll.winner}
 											/>
@@ -261,7 +265,7 @@ export default function Home() {
 								<div className="hidden md:grid md:grid-cols-2 gap-6">
 									{sorted.map((poll) => {
 										const now = new Date();
-										const endDate = new Date(poll.end_date);
+										const endDate = new Date(poll.end_date!);
 										const isPollEnded = now > endDate;
 										const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.vote_count || 0), 0) || 0;
 
@@ -279,7 +283,7 @@ export default function Home() {
 													color: opt.color || '#666666'
 												})) || []}
 												totalVotes={totalVotes}
-												endDate={poll.end_date}
+												endDate={poll.end_date!}
 												status={isPollEnded ? 'ended' : 'upcoming'}
 												winner={poll.winner}
 											/>

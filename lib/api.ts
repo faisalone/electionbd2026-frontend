@@ -100,7 +100,8 @@ export interface Poll {
 	user_id: number;
 	question: string;
 	creator_name?: string;
-	end_date: string;
+	end_date: string | null;
+	status?: 'pending' | 'active' | 'ended' | 'rejected';
 	created_at: string;
 	updated_at: string;
 	options: PollOption[];
@@ -328,7 +329,7 @@ class ApiClient {
 	async createPoll(data: {
 		question: string;
 		creator_name?: string;
-		end_date: string;
+		end_date?: string;
 		options: { text: string; color?: string }[];
 		phone_number: string;
 		otp_code: string;
