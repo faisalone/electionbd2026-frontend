@@ -291,7 +291,7 @@ class ApiClient {
 		return this.fetch<ApiResponse<Party>>(`/parties/${id}`);
 	}
 
-	// Timeline API
+	// Timeline
 	async getTimeline(): Promise<ApiResponse<TimelineEvent[]>> {
 		return this.fetch<ApiResponse<TimelineEvent[]>>('/timeline');
 	}

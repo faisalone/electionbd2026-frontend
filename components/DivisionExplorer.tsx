@@ -7,7 +7,7 @@ import { ChevronRight, Search, Filter, Loader2 } from 'lucide-react';
 import ReactPaginate from 'react-paginate';
 import CandidateCard from './CandidateCard';
 import CustomSelect from './CustomSelect';
-import { api, type Division, type District, type Seat, type Candidate, type Party } from '@/lib/api';
+import { api, type Division, type District, type Seat, type Candidate, type Party, type Symbol } from '@/lib/api';
 
 function DivisionExplorerContent() {
 	const router = useRouter();
@@ -19,6 +19,7 @@ function DivisionExplorerContent() {
 	const [seats, setSeats] = useState<Seat[]>([]);
 	const [candidates, setCandidates] = useState<Candidate[]>([]);
 	const [parties, setParties] = useState<Party[]>([]);
+	const [symbols, setSymbols] = useState<Symbol[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [candidatesLoading, setCandidatesLoading] = useState(false);
 	
@@ -52,7 +53,17 @@ function DivisionExplorerContent() {
 				console.log('Parties Response:', partiesRes);
 				
 				if (divisionsRes.success) setDivisions(divisionsRes.data);
-				if (partiesRes.success) setParties(partiesRes.data);
+				if (partiesRes.success) {
+					setParties(partiesRes.data);
+					// Extract unique symbols from parties
+					const uniqueSymbols = new Map<number, Symbol>();
+					partiesRes.data.forEach(party => {
+						if (party.symbol && party.symbol_id) {
+							uniqueSymbols.set(party.symbol_id, party.symbol);
+						}
+					});
+					setSymbols(Array.from(uniqueSymbols.values()));
+				}
 			} catch (error) {
 				console.error('Failed to fetch initial data:', error);
 			} finally {
@@ -143,15 +154,23 @@ function DivisionExplorerContent() {
 				// Apply party filter
 				if (partyFilter !== 'all') {
 					if (partyFilter === 'independent') {
-						params.is_independent = true; // Filter candidates without party_id
+						// For independent: filter by null party_id (backend understands this)
+						params.party_id = 'null';
 					} else {
 						params.party_id = partyFilter;
 					}
 				}
 				
-				// Apply symbol filter
-				if (symbolFilter !== 'all') {
+				// Apply symbol filter (takes precedence and works independently)
+				if (symbolFilter !== 'all' && symbolFilter !== 'independent') {
 					params.symbol_id = symbolFilter;
+					// When filtering by symbol only, remove party filter to get all with this symbol
+					if (partyFilter === 'all') {
+						delete params.party_id;
+					}
+				} else if (symbolFilter === 'independent') {
+					// For independent symbols: null party_id
+					params.party_id = 'null';
 				}
 				
 				// ALWAYS add pagination parameters - this is server-side pagination!
@@ -261,15 +280,47 @@ function DivisionExplorerContent() {
 		return num.toString().split('').map(digit => bengaliDigits[parseInt(digit)]).join('');
 	};
 
-	// Sync party and symbol filters
+	// Sync party and symbol filters with intelligent relationship
 	const handlePartyChange = (partyId: string) => {
 		setPartyFilter(partyId);
-		setSymbolFilter(partyId === 'independent' ? 'all' : partyId);
+		
+		if (partyId === 'all') {
+			// Show all symbols
+			setSymbolFilter('all');
+		} else if (partyId === 'independent') {
+			// Show only independent symbols (symbols not associated with any party)
+			setSymbolFilter('independent');
+		} else {
+			// Find the party's symbol and auto-select it
+			const party = parties.find(p => p.id.toString() === partyId);
+			if (party?.symbol_id) {
+				setSymbolFilter(party.symbol_id.toString());
+			} else {
+				setSymbolFilter('all');
+			}
+		}
 	};
 
 	const handleSymbolChange = (symbolId: string) => {
 		setSymbolFilter(symbolId);
-		// Party filter is separate from symbol filter
+		
+		if (symbolId === 'all') {
+			// Reset party filter to all
+			setPartyFilter('all');
+		} else if (symbolId === 'independent') {
+			// Auto-select independent party
+			setPartyFilter('independent');
+		} else {
+			// Find if this symbol belongs to a party
+			const party = parties.find(p => p.symbol_id?.toString() === symbolId);
+			if (party) {
+				// Auto-select the party that owns this symbol
+				setPartyFilter(party.id.toString());
+			} else {
+				// It's an independent symbol
+				setPartyFilter('independent');
+			}
+		}
 	};
 
 	// Clear all filters
@@ -518,14 +569,44 @@ function DivisionExplorerContent() {
 										value={symbolFilter.toString()}
 										onChange={handleSymbolChange}
 										placeholder="মার্কা"
-										options={[
-											{ value: 'all', label: 'সকল মার্কা', icon: '🎯' },
-											...availableParties.map(party => ({
-												value: party.id.toString(),
-												label: party.symbol?.symbol_name || 'N/A',
-												icon: party.symbol?.image || '🎯',
-											})),
-										]}
+										options={(() => {
+											const symbolOptions = [
+												{ value: 'all', label: 'সকল মার্কা', icon: '🎯' }
+											];
+											
+											// If independent is selected, show independent option
+											if (partyFilter === 'independent') {
+												symbolOptions.push({ 
+													value: 'independent', 
+													label: 'স্বতন্ত্র মার্কা', 
+													icon: '👤' 
+												});
+											} else {
+												// Show party symbols
+												const addedSymbols = new Set<number>();
+												parties.forEach(party => {
+													if (party.symbol && party.symbol_id && !addedSymbols.has(party.symbol_id)) {
+														addedSymbols.add(party.symbol_id);
+														symbolOptions.push({
+															value: party.symbol_id.toString(),
+															label: party.symbol.symbol_name || party.name,
+															icon: party.symbol.image || '🎯',
+														});
+													}
+												});
+												
+												// Add independent option at the end if not filtering by specific party
+												if (partyFilter === 'all') {
+													symbolOptions.push({ 
+														value: 'independent', 
+														label: 'স্বতন্ত্র', 
+														icon: '👤' 
+													});
+												}
+											}
+											
+											return symbolOptions;
+										})()}
 									/>
 								</div>
 
