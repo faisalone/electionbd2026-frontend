@@ -3,7 +3,7 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import SectionWrapper from '@/components/SectionWrapper';
 import BannerDesigner from '@/components/BannerDesigner';
 
-export default function GeneratePage() {
+export default function MarketPage() {
   return (
     <SectionWrapper>
       {/* Back Button */}

@@ -75,7 +75,7 @@ electionbd2026/
 ├── app/                          # Next.js App Router
 │   ├── layout.tsx               # Root layout with Navbar & Footer
 │   ├── page.tsx                 # Homepage
-│   ├── generate/                # Banner Generator
+│   ├── market/                  # Marketplace
 │   │   └── page.tsx
 │   ├── division/[division]/     # Division pages
 │   │   └── page.tsx
@@ -206,7 +206,7 @@ npm run lint     # Code linting করুন
 - **জেলা** (`/district/dhaka`): জেলার আসনসমূহ
 - **আসন** (`/seat/dhaka-1`): প্রার্থী তালিকা
 - **প্রার্থী** (`/candidate/1`): বিস্তারিত প্রোফাইল
-- **জেনারেটর** (`/generate`): ব্যানার ডিজাইন টুল
+- **মার্কেট** (`/market`): মার্কেটপ্লেস
 
 ## 🎨 Design Features
 

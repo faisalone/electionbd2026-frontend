@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft, Wrench } from 'lucide-react';
 import SectionWrapper from '@/components/SectionWrapper';
 
-export default function GeneratePage() {
+export default function MarketPage() {
   return (
     <SectionWrapper>
       {/* Back Button */}

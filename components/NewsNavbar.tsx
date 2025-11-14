@@ -48,17 +48,17 @@ export default function NewsNavbar({
                 ))}
               </div>
 
-              {/* Generate Button - Right (Desktop) */}
+              {/* Market Button - Right (Desktop) */}
               <div className="hidden md:flex items-center shrink-0">
-                <Link href="/generate">
+                <Link href="/market">
                   <button className="flex items-center gap-2 bg-[#C8102E] text-white px-6 py-2 rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
                     <Sparkles size={16} />
-                    জেনারেট
+                    মার্কেট
                   </button>
                 </Link>
               </div>
 
-              {/* Mobile: Menu Button & Generate */}
+              {/* Mobile: Menu Button & Market */}
               <div className="md:hidden flex items-center gap-2">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
@@ -67,7 +67,7 @@ export default function NewsNavbar({
                   {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
                 
-                <Link href="/generate">
+                <Link href="/market">
                   <button className="p-2 bg-[#C8102E] text-white rounded-full hover:bg-red-700 transition-colors">
                     <Sparkles size={16} />
                   </button>
