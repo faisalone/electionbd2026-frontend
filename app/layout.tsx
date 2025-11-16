@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { CartProvider } from "@/lib/cart-context";
+import { Toaster } from "sonner";
 
 const notoSansBengali = Noto_Sans_Bengali({
   variable: "--font-noto-sans-bengali",
@@ -34,11 +36,14 @@ export default function RootLayout({
     <html lang="bn" className={notoSansBengali.variable} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
         <GoogleAnalytics />
-        <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
+        <CartProvider>
+          <Toaster position="top-center" richColors />
+          <Navbar />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );

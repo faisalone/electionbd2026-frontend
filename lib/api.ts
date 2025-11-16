@@ -155,6 +155,54 @@ export interface News {
 	updated_at: string;
 }
 
+// Marketplace Types
+export interface Product {
+	id: number;
+	title: string; // Bengali title
+	title_en: string; // English title
+	description: string;
+	category:
+		| 'banner'
+		| 'leaflet'
+		| 'poster'
+		| 'festoon'
+		| 'video'
+		| 'handbill'
+		| 'billboard'
+		| 'social-media';
+	price: number;
+	images: string[]; // Array of image URLs
+	owner: {
+		id: number;
+		name: string;
+		avatar?: string;
+		phone?: string;
+		location?: string;
+	};
+	tags?: string[];
+	rating?: number;
+	reviews_count?: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CartItem {
+	product: Product;
+	quantity: number;
+}
+
+export interface Order {
+	id: number;
+	customer_name: string;
+	phone_number: string;
+	address: string;
+	items: CartItem[];
+	total_amount: number;
+	status: 'pending' | 'confirmed' | 'processing' | 'delivered' | 'cancelled';
+	created_at: string;
+	updated_at: string;
+}
+
 export interface ApiResponse<T> {
 	success: boolean;
 	data: T;
@@ -420,6 +468,41 @@ class ApiClient {
 				}>;
 			}>
 		>(`/polls/${pollUidOrId}/winners`);
+	}
+
+	// Marketplace APIs
+	async getProducts(params?: {
+		category?: string;
+		search?: string;
+		page?: number;
+		per_page?: number;
+	}): Promise<PaginatedResponse<Product>> {
+		const query = new URLSearchParams();
+		if (params?.category) query.append('category', params.category);
+		if (params?.search) query.append('search', params.search);
+		if (params?.page) query.append('page', params.page.toString());
+		if (params?.per_page)
+			query.append('per_page', params.per_page.toString());
+		const queryString = query.toString() ? `?${query.toString()}` : '';
+		return this.fetch<PaginatedResponse<Product>>(
+			`/products${queryString}`
+		);
+	}
+
+	async getProduct(id: number): Promise<ApiResponse<Product>> {
+		return this.fetch<ApiResponse<Product>>(`/products/${id}`);
+	}
+
+	async createOrder(data: {
+		customer_name: string;
+		phone_number: string;
+		address: string;
+		items: { product_id: number; quantity: number }[];
+	}): Promise<ApiResponse<Order>> {
+		return this.fetch<ApiResponse<Order>>('/orders', {
+			method: 'POST',
+			body: JSON.stringify(data),
+		});
 	}
 }
 
