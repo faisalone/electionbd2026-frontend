@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
 				hostname: 'i.pravatar.cc',
 				pathname: '/**',
 			},
+			{
+				protocol: 'http',
+				hostname: 'localhost',
+				port: '8000',
+				pathname: '/storage/**',
+			},
 		],
 	},
 };

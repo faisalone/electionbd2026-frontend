@@ -5,6 +5,7 @@ import { Clock, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatBengaliDateTime } from '@/lib/dateUtils';
+import { getImageUrl } from '@/lib/admin/api';
 
 interface NewsCardProps {
   id: number;
@@ -17,9 +18,10 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ id, uid, title, summary, image, created_at, category }: NewsCardProps) {
-  // Fallback to placeholder if image is null/undefined
-  const safeImage = image || '/news-placeholder.svg';
+  // Use the same helper as CandidateCard
+  const safeImage = image ? getImageUrl(image) : '/news-placeholder.svg';
   const isSvg = safeImage.endsWith('.svg');
+  const isExternal = safeImage.startsWith('http');
   const newsLink = uid ? `/news/${uid}` : `/news/${id}`;
   
   return (
@@ -39,7 +41,7 @@ export default function NewsCard({ id, uid, title, summary, image, created_at, c
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            unoptimized={isSvg}
+            unoptimized={isSvg || isExternal}
             className="object-cover transition-transform duration-300 hover:scale-105"
           />
         {/* Category Badge */}

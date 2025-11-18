@@ -11,6 +11,7 @@ import NewsCard from '@/components/NewsCard';
 import NewsShareButton from '@/components/NewsShareButton';
 import { api, type News } from '@/lib/api';
 import { formatBengaliDateTime } from '@/lib/dateUtils';
+import { getImageUrl } from '@/lib/admin/api';
 
 const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা'];
 
@@ -193,14 +194,14 @@ export default function NewsDetailPage() {
                 </div>
 
                 {/* Featured Image - Only show if backend provides one */}
-                {news.image && (
+                {news.image && news.image !== '/news-placeholder.svg' && (
                   <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 mb-8 overflow-hidden rounded-lg">
                     <Image
-                      src={news.image}
+                      src={getImageUrl(news.image)}
                       alt={news.title}
                       fill
                       sizes="(max-width: 1024px) 100vw, 66vw"
-                      unoptimized={news.image.endsWith('.svg')}
+                      unoptimized={news.image.endsWith('.svg') || news.image.startsWith('/storage/')}
                       className="object-cover"
                       priority
                     />

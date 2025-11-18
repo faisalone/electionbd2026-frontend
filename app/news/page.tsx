@@ -9,6 +9,7 @@ import { api, type News } from '@/lib/api';
 import { ChevronRight, Clock, Calendar, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getImageUrl } from '@/lib/admin/api';
 
 const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা'];
 
@@ -228,10 +229,10 @@ function NewsContent() {
                         {/* Image Left */}
                         <div className="relative h-64 md:h-full min-h-[300px] overflow-hidden bg-gray-200">
                           <Image
-                            src={featuredNews.image || '/news-placeholder.svg'}
+                            src={getImageUrl(featuredNews.image || '/news-placeholder.svg')}
                             alt={featuredNews.title}
                             fill
-                            unoptimized={(featuredNews.image || '/news-placeholder.svg').endsWith('.svg')}
+                            unoptimized={(featuredNews.image || '/news-placeholder.svg').endsWith('.svg') || (featuredNews.image || '').startsWith('/storage/')}
                             className="object-cover group-hover:scale-105 transition-transform duration-700"
                             priority
                           />
