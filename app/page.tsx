@@ -64,8 +64,10 @@ export default function Home() {
 	return (
 		<div className="w-full">
 			{/* Hero Section with AI Search */}
-			<SectionWrapper className="">
-				<AiSearchBar />
+			<SectionWrapper variant="white" className="px-0">
+				<div className="px-4">
+					<AiSearchBar />
+				</div>
 				<HeroTimeline />
 			</SectionWrapper>
 
@@ -74,9 +76,10 @@ export default function Home() {
 				id="poll"
 				title="অনলাইন জরিপ"
 				subtitle="আপনার মতামত জানান এবং অন্যদের মতামত দেখুন"
+				variant="gray"
 				className=""
-				headerAction={<CreatePollButton />}
 			>
+				<div className="bg-white rounded-2xl border-2 border-[#C8102E] p-6 md:p-8">
 				{pollsLoading ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						{[1, 2].map((i) => (
@@ -298,6 +301,12 @@ export default function Home() {
 						কোন পোল পাওয়া যায়নি
 					</div>
 				)}
+				</div>
+
+				{/* Create Poll Button */}
+				<div className="mt-8 flex justify-center">
+					<CreatePollButton />
+				</div>
 
 				{/* Poll Terms & Conditions - Collapsible */}
 				{!pollsLoading && (
@@ -384,6 +393,7 @@ export default function Home() {
 				id="news"
 				title="সর্বশেষ খবর"
 				subtitle="নির্বাচন সম্পর্কিত সর্বশেষ আপডেট এবং সংবাদ"
+				variant="white"
 				className=""
 				headerAction={
 					<a href="/news" className="text-[#C8102E] hover:text-[#A00D27] font-medium flex items-center gap-2 transition-colors">
@@ -451,6 +461,7 @@ export default function Home() {
 				id="divisions"
 				title="প্রার্থী অনুসন্ধান"
 				subtitle="প্রধান রাজনৈতিক নল এবং তাদের তথ্য"
+				variant="gray"
 				className=""
 			>
 				<DivisionExplorer />
@@ -461,6 +472,7 @@ export default function Home() {
 				id="parties"
 				title="রাজনৈতিক দলসমূহ"
 				subtitle="প্রধান রাজনৈতিক দল এবং তাদের তথ্য"
+				variant="white"
 				className=""
 				headerAction={
 					<a href="/parties" className="text-[#C8102E] hover:text-[#A00D27] font-medium flex items-center gap-2 transition-colors">

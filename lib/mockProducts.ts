@@ -10,10 +10,7 @@ export const mockProducts: Product[] = [
 			'পেশাদার নির্বাচনী ব্যানার ডিজাইন। উচ্চ মানের প্রিন্ট রেডি ফাইল সহ। কাস্টমাইজেশন সুবিধা উপলব্ধ।',
 		category: 'banner',
 		price: 2500,
-		images: [
-			'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800',
-			'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800',
-		],
+		images: ['/products/posters/poster 1 mockup.png'],
 		owner: {
 			id: 1,
 			name: 'রাকিব হোসেন',
@@ -181,9 +178,7 @@ export const mockProducts: Product[] = [
 			'ফেসবুক, ইনস্টাগ্রাম এবং টুইটারের জন্য ডিজাইন প্যাক। ১০টি ইউনিক ডিজাইন সহ। সব সাইজে অপটিমাইজড।',
 		category: 'social-media',
 		price: 3500,
-		images: [
-			'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800',
-		],
+		images: ['/products/social/social media post 1 mockup.png'],
 		owner: {
 			id: 8,
 			name: 'আরিফ হোসেন',

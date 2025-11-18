@@ -8,6 +8,7 @@ interface SectionWrapperProps {
   title?: string;
   subtitle?: string;
   headerAction?: ReactNode;
+  variant?: 'white' | 'gray';
 }
 
 export default function SectionWrapper({
@@ -17,11 +18,15 @@ export default function SectionWrapper({
   title,
   subtitle,
   headerAction,
+  variant = 'white',
 }: SectionWrapperProps) {
   return (
     <section
       id={id}
-      className={cn('py-16 md:py-24 px-4', className)}
+      className={cn(
+        'py-16 md:py-24 px-4',
+        className
+      )}
     >
       <div className="container mx-auto">
         {(title || subtitle || headerAction) && (

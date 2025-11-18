@@ -84,10 +84,10 @@ export default function HeroTimeline() {
 
   if (loading) {
     return (
-      <div className="w-full py-16 px-4">
+      <div className="w-full py-16">
         <div className="w-full max-w-7xl mx-auto relative">
-          <div className="overflow-x-auto scrollbar-hide px-4 sm:px-8 md:px-16">
-            <div className="relative inline-flex items-start min-w-full pb-4">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="relative inline-flex items-start pb-4 pl-4" style={{ minWidth: 'max-content' }}>
               {[1, 2, 3, 4].map((i) => (
                 <div 
                   key={i} 
@@ -148,7 +148,7 @@ export default function HeroTimeline() {
   }
 
   return (
-    <div className="w-full py-16 px-4">
+    <div className="w-full py-16">
       <div className="w-full max-w-7xl mx-auto relative">
         {/* Scroll Left Button - Hidden on Mobile */}
         {canScrollLeft && timelineData.length > 3 && (
@@ -178,7 +178,7 @@ export default function HeroTimeline() {
         <div 
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className="overflow-x-auto scrollbar-hide px-4 sm:px-8 md:px-16 touch-pan-x"
+          className="overflow-x-auto scrollbar-hide touch-pan-x"
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none',
@@ -187,7 +187,7 @@ export default function HeroTimeline() {
             WebkitOverflowScrolling: 'touch'
           }}
         >
-          <div className="relative inline-flex items-start min-w-full pb-4">
+          <div className="relative inline-flex items-start pb-4 pl-4" style={{ minWidth: 'max-content' }}>
             {timelineData.map((item, index) => {
               const Icon = iconMap[index] || Calendar;
               const isLive = index === liveIndex;
@@ -247,9 +247,9 @@ export default function HeroTimeline() {
                       )}
                     </div>
 
-                    {/* Title - Below Icon - Smaller on Mobile, Limited to 3 lines */}
-                    <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 text-center px-1 sm:px-2 md:px-3 w-full max-w-[120px] sm:max-w-[150px] md:max-w-full mx-auto">
-                      <h3 className={`font-bold text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight line-clamp-3 ${
+                    {/* Title - Below Icon - Larger fonts, Limited to 3 lines */}
+                    <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 text-center px-1 sm:px-2 md:px-3 w-full max-w-[130px] sm:max-w-40 md:max-w-full mx-auto">
+                      <h3 className={`font-bold text-xs sm:text-sm md:text-base lg:text-lg leading-tight line-clamp-3 ${
                         isLive ? 'text-[#C8102E]' : 'text-gray-800'
                       }`}>
                         {item.title}

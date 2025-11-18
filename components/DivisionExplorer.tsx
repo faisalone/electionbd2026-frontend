@@ -715,7 +715,7 @@ function DivisionExplorerContent() {
 										age={candidate.age}
 										education={candidate.education}
 										experience={candidate.experience || ''}
-										image={''}
+										image={candidate.image || ''}
 									/>
 									</motion.div>
 								);

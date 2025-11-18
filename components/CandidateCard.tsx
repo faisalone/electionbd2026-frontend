@@ -26,6 +26,7 @@ export default function CandidateCard({
   partySymbolName,
   partyColor,
   seatName,
+  image,
 }: CandidateCardProps) {
   // Get first letter of name for avatar
   const firstLetter = name.charAt(0).toUpperCase();
@@ -35,6 +36,9 @@ export default function CandidateCard({
     ? getImageUrl(partySymbol.image) 
     : null;
   const symbolText = typeof partySymbol === 'string' ? partySymbol : null;
+  
+  // Get candidate image URL
+  const candidateImageUrl = image ? getImageUrl(image) : null;
   
   // Generate a consistent color based on name
   const getAvatarColor = (name: string) => {
@@ -61,12 +65,20 @@ export default function CandidateCard({
         <div className="p-4">
           {/* Header: Avatar + Name + Seat - Mobile Optimized */}
           <div className="flex flex-col sm:flex-row items-start gap-3 mb-3 pb-3 border-b border-gray-100">
-            <div 
-              className="w-14 h-14 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white text-xl sm:text-lg font-bold shrink-0 shadow-md mx-auto sm:mx-0"
-              style={{ backgroundColor: avatarBgColor }}
-            >
-              {firstLetter}
-            </div>
+            {candidateImageUrl ? (
+              <img 
+                src={candidateImageUrl}
+                alt={name}
+                className="w-14 h-14 sm:w-12 sm:h-12 rounded-full object-cover shrink-0 shadow-md mx-auto sm:mx-0"
+              />
+            ) : (
+              <div 
+                className="w-14 h-14 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white text-xl sm:text-lg font-bold shrink-0 shadow-md mx-auto sm:mx-0"
+                style={{ backgroundColor: avatarBgColor }}
+              >
+                {firstLetter}
+              </div>
+            )}
             <div className="flex-1 w-full text-center sm:text-left">
               <h3 className="text-base sm:text-sm font-bold text-gray-900 group-hover:text-primary transition-colors mb-2 leading-tight">
                 {name}
