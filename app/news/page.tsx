@@ -24,6 +24,7 @@ function NewsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [newsByCategory, setNewsByCategory] = useState<Record<string, News[]>>({});
+  const [featuredImageError, setFeaturedImageError] = useState(false);
   
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -112,6 +113,7 @@ function NewsContent() {
     setCurrentPage(1);
     setNews([]);
     setHasMore(true);
+    setFeaturedImageError(false);
     fetchNews(1, true);
   }, [selectedCategory]);
 
@@ -229,12 +231,13 @@ function NewsContent() {
                         {/* Image Left */}
                         <div className="relative h-64 md:h-full min-h-[300px] overflow-hidden bg-gray-200">
                           <Image
-                            src={getImageUrl(featuredNews.image || '/news-placeholder.svg')}
+                            src={featuredImageError || !featuredNews.image ? '/news-placeholder.svg' : getImageUrl(featuredNews.image)}
                             alt={featuredNews.title}
                             fill
                             unoptimized={(featuredNews.image || '/news-placeholder.svg').endsWith('.svg') || (featuredNews.image || '').startsWith('/storage/')}
                             className="object-cover group-hover:scale-105 transition-transform duration-700"
                             priority
+                            onError={() => setFeaturedImageError(true)}
                           />
                           <div className="absolute top-4 right-4 bg-[#C8102E] text-white px-3 py-1 rounded-full text-sm font-medium">
                             {featuredNews.category}

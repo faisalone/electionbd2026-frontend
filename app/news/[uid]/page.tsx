@@ -24,6 +24,7 @@ export default function NewsDetailPage() {
   const [categoryNews, setCategoryNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('সব');
+  const [imageError, setImageError] = useState(false);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
@@ -194,7 +195,7 @@ export default function NewsDetailPage() {
                 </div>
 
                 {/* Featured Image - Only show if backend provides one */}
-                {news.image && news.image !== '/news-placeholder.svg' && (
+                {news.image && news.image !== '/news-placeholder.svg' && !imageError && (
                   <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 mb-8 overflow-hidden rounded-lg">
                     <Image
                       src={getImageUrl(news.image)}
@@ -204,6 +205,7 @@ export default function NewsDetailPage() {
                       unoptimized={news.image.endsWith('.svg') || news.image.startsWith('/storage/')}
                       className="object-cover"
                       priority
+                      onError={() => setImageError(true)}
                     />
                   </div>
                 )}

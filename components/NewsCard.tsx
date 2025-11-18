@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatBengaliDateTime } from '@/lib/dateUtils';
 import { getImageUrl } from '@/lib/admin/api';
+import { useState } from 'react';
 
 interface NewsCardProps {
   id: number;
@@ -18,8 +19,10 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ id, uid, title, summary, image, created_at, category }: NewsCardProps) {
+  const [imageError, setImageError] = useState(false);
+  
   // Use the same helper as CandidateCard
-  const safeImage = image ? getImageUrl(image) : '/news-placeholder.svg';
+  const safeImage = imageError || !image ? '/news-placeholder.svg' : getImageUrl(image);
   const isSvg = safeImage.endsWith('.svg');
   const isExternal = safeImage.startsWith('http');
   const newsLink = uid ? `/news/${uid}` : `/news/${id}`;
@@ -43,6 +46,7 @@ export default function NewsCard({ id, uid, title, summary, image, created_at, c
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
             unoptimized={isSvg || isExternal}
             className="object-cover transition-transform duration-300 hover:scale-105"
+            onError={() => setImageError(true)}
           />
         {/* Category Badge */}
         <div className="absolute top-4 right-4 bg-[#C8102E] text-white px-3 py-1 rounded-full text-sm font-medium z-10">
