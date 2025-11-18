@@ -234,7 +234,7 @@ function NewsContent() {
                             src={featuredImageError || !featuredNews.image ? '/news-placeholder.svg' : getImageUrl(featuredNews.image)}
                             alt={featuredNews.title}
                             fill
-                            unoptimized={(featuredNews.image || '/news-placeholder.svg').endsWith('.svg') || (featuredNews.image || '').startsWith('/storage/')}
+                            unoptimized={true}
                             className="object-cover group-hover:scale-105 transition-transform duration-700"
                             priority
                             onError={() => setFeaturedImageError(true)}

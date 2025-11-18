@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
 				hostname: 'www.votemamu.com',
 				pathname: '/storage/**',
 			},
+			{
+				protocol: 'https',
+				hostname: 'api.votemamu.com',
+				pathname: '/storage/**',
+			},
 		],
 	},
 };

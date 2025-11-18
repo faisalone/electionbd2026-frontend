@@ -202,7 +202,7 @@ export default function NewsDetailPage() {
                       alt={news.title}
                       fill
                       sizes="(max-width: 1024px) 100vw, 66vw"
-                      unoptimized={news.image.endsWith('.svg') || news.image.startsWith('/storage/')}
+                      unoptimized={true}
                       className="object-cover"
                       priority
                       onError={() => setImageError(true)}
