@@ -58,7 +58,6 @@ export default function Footer() {
             {/* Copyright */}
             <div className="text-center text-gray-400 text-sm space-y-1">
               <p className="font-medium">© ২০২৫ ভোটমামু। সর্বস্বত্ব সংরক্ষিত।</p>
-              <p className="text-xs text-gray-500">সংস্করণ ১.০.১ • ভালোবাসা দিয়ে বাংলাদেশে তৈরি</p>
             </div>
           </div>
         </div>

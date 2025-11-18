@@ -12,7 +12,7 @@ import NewsShareButton from '@/components/NewsShareButton';
 import { api, type News } from '@/lib/api';
 import { formatBengaliDateTime } from '@/lib/dateUtils';
 
-const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'];
+const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা'];
 
 export default function NewsDetailPage() {
   const params = useParams();
@@ -313,7 +313,7 @@ export default function NewsDetailPage() {
                     বিভাগসমূহ
                   </h3>
                   <div className="space-y-2">
-                    {['নির্বাচন', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'].map((cat) => (
+                    {['নির্বাচন', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা'].map((cat) => (
                       <Link 
                         key={cat}
                         href={`/news?category=${cat}`}

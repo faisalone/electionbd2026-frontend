@@ -10,7 +10,7 @@ import { ChevronRight, Clock, Calendar, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা', 'জরিপ', 'বিতর্ক'];
+const categories = ['সব', 'নির্বাচন', 'ভোট', 'রাজনীতি', 'বিশ্লেষণ', 'প্রচারণা'];
 
 function NewsContent() {
   const searchParams = useSearchParams();
