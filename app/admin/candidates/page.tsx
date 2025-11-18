@@ -4,14 +4,14 @@ import ProtectedRoute from '@/components/admin/ProtectedRoute';
 import { useAdmin } from '@/lib/admin/context';
 import { getAll, create, update, remove, getImageUrl } from '@/lib/admin/api';
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, Loader2, X, Save, Users, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, X, Save, Users, Image as ImageIcon, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
 interface Candidate {
   id: number;
   name: string;
-  name_en: string;
+  name_en: string | null;
   party?: { 
     id: number; 
     name: string; 
@@ -21,11 +21,20 @@ interface Candidate {
   } | null;
   symbol?: { id: number; symbol_name: string; image: string } | null;
   seat: { id: number; name: string; district: { name: string } };
-  age: number;
-  education: string;
-  experience: string;
+  age: number | null;
+  education: string | null;
+  experience: string | null;
   image: string;
   is_independent?: boolean;
+}
+
+interface Pagination {
+  total: number;
+  per_page: number;
+  current_page: number;
+  last_page: number;
+  from: number;
+  to: number;
 }
 
 export default function CandidatesPage() {
@@ -34,6 +43,8 @@ export default function CandidatesPage() {
   const [parties, setParties] = useState<any[]>([]);
   const [symbols, setSymbols] = useState<any[]>([]);
   const [seats, setSeats] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [divisions, setDivisions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
@@ -41,6 +52,26 @@ export default function CandidatesPage() {
     isOpen: false,
     id: null,
   });
+  
+  // Pagination and filtering
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    per_page: 12,
+    current_page: 1,
+    last_page: 1,
+    from: 0,
+    to: 0,
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    division_id: '',
+    district_id: '',
+    seat_id: '',
+    party_id: '',
+    is_independent: false,
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     name_en: '',
@@ -61,17 +92,53 @@ export default function CandidatesPage() {
       fetchParties();
       fetchSymbols();
       fetchSeats();
+      fetchDistricts();
+      fetchDivisions();
     }
   }, [token]);
 
+  // Refetch when pagination or filters change
+  useEffect(() => {
+    if (token) {
+      fetchCandidates();
+    }
+  }, [pagination.current_page, searchQuery, filters]);
+
   const fetchCandidates = async () => {
     try {
-      const response = await getAll('candidates', token!);
-      if (response.success) {
-        setCandidates(response.data);
+      setLoading(true);
+      const params = new URLSearchParams({
+        per_page: pagination.per_page.toString(),
+        page: pagination.current_page.toString(),
+      });
+
+      if (searchQuery) params.append('search', searchQuery);
+      if (filters.division_id) params.append('division_id', filters.division_id);
+      if (filters.district_id) params.append('district_id', filters.district_id);
+      if (filters.seat_id) params.append('seat_id', filters.seat_id);
+      if (filters.party_id) params.append('party_id', filters.party_id);
+      if (filters.is_independent) params.append('is_independent', '1');
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}/api/admin/candidates?${params}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setCandidates(data.data);
+        if (data.pagination) {
+          setPagination(data.pagination);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch candidates:', error);
+      toast.error('Failed to fetch candidates');
     } finally {
       setLoading(false);
     }
@@ -110,6 +177,28 @@ export default function CandidatesPage() {
     }
   };
 
+  const fetchDistricts = async () => {
+    try {
+      const response = await getAll('districts', token!);
+      if (response.success) {
+        setDistricts(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch districts:', error);
+    }
+  };
+
+  const fetchDivisions = async () => {
+    try {
+      const response = await getAll('divisions', token!);
+      if (response.success) {
+        setDivisions(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch divisions:', error);
+    }
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -127,12 +216,12 @@ export default function CandidatesPage() {
       setEditingCandidate(candidate);
       setFormData({
         name: candidate.name,
-        name_en: candidate.name_en,
+        name_en: candidate.name_en || '',
         party_id: candidate.party?.id?.toString() || '',
         symbol_id: candidate.symbol?.id?.toString() || '',
         seat_id: candidate.seat?.id?.toString() || '',
-        age: candidate.age.toString(),
-        education: candidate.education,
+        age: candidate.age?.toString() || '',
+        education: candidate.education || '',
         experience: candidate.experience || '',
       });
       setImagePreview(getImageUrl(candidate.image));
@@ -228,22 +317,144 @@ export default function CandidatesPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
                 <Users className="text-white" size={20} />
               </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-linear-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 Candidates
               </h1>
             </div>
-            <p className="text-gray-600 ml-13">Manage election candidates</p>
+            <p className="text-gray-600 ml-13">
+              {pagination.total > 0 ? `${pagination.from}-${pagination.to} of ${pagination.total} candidates` : 'Manage election candidates'}
+            </p>
           </div>
           <button
             onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
+            className="flex items-center gap-2 bg-linear-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
           >
             <Plus size={20} />
             <span className="hidden sm:inline">Add Candidate</span>
           </button>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
+          {/* Search Bar */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search by candidate name (Bengali or English)..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPagination({ ...pagination, current_page: 1 });
+                }}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:border-[#C8102E] focus:ring-4 focus:ring-[#C8102E]/10 outline-none transition-all"
+              />
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+                showFilters ? 'bg-[#C8102E] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Filter size={20} />
+              Filters
+            </button>
+          </div>
+
+          {/* Filters */}
+          {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Division</label>
+                <select
+                  value={filters.division_id}
+                  onChange={(e) => {
+                    setFilters({ ...filters, division_id: e.target.value, district_id: '', seat_id: '' });
+                    setPagination({ ...pagination, current_page: 1 });
+                  }}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/10 outline-none"
+                >
+                  <option value="">All Divisions</option>
+                  {divisions.map((div) => (
+                    <option key={div.id} value={div.id}>{div.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
+                <select
+                  value={filters.district_id}
+                  onChange={(e) => {
+                    setFilters({ ...filters, district_id: e.target.value, seat_id: '' });
+                    setPagination({ ...pagination, current_page: 1 });
+                  }}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/10 outline-none"
+                >
+                  <option value="">All Districts</option>
+                  {districts
+                    .filter(d => !filters.division_id || d.division_id?.toString() === filters.division_id)
+                    .map((dist) => (
+                      <option key={dist.id} value={dist.id}>{dist.name}</option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Seat</label>
+                <select
+                  value={filters.seat_id}
+                  onChange={(e) => {
+                    setFilters({ ...filters, seat_id: e.target.value });
+                    setPagination({ ...pagination, current_page: 1 });
+                  }}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/10 outline-none"
+                >
+                  <option value="">All Seats</option>
+                  {seats
+                    .filter(s => !filters.district_id || s.district_id?.toString() === filters.district_id)
+                    .map((seat) => (
+                      <option key={seat.id} value={seat.id}>{seat.name}</option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Party</label>
+                <select
+                  value={filters.party_id}
+                  onChange={(e) => {
+                    setFilters({ ...filters, party_id: e.target.value, is_independent: false });
+                    setPagination({ ...pagination, current_page: 1 });
+                  }}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/10 outline-none"
+                >
+                  <option value="">All Parties</option>
+                  {parties.map((party) => (
+                    <option key={party.id} value={party.id}>{party.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Clear Filters Button */}
+              <div className="lg:col-span-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    setFilters({ division_id: '', district_id: '', seat_id: '', party_id: '', is_independent: false });
+                    setSearchQuery('');
+                    setPagination({ ...pagination, current_page: 1 });
+                  }}
+                  className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -253,7 +464,7 @@ export default function CandidatesPage() {
               className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-lg border border-white/40 overflow-hidden hover:shadow-xl transition-all group"
             >
               {/* Image */}
-              <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200">
+              <div className="relative h-48 bg-linear-to-br from-gray-100 to-gray-200">
                 {candidate.image ? (
                   <img src={getImageUrl(candidate.image)} alt={candidate.name} className="w-full h-full object-cover" />
                 ) : (
@@ -290,7 +501,7 @@ export default function CandidatesPage() {
                   )}
                   <div>
                     <h3 className="font-bold text-gray-900">{candidate.name}</h3>
-                    <p className="text-sm text-gray-500">{candidate.name_en}</p>
+                    {candidate.name_en && <p className="text-sm text-gray-500">{candidate.name_en}</p>}
                   </div>
                 </div>
 
@@ -303,14 +514,18 @@ export default function CandidatesPage() {
                     <span className="font-medium text-gray-700">Seat:</span>
                     <span className="text-gray-600">{candidate.seat?.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-700">Age:</span>
-                    <span className="text-gray-600">{candidate.age}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-700">Education:</span>
-                    <span className="text-gray-600">{candidate.education}</span>
-                  </div>
+                  {candidate.age && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-700">Age:</span>
+                      <span className="text-gray-600">{candidate.age}</span>
+                    </div>
+                  )}
+                  {candidate.education && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-700">Education:</span>
+                      <span className="text-gray-600">{candidate.education}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
@@ -332,6 +547,86 @@ export default function CandidatesPage() {
             </div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {pagination.last_page > 1 && (
+          <div className="flex items-center justify-between bg-white rounded-2xl shadow-md p-6">
+            <div className="text-sm text-gray-600">
+              Showing {pagination.from} to {pagination.to} of {pagination.total} candidates
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPagination({ ...pagination, current_page: pagination.current_page - 1 })}
+                disabled={pagination.current_page === 1}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft size={20} />
+                Previous
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(pagination.last_page, 5) }, (_, i) => {
+                  let pageNum;
+                  if (pagination.last_page <= 5) {
+                    pageNum = i + 1;
+                  } else if (pagination.current_page <= 3) {
+                    pageNum = i + 1;
+                  } else if (pagination.current_page >= pagination.last_page - 2) {
+                    pageNum = pagination.last_page - 4 + i;
+                  } else {
+                    pageNum = pagination.current_page - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPagination({ ...pagination, current_page: pageNum })}
+                      className={`w-10 h-10 rounded-lg transition-all ${
+                        pagination.current_page === pageNum
+                          ? 'bg-[#C8102E] text-white'
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setPagination({ ...pagination, current_page: pagination.current_page + 1 })}
+                disabled={pagination.current_page === pagination.last_page}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Next
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && candidates.length === 0 && (
+          <div className="bg-white rounded-2xl shadow-md p-12 text-center">
+            <Users className="mx-auto text-gray-300 mb-4" size={64} />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No candidates found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchQuery || Object.values(filters).some(v => v) 
+                ? 'Try adjusting your search or filters'
+                : 'Get started by adding your first candidate'
+              }
+            </p>
+            {!searchQuery && !Object.values(filters).some(v => v) && (
+              <button
+                onClick={() => handleOpenModal()}
+                className="inline-flex items-center gap-2 bg-[#C8102E] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#A00D24] transition-all"
+              >
+                <Plus size={20} />
+                Add First Candidate
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Modal */}
         {showModal && (
@@ -366,7 +661,9 @@ export default function CandidatesPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Name (Bengali)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Name (Bengali) <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={formData.name}
@@ -382,7 +679,6 @@ export default function CandidatesPage() {
                       value={formData.name_en}
                       onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#C8102E] focus:ring-4 focus:ring-[#C8102E]/10 outline-none transition-all"
-                      required
                     />
                   </div>
                 </div>
@@ -462,7 +758,6 @@ export default function CandidatesPage() {
                       onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                       min="25"
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#C8102E] focus:ring-4 focus:ring-[#C8102E]/10 outline-none transition-all"
-                      required
                     />
                   </div>
                   <div>
@@ -472,7 +767,6 @@ export default function CandidatesPage() {
                       value={formData.education}
                       onChange={(e) => setFormData({ ...formData, education: e.target.value })}
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#C8102E] focus:ring-4 focus:ring-[#C8102E]/10 outline-none transition-all"
-                      required
                     />
                   </div>
                 </div>
