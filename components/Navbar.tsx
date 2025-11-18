@@ -10,7 +10,7 @@ import { useCart } from '@/lib/cart-context';
 
 const navLinks = [
   { href: '/', label: 'হোম' },
-  { href: '/#poll', label: 'পোল' },
+  { href: '/#poll', label: 'জরিপ' },
   { href: '/#divisions', label: 'আসন ও প্রার্থী' },
   { href: '/#parties', label: 'দলসমূহ' },
   { href: '/news', label: 'খবর' },
