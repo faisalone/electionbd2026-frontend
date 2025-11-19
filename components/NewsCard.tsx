@@ -13,7 +13,7 @@ interface NewsCardProps {
   uid?: string;
   title: string;
   summary: string;
-  image: string;
+  image: string | null;
   created_at: string;
   category: string;
 }
