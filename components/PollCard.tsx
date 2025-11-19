@@ -221,7 +221,11 @@ export default function PollCard({
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="group bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col max-h-[700px] relative"
+      className={`group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col max-h-[700px] relative ${
+        status === 'upcoming' 
+          ? 'border-2 border-[#C8102E]/30 shadow-[#C8102E]/10 shadow-lg' 
+          : 'border border-gray-100 hover:border-gray-200'
+      }`}
     >
       {/* Fixed Header - Always Visible */}
       <div className={`p-6 pb-4 border-b border-gray-100 rounded-t-2xl shrink-0 ${
@@ -232,24 +236,24 @@ export default function PollCard({
         {/* Question */}
         <div className="flex items-start gap-2">
           {status === 'upcoming' && (
-            <div className="relative flex items-center justify-center w-4 h-4 mt-1 shrink-0">
-              <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
-              <div className="relative w-2 h-2 bg-red-500 rounded-full"></div>
+            <div className="relative flex items-center justify-center w-5 h-5 mt-1 shrink-0">
+              <div className="absolute inset-0 w-5 h-5 bg-[#C8102E] rounded-full animate-ping opacity-75"></div>
+              <div className="relative w-2.5 h-2.5 bg-[#C8102E] rounded-full"></div>
             </div>
           )}
           {status === 'ended' && (
-            <CheckCircle className="w-4 h-4 text-white mt-1 shrink-0" />
+            <CheckCircle className="w-5 h-5 text-white mt-1 shrink-0" />
           )}
-          <h3 className={`text-lg font-bold leading-tight flex-1 ${
-            status === 'ended' ? 'text-white' : 'text-gray-900'
+          <h3 className={`font-bold leading-tight flex-1 ${
+            status === 'ended' ? 'text-white text-lg' : 'text-gray-900 text-3xl'
           }`}>{question}</h3>
         </div>
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-6 flex items-center min-h-0">
         {/* Options */}
-        <div>
+        <div className="w-full space-y-4">
           {(() => {
             const showResults = voted || status === 'ended';
             const isSelectionMode = !voted && status === 'upcoming';
@@ -419,32 +423,16 @@ export default function PollCard({
               </AnimatePresence>
           </motion.div>
         )}
-
-        {/* Winner */}
-        {status === 'ended' && winner && (
-          <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🏆</span>
-              <div className="flex-1">
-                <div className="text-xs font-semibold text-amber-700">বিজয়ী</div>
-                <div className="text-lg font-bold text-amber-900">
-                  {toBengaliNumber(winner.phone_number.slice(0, 3))}
-                  <span className="text-amber-600">****</span>
-                  {toBengaliNumber(winner.phone_number.slice(-3))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Vote Success */}
-        {voted && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700">
-            <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">ভোট সফল!</span>
-          </div>
-        )}
       </div>
+
+      {/* Fixed Footer */}
+      {/* Vote Success */}
+      {voted && (
+        <div className="mx-6 mt-auto mb-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700">
+          <CheckCircle className="w-5 h-5" />
+          <span className="text-sm font-medium">ভোট সফল!</span>
+        </div>
+      )}
 
       {/* Fixed Footer */}
       <div className="p-6 pt-4 border-t border-gray-100 space-y-3 shrink-0">
@@ -466,14 +454,31 @@ export default function PollCard({
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 rounded-lg py-2.5 px-4 border border-gray-200">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Calendar className="w-4 h-4" />
-              <span className="text-xs font-semibold">সমাপ্তির তারিখ</span>
+          <div className="bg-linear-to-r from-amber-50 to-gray-50 border border-gray-200 rounded-xl py-3 px-4">
+            <div className="flex items-center justify-between gap-4">
+              {/* Winner - Left side (takes more space) */}
+              {winner && (
+                <div className="flex items-center gap-2.5">
+                  <span className="text-3xl">🏆</span>
+                  <div>
+                    <div className="text-xs text-amber-700 font-semibold">বিজয়ী</div>
+                    <div className="text-base font-bold text-amber-900">
+                      {toBengaliNumber(winner.phone_number.slice(0, 3))}
+                      <span className="text-amber-600">****</span>
+                      {toBengaliNumber(winner.phone_number.slice(-3))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Date - Right side (compact) */}
+              <div className="flex items-center gap-2 text-gray-600">
+                <Calendar className="w-4 h-4" />
+                <span className="text-sm font-semibold whitespace-nowrap">
+                  {formatBengaliDate(endDate)}
+                </span>
+              </div>
             </div>
-            <span className="text-sm font-bold text-gray-800">
-              {formatBengaliDate(endDate)}
-            </span>
           </div>
         )}
 

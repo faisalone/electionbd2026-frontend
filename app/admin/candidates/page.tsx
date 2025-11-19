@@ -264,10 +264,8 @@ export default function CandidatesPage() {
     try {
       const submitData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        // Only append non-empty values
-        if (value) {
-          submitData.append(key, value);
-        }
+        // Send empty strings as empty to clear fields, not skip them
+        submitData.append(key, value || '');
       });
       if (imageFile) {
         submitData.append('image', imageFile);

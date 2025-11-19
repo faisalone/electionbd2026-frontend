@@ -49,5 +49,5 @@ export function formatBengaliDate(dateString: string): string {
 	const bengaliMinutes = toBengaliNumber(minutes.toString().padStart(2, '0'));
 	const period = isPM ? 'অপরাহ্ন' : 'পূর্বাহ্ন';
 
-	return `${formattedDate} এ ${bengaliHours}:${bengaliMinutes} ${period}`;
+	return `${formattedDate} • ${bengaliHours}:${bengaliMinutes} ${period}`;
 }

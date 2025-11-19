@@ -79,7 +79,7 @@ export default function Home() {
 				variant="gray"
 				className=""
 			>
-				<div className="bg-white rounded-2xl border-2 border-[#C8102E] p-6 md:p-8">
+				<div>
 				{pollsLoading ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						{[1, 2].map((i) => (
