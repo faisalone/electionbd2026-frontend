@@ -256,95 +256,36 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 py-4 md:py-8 px-3 md:px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header - Compact for Mobile */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-4 md:mb-6"
         >
           <Link 
             href="/" 
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#C8102E] mb-6 transition-colors"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#C8102E] mb-3 md:mb-4 transition-colors text-sm"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
             <span>হোমে ফিরে যান</span>
           </Link>
           
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-3 leading-tight">
-                আগামীর রাষ্ট্রনায়ক<br />
-                তারেক রহমানের জন্মদিনের<br />
-                <span className="text-[#C8102E]">ফটোকার্ড</span>
-              </h1>
-              <p className="text-lg md:text-xl text-gray-600 mb-4">
-                ভোটমামুর এআই প্রযুক্তির মাধ্যমে আগামীর রাষ্ট্রনায়ক তারেক রহমানের জন্মদিনের ফোটোকার্ড বানিয়ে নিন
-              </p>
-              
-              {/* Share Buttons */}
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-sm font-medium text-gray-700">শেয়ার করুন:</span>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleShare('facebook')}
-                  className="p-2 bg-[#1877F2] text-white rounded-lg hover:bg-[#1559C4] transition-colors"
-                  title="Facebook এ শেয়ার করুন"
-                >
-                  <FaFacebook className="w-5 h-5" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleShare('messenger')}
-                  className="p-2 bg-[#0084FF] text-white rounded-lg hover:bg-[#0070E0] transition-colors"
-                  title="Messenger এ শেয়ার করুন"
-                >
-                  <FaFacebookMessenger className="w-5 h-5" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleShare('whatsapp')}
-                  className="p-2 bg-[#25D366] text-white rounded-lg hover:bg-[#1EBE57] transition-colors"
-                  title="WhatsApp এ শেয়ার করুন"
-                >
-                  <FaWhatsapp className="w-5 h-5" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleShare('telegram')}
-                  className="p-2 bg-[#0088CC] text-white rounded-lg hover:bg-[#0077B3] transition-colors"
-                  title="Telegram এ শেয়ার করুন"
-                >
-                  <FaTelegram className="w-5 h-5" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleShare('copy')}
-                  className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                  title="লিংক কপি করুন"
-                >
-                  {isCopied ? <BsCheckLg className="w-5 h-5" /> : <BsCopy className="w-5 h-5" />}
-                </motion.button>
-              </div>
-            </div>
-          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+            <span className="text-[#C8102E]">তারেক রহমানের</span> জন্মদিনের ফটোকার্ড
+          </h1>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
           {/* Left: Live Preview */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl shadow-xl p-6"
+            className="bg-white rounded-xl md:rounded-2xl shadow-xl p-4 md:p-6"
           >
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-2xl">👁️</span>
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
+              <span className="text-xl md:text-2xl">👁️</span>
               লাইভ প্রিভিউ
             </h2>
             
@@ -356,61 +297,35 @@ export default function GeneratePage() {
                 className="w-full h-full"
               />
             </div>
-
-            {/* Instructions */}
-            <div className="bg-linear-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
-              <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="text-xl">💡</span>
-                কিভাবে ব্যবহার করবেন
-              </h4>
-              <div className="space-y-2 text-sm text-gray-700">
-                <p>• আপনার ছবি আপলোড করুন</p>
-                <p>• AI দিয়ে ব্যাকগ্রাউন্ড রিমুভ করুন (ঐচ্ছিক)</p>
-                <p>• আপনার নাম ও পদবী লিখুন</p>
-                <p>• ডাউনলোড বাটনে ক্লিক করুন</p>
-              </div>
-            </div>
-
-            {generatedPoster && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={handleDownload}
-                className="mt-4 w-full px-4 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg"
-              >
-                <Download className="w-5 h-5" />
-                পোস্টার ডাউনলোড করুন
-              </motion.button>
-            )}
           </motion.div>
 
           {/* Right: Controls */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6"
           >
-            {/* Image Upload */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">ছবি আপলোড করুন</h3>
+            {/* Image Upload - First */}
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-xl p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3 md:mb-4">ছবি আপলোড করুন</h3>
               
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                className={`border-2 border-dashed rounded-xl p-4 md:p-6 text-center cursor-pointer transition-all ${
                   uploadedImage 
                     ? 'border-green-400 bg-green-50' 
                     : 'border-gray-300 hover:border-[#C8102E] hover:bg-red-50'
                 } group`}
               >
                 {uploadedImage ? (
-                  <CheckCircle className="w-12 h-12 mx-auto text-green-600 mb-2" />
+                  <CheckCircle className="w-10 md:w-12 h-10 md:h-12 mx-auto text-green-600 mb-2" />
                 ) : (
-                  <Upload className="w-12 h-12 mx-auto text-gray-400 group-hover:text-[#C8102E] mb-2" />
+                  <Upload className="w-10 md:w-12 h-10 md:h-12 mx-auto text-gray-400 group-hover:text-[#C8102E] mb-2" />
                 )}
-                <p className="text-gray-700 font-medium mb-1">
+                <p className="text-sm md:text-base text-gray-700 font-medium mb-1">
                   {uploadedImage ? uploadedImage.name : 'JPG, PNG (সর্বোচ্চ 10MB)'}
                 </p>
-                <button className="px-4 py-2 bg-[#C8102E] text-white rounded-lg font-medium hover:bg-[#A00D27] transition-colors text-sm mt-2">
+                <button className="px-3 md:px-4 py-2 bg-[#C8102E] text-white rounded-lg font-medium hover:bg-[#A00D27] transition-colors text-xs md:text-sm mt-2">
                   {uploadedImage ? 'পরিবর্তন করুন' : 'ফাইল নির্বাচন করুন'}
                 </button>
               </div>
@@ -432,16 +347,16 @@ export default function GeneratePage() {
                     <button
                       onClick={handleRemoveBackground}
                       disabled={removingBackground}
-                      className="mt-4 w-full px-4 py-3 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                      className="mt-3 md:mt-4 w-full px-3 md:px-4 py-2 md:py-3 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg text-sm md:text-base"
                     >
                       {removingBackground ? (
                         <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <Loader2 className="w-4 md:w-5 h-4 md:h-5 animate-spin" />
                           AI প্রসেস হচ্ছে... {removalProgress}%
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-5 h-5" />
+                          <Sparkles className="w-4 md:w-5 h-4 md:h-5" />
                           AI দিয়ে ব্যাকগ্রাউন্ড রিমুভ করুন
                         </>
                       )}
@@ -464,25 +379,25 @@ export default function GeneratePage() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="mt-4 px-4 py-3 bg-green-100 text-green-800 rounded-xl flex items-center justify-center gap-2"
+                    className="mt-3 md:mt-4 px-3 md:px-4 py-2 md:py-3 bg-green-100 text-green-800 rounded-xl flex items-center justify-center gap-2 text-sm md:text-base"
                   >
-                    <CheckCircle className="w-5 h-5" />
+                    <CheckCircle className="w-4 md:w-5 h-4 md:h-5" />
                     ব্যাকগ্রাউন্ড সফলভাবে রিমুভ হয়েছে
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Text Input */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">আপনার নাম লিখুন</h3>
+            {/* Text Input - Second */}
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-xl p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3 md:mb-4">আপনার নাম লিখুন</h3>
               
               <input
                 type="text"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="আপনার নাম লিখুন..."
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/20 outline-none text-lg mb-3"
+                className="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-gray-300 rounded-xl focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/20 outline-none text-base md:text-lg mb-2 md:mb-3"
                 maxLength={50}
               />
               
@@ -491,31 +406,95 @@ export default function GeneratePage() {
                 value={designation}
                 onChange={(e) => setDesignation(e.target.value)}
                 placeholder="পদবী লিখুন (ঐচ্ছিক)..."
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/20 outline-none text-base"
+                className="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-gray-300 rounded-xl focus:border-[#C8102E] focus:ring-2 focus:ring-[#C8102E]/20 outline-none text-sm md:text-base"
                 maxLength={50}
               />
               
               <div className="flex justify-between items-center mt-2">
-                <p className="text-sm text-gray-500">
+                <p className="text-xs md:text-sm text-gray-500">
                   {text && designation ? 'নাম ও পদবী যুক্ত হয়েছে' : text ? 'নাম যুক্ত হয়েছে' : ''}
                 </p>
                 {(text || designation) && <span className="text-green-600 text-sm font-medium">✓</span>}
               </div>
             </div>
 
-            {/* Download Button */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
+            {/* Download Button - Third */}
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-xl p-4 md:p-6">
               <button
                 onClick={handleDownload}
                 disabled={loading || !uploadedImage || !text}
-                className="w-full px-6 py-4 bg-[#C8102E] text-white rounded-xl font-bold text-lg hover:bg-[#A00D27] transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                className="w-full px-4 md:px-6 py-3 md:py-4 bg-[#C8102E] text-white rounded-xl font-bold text-base md:text-lg hover:bg-[#A00D27] transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
               >
-                <Download className="w-6 h-6" />
+                <Download className="w-5 md:w-6 h-5 md:h-6" />
                 ডাউনলোড করুন
               </button>
             </div>
           </motion.div>
         </div>
+
+        {/* Instructions & Share Buttons - Bottom Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 md:mt-8 max-w-4xl mx-auto space-y-4 md:space-y-6"
+        >
+          {/* Instructions */}
+          <div className="bg-linear-to-br from-blue-50 to-purple-50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-200">
+            <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base md:text-lg">
+              <span className="text-xl">💡</span>
+              কিভাবে ব্যবহার করবেন
+            </h4>
+            <div className="space-y-2 text-sm md:text-base text-gray-700">
+              <p>• আপনার ছবি আপলোড করুন</p>
+              <p>• AI দিয়ে ব্যাকগ্রাউন্ড রিমুভ করুন (ঐচ্ছিক)</p>
+              <p>• আপনার নাম ও পদবী লিখুন</p>
+              <p>• ডাউনলোড বাটনে ক্লিক করুন</p>
+            </div>
+          </div>
+
+          {/* Share Buttons */}
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6">
+            <h4 className="font-bold text-gray-900 mb-3 text-base md:text-lg">শেয়ার করুন</h4>
+            <div className="flex flex-wrap items-center gap-3">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleShare('facebook')}
+                className="flex-1 min-w-[120px] p-3 bg-[#1877F2] text-white rounded-lg hover:bg-[#1559C4] transition-colors flex items-center justify-center gap-2"
+                aria-label="Facebook এ শেয়ার করুন"
+              >
+                <FaFacebook className="w-5 h-5" />
+                <span className="text-sm font-medium">Facebook</span>
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleShare('whatsapp')}
+                className="flex-1 min-w-[120px] p-3 bg-[#25D366] text-white rounded-lg hover:bg-[#1EBE57] transition-colors flex items-center justify-center gap-2"
+                aria-label="WhatsApp এ শেয়ার করুন"
+              >
+                <FaWhatsapp className="w-5 h-5" />
+                <span className="text-sm font-medium">WhatsApp</span>
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleShare('telegram')}
+                className="flex-1 min-w-[120px] p-3 bg-[#0088CC] text-white rounded-lg hover:bg-[#0077B3] transition-colors flex items-center justify-center gap-2"
+                aria-label="Telegram এ শেয়ার করুন"
+              >
+                <FaTelegram className="w-5 h-5" />
+                <span className="text-sm font-medium">Telegram</span>
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleShare('copy')}
+                className="flex-1 min-w-[120px] p-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                aria-label="লিংক কপি করুন"
+              >
+                {isCopied ? <BsCheckLg className="w-5 h-5" /> : <BsCopy className="w-5 h-5" />}
+                <span className="text-sm font-medium">{isCopied ? 'কপি হয়েছে!' : 'লিংক কপি'}</span>
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
