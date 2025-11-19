@@ -159,17 +159,28 @@ export default function GeneratePage() {
     setRemovalProgress(0);
     
     try {
-      // Show realistic progress updates
+      // Show faster progress updates
       const progressInterval = setInterval(() => {
         setRemovalProgress(prev => {
-          if (prev < 30) return prev + 5;
-          if (prev < 60) return prev + 3;
-          if (prev < 85) return prev + 2;
-          return Math.min(prev + 1, 95);
+          if (prev < 40) return prev + 8;
+          if (prev < 70) return prev + 5;
+          if (prev < 90) return prev + 3;
+          return Math.min(prev + 1, 96);
         });
-      }, 200);      // Use client-side AI background removal
+      }, 150);
+
+      // Use client-side AI background removal with optimized config
       const imageUrl = URL.createObjectURL(uploadedImage);
-      const blob = await removeBackground(imageUrl);
+      const blob = await removeBackground(imageUrl, {
+        model: 'isnet_fp16', // Use fastest optimized model (fp16 is faster than full precision)
+        progress: (key, current, total) => {
+          // Update progress based on actual model loading
+          const percent = Math.round((current / total) * 100);
+          if (key === 'compute:inference') {
+            setRemovalProgress(Math.min(percent, 96));
+          }
+        }
+      });
       
       clearInterval(progressInterval);
       setRemovalProgress(100);
@@ -296,6 +307,43 @@ export default function GeneratePage() {
                 height={TEMPLATE.height}
                 className="w-full h-full"
               />
+              
+              {/* AI Processing Shimmer Effect */}
+              <AnimatePresence>
+                {removingBackground && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-linear-to-r from-transparent via-purple-500/30 to-transparent bg-size-[200%_100%] animate-[shimmer_1.5s_infinite]"
+                    style={{
+                      backgroundPosition: '-200% 0',
+                      animation: 'shimmer 1.5s ease-in-out infinite'
+                    }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                      <div className="text-center">
+                        <motion.div
+                          animate={{ 
+                            scale: [1, 1.2, 1],
+                            rotate: [0, 360]
+                          }}
+                          transition={{ 
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                          className="mb-3"
+                        >
+                          <Sparkles className="w-12 h-12 md:w-16 md:h-16 text-purple-400 mx-auto" />
+                        </motion.div>
+                        <p className="text-white font-bold text-lg md:text-xl mb-2">AI প্রসেসিং...</p>
+                        <p className="text-purple-200 text-sm md:text-base">{removalProgress}%</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
 
