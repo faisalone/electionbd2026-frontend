@@ -178,13 +178,14 @@ export default function HeroTimeline() {
         <div 
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className="overflow-x-auto scrollbar-hide touch-pan-x"
+          className="overflow-x-auto scrollbar-hide"
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none',
             WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
             maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
-            WebkitOverflowScrolling: 'touch'
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-x pan-y'
           }}
         >
           <div className="relative inline-flex items-start pb-4 pl-4" style={{ minWidth: 'max-content' }}>

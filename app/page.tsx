@@ -138,8 +138,7 @@ export default function Home() {
 								const endDate = new Date(poll.end_date);
 								return now <= endDate;
 							}).length > 0 && (
-									<div>
-										<h3 className="text-lg font-bold text-gray-900 mb-4">সক্রিয় জরিপ</h3>
+								<div>
 										<div className="grid grid-cols-1 gap-6">
 											{polls
 												.filter(poll => {
@@ -182,8 +181,7 @@ export default function Home() {
 								const endDate = new Date(poll.end_date);
 								return now > endDate;
 							}).length > 0 && (
-									<div>
-										<h3 className="text-lg font-bold text-gray-900 mb-4">শেষ হয়েছে</h3>
+								<div>
 										<div className="grid grid-cols-1 gap-6">
 											{polls
 												.filter(poll => {

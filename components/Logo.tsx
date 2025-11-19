@@ -10,15 +10,16 @@ const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 import logoAnimation from '@/public/logo-animation.json';
 
 type LogoProps = {
-  height?: number;
+  height?: number | string;
   className?: string;
   priority?: boolean;
   alt?: string;
 };
 
 export default function Logo({ height = 40, className = '', alt = 'ভোটমামু' }: LogoProps) {
+  const computedHeight = typeof height === 'number' ? `${height}px` : height;
   const style: CSSProperties = {
-    height: `${height}px`,
+    height: computedHeight,
     width: 'auto',
   };
 

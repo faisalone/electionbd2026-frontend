@@ -19,39 +19,8 @@ export default function AiSearchBar() {
   const [results, setResults] = useState<any>(null);
   const [thinkingExpanded, setThinkingExpanded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [displayedPlaceholder, setDisplayedPlaceholder] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const autocompleteTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const placeholders = [
-    'ভোটমামুকে জিজ্ঞেস করুন',
-    'আচরণবিধি সম্পর্কে জিজ্ঞেস করুন',
-    'নির্বাচন সম্পর্কে জিজ্ঞেস করুন',
-    'দল, প্রার্থী ও আসন সম্পর্কে জিজ্ঞেস করুন'
-  ];
-
-  // Typing effect for placeholder
-  useEffect(() => {
-    let charIndex = 0;
-    const currentPlaceholder = placeholders[placeholderIndex];
-    setDisplayedPlaceholder('');
-    
-    const typingInterval = setInterval(() => {
-      if (charIndex < currentPlaceholder.length) {
-        setDisplayedPlaceholder(currentPlaceholder.substring(0, charIndex + 1));
-        charIndex++;
-      } else {
-        clearInterval(typingInterval);
-        // Wait 2 seconds before changing to next placeholder
-        setTimeout(() => {
-          setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
-        }, 2000);
-      }
-    }, 80); // 80ms per character for smooth typing
-    
-    return () => clearInterval(typingInterval);
-  }, [placeholderIndex]);
 
   // Typing animation effect
   useEffect(() => {
@@ -275,31 +244,37 @@ export default function AiSearchBar() {
     <div ref={containerRef} className="w-full max-w-3xl mx-auto mb-16">
       <form onSubmit={handleSubmit}>
         <div className="bg-white shadow-lg rounded-[28px] p-2.5 relative border-2 border-gray-100">
-          <div className="flex items-center gap-2 px-3">
-            <div className="text-[#C8102E] shrink-0 self-center">
+          <div className="flex items-center gap-2 px-3 min-h-14">
+            <div className="text-[#C8102E] shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             
-            <textarea
-              value={query}
-              onChange={(e) => {
-                handleInputChange(e);
-                e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-              }}
-              placeholder={displayedPlaceholder}
-              rows={1}
-              className="flex-1 bg-transparent outline-none text-base text-gray-900 placeholder-gray-400 resize-none overflow-hidden leading-relaxed py-3 mi11"
-              style={{ maxHeight: '200px' }}
-              disabled={isLoading}
-            />
+            <div className="flex-1 relative flex items-center">
+              <textarea
+                value={query}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+                placeholder="ভোটমামুকে জিজ্ঞেস করুন"
+                rows={1}
+                className="w-full bg-transparent outline-none text-base text-gray-900 placeholder:text-gray-400 placeholder:truncate resize-none overflow-hidden py-0"
+                style={{ 
+                  maxHeight: '200px',
+                  lineHeight: '24px',
+                  minHeight: '24px'
+                }}
+                disabled={isLoading}
+              />
+            </div>
 
             {query && !isLoading && (
               <button
@@ -315,7 +290,7 @@ export default function AiSearchBar() {
                   setThinkingExpanded(false);
                   setIsTyping(false);
                 }}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors shrink-0 self-center"
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -324,7 +299,7 @@ export default function AiSearchBar() {
             <button
               type="submit"
               disabled={!query.trim() || isLoading}
-              className="bg-black text-white p-2.5 rounded-full hover:opacity-70 disabled:opacity-30 transition-opacity shrink-0 self-center"
+              className="bg-black text-white p-2.5 rounded-full hover:opacity-70 disabled:opacity-30 transition-opacity shrink-0"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

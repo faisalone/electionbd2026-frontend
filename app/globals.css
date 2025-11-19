@@ -20,7 +20,7 @@ body {
   font-family: var(--font-noto-sans-bengali), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 button {

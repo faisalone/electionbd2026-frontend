@@ -225,32 +225,6 @@ export default function PollCard({
     >
       {/* Fixed Header - Always Visible */}
       <div className="p-6 pb-4 border-b border-gray-100 bg-linear-to-br from-blue-50 to-purple-50 rounded-t-2xl shrink-0">
-        {/* Countdown/Date */}
-        {status === 'upcoming' ? (
-          <div className="flex items-center justify-center gap-2 mb-4">
-            {[
-              { value: timeLeft.days, label: 'দিন' },
-              { value: timeLeft.hours, label: 'ঘণ্টা' },
-              { value: timeLeft.minutes, label: 'মিনিট' },
-              { value: timeLeft.seconds, label: 'সেকেন্ড' },
-            ].map((item, index) => (
-              <div key={index} className="flex flex-col items-center bg-white/80 rounded-lg px-3 py-2 border border-blue-200">
-                <span className="text-lg font-bold text-blue-700 leading-none">
-                  {toBengaliNumber(item.value)}
-                </span>
-                <span className="text-[10px] text-blue-600 font-medium mt-1">{item.label}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Calendar className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-semibold text-gray-700">
-              {formatBengaliDate(endDate)}
-            </span>
-          </div>
-        )}
-
         {/* Question */}
         <div className="flex items-start gap-2">
           {status === 'upcoming' && (
@@ -262,7 +236,7 @@ export default function PollCard({
           {status === 'ended' && (
             <CheckCircle className="w-4 h-4 text-green-600 mt-1 shrink-0" />
           )}
-          <h3 className="text-lg font-bold text-gray-900 leading-tight flex-1 line-clamp-2">{question}</h3>
+          <h3 className="text-lg font-bold text-gray-900 leading-tight flex-1">{question}</h3>
         </div>
       </div>
 
@@ -472,6 +446,32 @@ export default function PollCard({
 
       {/* Fixed Footer */}
       <div className="p-6 pt-4 border-t border-gray-100 space-y-3 shrink-0">
+        {/* Countdown/Date near totals */}
+        {status === 'upcoming' ? (
+          <div className="flex items-center justify-center gap-2">
+            {[
+              { value: timeLeft.days, label: 'দিন' },
+              { value: timeLeft.hours, label: 'ঘণ্টা' },
+              { value: timeLeft.minutes, label: 'মিনিট' },
+              { value: timeLeft.seconds, label: 'সেকেন্ড' },
+            ].map((item, index) => (
+              <div key={index} className="flex flex-col items-center bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
+                <span className="text-lg font-bold text-blue-700 leading-none">
+                  {toBengaliNumber(item.value)}
+                </span>
+                <span className="text-[10px] text-blue-600 font-medium mt-1">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-2 text-gray-600">
+            <Calendar className="w-4 h-4" />
+            <span className="text-sm font-semibold text-gray-700">
+              {formatBengaliDate(endDate)}
+            </span>
+          </div>
+        )}
+
         {/* Total Votes */}
         <p className="text-2xl font-bold text-gray-900 text-center">
           {toBengaliNumber(animatedVoteCount)} ভোট

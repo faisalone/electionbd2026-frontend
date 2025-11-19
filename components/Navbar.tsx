@@ -37,7 +37,11 @@ export default function Navbar() {
             <div className="flex items-center justify-between">
               {/* Logo - Left */}
               <Link href="/" className="flex items-center gap-2 shrink-0">
-                <Logo height={40} className="hover:scale-105 transition-transform" alt="ভোটমামু" />
+                <Logo
+                  height="clamp(28px, 8vw, 40px)"
+                  className="hover:scale-105 transition-transform"
+                  alt="ভোটমামু"
+                />
               </Link>
 
               {/* Desktop Navigation - Center */}
@@ -76,14 +80,7 @@ export default function Navbar() {
 
               {/* Mobile Menu Button */}
               <div className="lg:hidden flex items-center gap-2">
-                <button
-                  onClick={() => setIsOpen(!isOpen)}
-                  className="text-gray-700 hover:text-[#C8102E] transition-colors p-2"
-                >
-                  {isOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
-                
-                <Link href="/market/cart">
+                <Link href="/market/cart" className="max-[360px]:hidden">
                   <button className="relative p-2 hover:bg-gray-50 rounded-full transition-colors">
                     <ShoppingBag size={16} className="text-gray-700" />
                     {getTotalItems() > 0 && (
@@ -93,6 +90,20 @@ export default function Navbar() {
                     )}
                   </button>
                 </Link>
+                
+                <Link href="/market">
+                  <button className="flex items-center gap-1.5 bg-[#C8102E] text-white px-3 py-1.5 rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all text-xs max-[360px]:p-2">
+                    <Sparkles size={14} />
+                    <span className="max-[360px]:hidden">মার্কেট</span>
+                  </button>
+                </Link>
+                
+                <button
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="text-gray-700 hover:text-[#C8102E] transition-colors p-2"
+                >
+                  {isOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
               </div>
             </div>
           </div>

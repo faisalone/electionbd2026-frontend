@@ -28,7 +28,11 @@ export default function NewsNavbar({
             <div className="flex items-center justify-between">
               {/* Logo - Left */}
               <Link href="/" className="flex items-center gap-2 shrink-0">
-                <Logo height={40} className="hover:scale-105 transition-transform" alt="ভোটমামু" />
+                <Logo
+                  height="clamp(28px, 8vw, 40px)"
+                  className="hover:scale-105 transition-transform"
+                  alt="ভোটমামু"
+                />
               </Link>
 
               {/* Desktop Categories - Center */}
