@@ -7,7 +7,7 @@ const BACKEND_URL =
 
 // Helper function to get full image URL
 export const getImageUrl = (path: string | null | undefined): string => {
-	if (!path) return '';
+	if (!path) return '/news-placeholder.svg';
 	if (path.startsWith('http')) return path;
 	return `${BACKEND_URL}${path}`;
 };
