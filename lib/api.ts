@@ -146,7 +146,7 @@ export interface News {
 	title: string; // Bengali title
 	summary?: string; // Short summary
 	content: string; // Full content
-	image: string; // Image URL (always provided by backend with fallback)
+	image: string | null; // Image URL or null if not available
 	date: string; // Bengali date
 	category: string;
 	is_ai_generated: boolean;

@@ -455,8 +455,8 @@ export default function PollCard({
           </div>
         ) : (
           <div className="bg-linear-to-r from-amber-50 to-gray-50 border border-gray-200 rounded-xl py-3 px-4">
-            <div className="flex items-center justify-between gap-4">
-              {/* Winner - Left side (takes more space) */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              {/* Winner - Top on mobile, left on desktop */}
               {winner && (
                 <div className="flex items-center gap-2.5">
                   <span className="text-3xl">🏆</span>
@@ -471,7 +471,7 @@ export default function PollCard({
                 </div>
               )}
               
-              {/* Date - Right side (compact) */}
+              {/* Date - Bottom on mobile, right on desktop */}
               <div className="flex items-center gap-2 text-gray-600">
                 <Calendar className="w-4 h-4" />
                 <span className="text-sm font-semibold whitespace-nowrap">
