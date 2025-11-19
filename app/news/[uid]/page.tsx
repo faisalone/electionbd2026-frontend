@@ -25,6 +25,7 @@ export default function NewsDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('সব');
   const [imageError, setImageError] = useState(false);
+  const [sidebarImageErrors, setSidebarImageErrors] = useState<Record<number, boolean>>({});
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
@@ -196,17 +197,19 @@ export default function NewsDetailPage() {
 
                 {/* Featured Image - Only show if backend provides one */}
                 {news.image && news.image !== '/news-placeholder.svg' && !imageError && (
-                  <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 mb-8 overflow-hidden rounded-lg">
-                    <Image
-                      src={getImageUrl(news.image)}
-                      alt={news.title}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 66vw"
-                      unoptimized={true}
-                      className="object-cover"
-                      priority
-                      onError={() => setImageError(true)}
-                    />
+                  <div className="px-6 pb-8">
+                    <div className="relative w-full aspect-video bg-gray-100 overflow-hidden rounded-lg">
+                      <Image
+                        src={getImageUrl(news.image)}
+                        alt={news.title}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 66vw"
+                        unoptimized={true}
+                        className="object-cover"
+                        priority
+                        onError={() => setImageError(true)}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -277,29 +280,37 @@ export default function NewsDetailPage() {
                     সর্বশেষ খবর
                   </h3>
                   <div className="space-y-4">
-                    {categoryNews.slice(0, 5).map((item, index) => (
-                      <Link key={item.id} href={`/news/${item.uid || item.id}`}>
-                        <div className="group cursor-pointer pb-4 border-b border-gray-200 last:border-0">
-                          <div className="flex gap-4">
-                            <div className="relative w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                              <Image
-                                src={item.image}
-                                alt={item.title}
-                                fill
-                                unoptimized={item.image.endsWith('.svg')}
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-[#C8102E] transition-colors mb-2">
-                                {item.title}
-                              </h4>
-                              <span className="text-xs text-gray-500">{item.date}</span>
+                    {categoryNews.slice(0, 5).map((item, index) => {
+                      const hasError = sidebarImageErrors[item.id];
+                      const newsImage = hasError || !item.image ? '/news-placeholder.svg' : getImageUrl(item.image);
+                      const isSvg = newsImage.endsWith('.svg');
+                      const isExternal = newsImage.startsWith('http');
+                      
+                      return (
+                        <Link key={item.id} href={`/news/${item.uid || item.id}`}>
+                          <div className="group cursor-pointer pb-4 border-b border-gray-200 last:border-0">
+                            <div className="flex gap-3">
+                              <div className="relative w-20 aspect-square shrink-0 rounded-lg overflow-hidden bg-gray-200">
+                                <Image
+                                  src={newsImage}
+                                  alt={item.title}
+                                  fill
+                                  sizes="80px"
+                                  unoptimized={isSvg || isExternal}
+                                  className="object-cover"
+                                  onError={() => setSidebarImageErrors(prev => ({ ...prev, [item.id]: true }))}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-bold text-gray-900 line-clamp-3 group-hover:text-[#C8102E] transition-colors mb-2">
+                                  {item.title}
+                                </h4>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      );
+                    })}
                   </div>
                   <Link 
                     href="/news" 
@@ -326,12 +337,6 @@ export default function NewsDetailPage() {
                       </Link>
                     ))}
                   </div>
-                </div>
-
-                {/* Ad Space */}
-                <div className="bg-linear-to-br from-gray-100 to-gray-200 rounded-2xl p-8 text-center">
-                  <p className="text-gray-500 text-sm">বিজ্ঞাপন স্থান</p>
-                  <p className="text-gray-400 text-xs mt-2">Advertisement Space</p>
                 </div>
               </div>
             </div>

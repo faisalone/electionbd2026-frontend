@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function AiSearchBar() {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<string[]>([]);
   const [isLoadingAutocomplete, setIsLoadingAutocomplete] = useState(false);
@@ -45,8 +46,10 @@ export default function AiSearchBar() {
 
   // Load suggestions on mount and when input focuses
   useEffect(() => {
-    fetchSuggestions();
-  }, []);
+    if (hasInteracted) {
+      fetchSuggestions();
+    }
+  }, [hasInteracted]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -257,7 +260,10 @@ export default function AiSearchBar() {
                   e.target.style.height = 'auto';
                   e.target.style.height = e.target.scrollHeight + 'px';
                 }}
-                onFocus={() => setShowSuggestions(true)}
+                onFocus={() => {
+                  setHasInteracted(true);
+                  setShowSuggestions(true);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -312,7 +318,7 @@ export default function AiSearchBar() {
       </form>
 
       {/* Live Autocomplete Dropdown (when typing) */}
-      {showSuggestions && query.trim() && autocompleteSuggestions.length > 0 && !aiResponse && (
+      {hasInteracted && showSuggestions && query.trim() && autocompleteSuggestions.length > 0 && !aiResponse && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -339,7 +345,7 @@ export default function AiSearchBar() {
       )}
 
       {/* Recent/Popular Suggestions Dropdown (when not typing) */}
-      {showSuggestions && !query.trim() && filtered.length > 0 && !aiResponse && (
+      {hasInteracted && showSuggestions && !query.trim() && filtered.length > 0 && !aiResponse && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

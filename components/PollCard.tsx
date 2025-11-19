@@ -221,10 +221,14 @@ export default function PollCard({
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="group bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col max-h-[700px]"
+      className="group bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col max-h-[700px] relative"
     >
       {/* Fixed Header - Always Visible */}
-      <div className="p-6 pb-4 border-b border-gray-100 bg-linear-to-br from-blue-50 to-purple-50 rounded-t-2xl shrink-0">
+      <div className={`p-6 pb-4 border-b border-gray-100 rounded-t-2xl shrink-0 ${
+        status === 'ended' 
+          ? 'bg-linear-to-br from-green-600 to-green-700' 
+          : 'bg-linear-to-br from-blue-50 to-purple-50'
+      }`}>
         {/* Question */}
         <div className="flex items-start gap-2">
           {status === 'upcoming' && (
@@ -234,9 +238,11 @@ export default function PollCard({
             </div>
           )}
           {status === 'ended' && (
-            <CheckCircle className="w-4 h-4 text-green-600 mt-1 shrink-0" />
+            <CheckCircle className="w-4 h-4 text-white mt-1 shrink-0" />
           )}
-          <h3 className="text-lg font-bold text-gray-900 leading-tight flex-1">{question}</h3>
+          <h3 className={`text-lg font-bold leading-tight flex-1 ${
+            status === 'ended' ? 'text-white' : 'text-gray-900'
+          }`}>{question}</h3>
         </div>
       </div>
 
@@ -256,20 +262,19 @@ export default function PollCard({
                     const isRemembered = rememberedVote === option.id;
                     return (
                       <div key={option.id}>
-                        <div className={`relative overflow-hidden rounded-xl border bg-gray-50 ${isRemembered ? 'ring-2 ring-offset-2 ring-[#C8102E]/20 border-[#C8102E]' : 'border-gray-200'}`}>
+                        <div className={`relative overflow-hidden rounded-xl border bg-gray-50 ${isRemembered ? 'ring-2 ring-offset-2 ring-blue-500/20 border-blue-500' : 'border-gray-200'}`}>
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${percentage}%` }}
                             transition={{ duration: 1, ease: 'easeOut' }}
-                            className="absolute inset-0 opacity-20"
-                            style={{ backgroundColor: option.color }}
+                            className="absolute inset-0 bg-blue-500 opacity-20"
                           />
                           <div className="relative z-10 py-4 px-4 flex items-center justify-between gap-2">
                             <span className="font-semibold text-gray-900 text-sm leading-tight wrap-break-word flex-1">
                               {option.text}
                             </span>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-xl font-bold" style={{ color: option.color }}>
+                              <span className="text-xl font-bold text-blue-600">
                                 {toBengaliNumber(percentage)}%
                               </span>
                               <span className="text-xs text-gray-500">
@@ -306,10 +311,9 @@ export default function PollCard({
                       disabled={!isSelectionMode}
                       whileHover={isSelectionMode ? { scale: 1.02 } : {}}
                       whileTap={isSelectionMode ? { scale: 0.98 } : {}}
-                      className={`${colSpanClass} ${selfAlignClass} text-left transition-all rounded-xl border px-4 py-3 text-sm font-semibold ${
+                      className={`${colSpanClass} ${selfAlignClass} text-left transition-all rounded-xl border px-4 py-4 text-sm font-semibold ${
                         isSelectionMode ? 'cursor-pointer' : 'cursor-default'
-                      } ${isSelected ? 'text-white' : 'text-gray-900 bg-gray-50 border-gray-200 hover:border-gray-300'}`}
-                      style={isSelected ? { backgroundColor: option.color, borderColor: option.color } : {}}
+                      } ${isSelected ? 'text-white bg-blue-500 border-blue-500' : 'text-gray-900 bg-gray-50 border-gray-200 hover:border-gray-300'}`}
                     >
                       <span className="wrap-break-word">{option.text}</span>
                     </motion.button>
@@ -325,48 +329,47 @@ export default function PollCard({
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="overflow-hidden"
+            className="overflow-hidden px-6 pb-3"
           >
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={votingStep}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-2"
-                >
-                  <div className="relative">
-                    <input
-                      type={votingStep === 'phone' ? 'tel' : 'text'}
-                      value={votingStep === 'phone' ? phoneNumber : otp}
-                      onChange={(e) => {
-                        if (votingStep === 'phone') {
-                          setPhoneNumber(e.target.value);
-                        } else {
-                          setOtp(e.target.value);
-                          setOtpError('');
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={votingStep}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-2"
+              >
+                <div className="relative">
+                  <input
+                    type={votingStep === 'phone' ? 'tel' : 'text'}
+                    value={votingStep === 'phone' ? phoneNumber : otp}
+                    onChange={(e) => {
+                      if (votingStep === 'phone') {
+                        setPhoneNumber(e.target.value);
+                      } else {
+                        setOtp(e.target.value);
+                        setOtpError('');
+                      }
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        if (votingStep === 'phone' && phoneNumber.length >= 11) {
+                          handlePhoneSubmit();
+                        } else if (votingStep === 'otp' && otp.length >= 4) {
+                          handleOtpSubmit();
                         }
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          if (votingStep === 'phone' && phoneNumber.length >= 11) {
-                            handlePhoneSubmit();
-                          } else if (votingStep === 'otp' && otp.length >= 4) {
-                            handleOtpSubmit();
-                          }
-                        }
-                      }}
-                      placeholder={votingStep === 'phone' ? 'ফোন নাম্বার' : 'OTP কোড'}
-                      className={`w-full px-3 pr-24 py-2.5 border rounded-lg focus:outline-none focus:ring-2 font-semibold transition-all text-center text-sm ${
-                        otpError
-                          ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
-                          : votingStep === 'otp'
-                          ? 'border-green-400 focus:border-green-500 focus:ring-green-100'
-                          : 'border-blue-400 focus:border-blue-500 focus:ring-blue-100'
-                      }`}
-                      maxLength={votingStep === 'phone' ? 11 : 4}
-                      autoFocus
-                    />
+                      }
+                    }}
+                    placeholder={votingStep === 'phone' ? 'ফোন নাম্বার' : 'OTP কোড'}
+                    className={`w-full px-4 pr-24 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 font-semibold transition-all text-center text-base ${
+                      otpError
+                        ? 'border-red-400 focus:border-red-500 focus:ring-red-100 bg-red-50'
+                        : votingStep === 'otp'
+                        ? 'border-green-400 focus:border-green-500 focus:ring-green-100 bg-green-50'
+                        : 'border-blue-400 focus:border-blue-500 focus:ring-blue-100 bg-blue-50'
+                    }`}
+                    maxLength={votingStep === 'phone' ? 11 : 4}
+                    autoFocus
+                  />
 
                     <button
                       onClick={votingStep === 'phone' ? handlePhoneSubmit : handleOtpSubmit}
@@ -374,7 +377,7 @@ export default function PollCard({
                         (votingStep === 'phone' && toEnglishNumber(phoneNumber).length < 11) ||
                         (votingStep === 'otp' && (toEnglishNumber(otp).length < 4 || isVerifying))
                       }
-                      className={`absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-md font-semibold text-xs flex items-center gap-1 transition-all ${
+                      className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 transition-all ${
                         (votingStep === 'phone' && toEnglishNumber(phoneNumber).length >= 11) ||
                         (votingStep === 'otp' && toEnglishNumber(otp).length >= 4 && !isVerifying)
                           ? votingStep === 'otp'
@@ -384,11 +387,11 @@ export default function PollCard({
                       }`}
                     >
                       {isVerifying ? (
-                        <><Loader2 className="w-3 h-3 animate-spin" /><span>...</span></>
+                        <><Loader2 className="w-4 h-4 animate-spin" /><span>...</span></>
                       ) : votingStep === 'otp' ? (
-                        <><CheckCircle className="w-3 h-3" /><span>জমা</span></>
+                        <><CheckCircle className="w-4 h-4" /><span>জমা</span></>
                       ) : (
-                        <><Send className="w-3 h-3" /><span>পাঠান</span></>
+                        <><Send className="w-4 h-4" /><span>পাঠান</span></>
                       )}
                     </button>
                   </div>
@@ -414,7 +417,6 @@ export default function PollCard({
                   )}
                 </motion.div>
               </AnimatePresence>
-            </div>
           </motion.div>
         )}
 
@@ -464,9 +466,12 @@ export default function PollCard({
             ))}
           </div>
         ) : (
-          <div className="flex items-center justify-center gap-2 text-gray-600">
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm font-semibold text-gray-700">
+          <div className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 rounded-lg py-2.5 px-4 border border-gray-200">
+            <div className="flex items-center gap-2 text-gray-500">
+              <Calendar className="w-4 h-4" />
+              <span className="text-xs font-semibold">সমাপ্তির তারিখ</span>
+            </div>
+            <span className="text-sm font-bold text-gray-800">
               {formatBengaliDate(endDate)}
             </span>
           </div>
