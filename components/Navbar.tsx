@@ -14,6 +14,7 @@ const navLinks = [
   { href: '/#divisions', label: 'আসন ও প্রার্থী' },
   { href: '/#parties', label: 'দলসমূহ' },
   { href: '/news', label: 'খবর' },
+  { href: '/generate', label: 'পোস্টার তৈরি' },
 ];
 
 export default function Navbar() {
