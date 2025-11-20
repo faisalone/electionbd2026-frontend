@@ -7,8 +7,7 @@ import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import ReactPaginate from 'react-paginate';
 import SectionWrapper from '@/components/SectionWrapper';
 import ProductCard from '@/components/ProductCard';
-import { mockProducts, categoryLabels, getProductsByCategory, searchProducts } from '@/lib/mockProducts';
-import { toBengaliNumber } from '@/lib/utils';
+import { mockProducts, categoryLabels, getProductsByCategory, searchProducts, toBengaliNumber } from '@/lib/mockProducts';
 
 const categories = [
   { id: 'all', label: 'সব' },
@@ -25,8 +24,8 @@ const categories = [
 const sortOptions = [
   { id: 'newest', label: 'নতুন' },
   { id: 'popular', label: 'জনপ্রিয়' },
-  { id: 'price-low', label: '↓ দাম' },
-  { id: 'price-high', label: '↑ দাম' },
+  { id: 'downloads', label: 'ডাউনলোড' },
+  { id: 'rating', label: 'রেটিং' },
 ];
 
 export default function MarketPage() {
@@ -65,12 +64,17 @@ export default function MarketPage() {
     }
 
     // Sort products
-    if (sortBy === 'price-low') {
-      products = [...products].sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-high') {
-      products = [...products].sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'popular') {
+    if (sortBy === 'downloads') {
+      products = [...products].sort((a, b) => (b.downloads_count || 0) - (a.downloads_count || 0));
+    } else if (sortBy === 'rating') {
       products = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (sortBy === 'popular') {
+      // Popular based on combination of downloads and rating
+      products = [...products].sort((a, b) => {
+        const scoreA = (a.downloads_count || 0) * (a.rating || 0);
+        const scoreB = (b.downloads_count || 0) * (b.rating || 0);
+        return scoreB - scoreA;
+      });
     }
 
     setFilteredProducts(products);
@@ -109,52 +113,54 @@ export default function MarketPage() {
           {/* Header Content */}
           <div className="relative z-10 max-w-2xl">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
-              মার্কেটপ্লেস
+              ভোটমার্কেট
             </h1>
             <p className="text-lg text-gray-700">
-              নির্বাচনী প্রচারণার জন্য সব ধরনের ডিজাইন এবং সামগ্রী
+              পেশাদার নির্বাচনী ক্যাম্পেইন ডিজাইন ডাউনলোড করুন বা কাস্টম অর্ডার করুন
             </p>
           </div>
         </div>
 
         {/* Menu Bar with Search, Categories, and Sort */}
         <div className="mb-10 space-y-4">
-          {/* Desktop: All in one row */}
-          <div className="hidden lg:flex items-center gap-4">
-            {/* Search - Left */}
-            <div className="relative w-64 shrink-0">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="পণ্য খুঁজুন..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-white/60 backdrop-blur-sm border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all shadow-sm text-sm"
-              />
+          {/* Search Field - Full Width */}
+          <div className="relative w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+            <input
+              type="text"
+              placeholder="পণ্য খুঁজুন..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-transparent backdrop-blur-sm border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 transition-all text-sm"
+            />
+          </div>
+
+          {/* Desktop: Categories & Filter in one row */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Category Pills - Horizontal Scroll */}
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 pb-1">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 min-w-[100px] ${
+                      selectedCategory === category.id
+                        ? 'bg-[#C8102E] text-white shadow-md'
+                        : 'bg-transparent text-gray-700 hover:bg-white/50 border border-gray-200'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Category Pills - Center */}
-            <div className="flex flex-wrap gap-2 flex-1 justify-center items-center">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    selectedCategory === category.id
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-700 hover:text-gray-900'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Sort Dropdown - Right */}
+            {/* Sort Dropdown */}
             <div className="relative shrink-0" ref={sortDropdownRef}>
               <button
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2.5 bg-transparent border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-white/50 transition-colors whitespace-nowrap"
               >
                 <SlidersHorizontal className="w-4 h-4" />
                 <span>{sortOptions.find(opt => opt.id === sortBy)?.label}</span>
@@ -192,52 +198,66 @@ export default function MarketPage() {
             </div>
           </div>
 
-          {/* Mobile: Stacked layout */}
-          <div className="lg:hidden space-y-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="পণ্য খুঁজুন..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/60 backdrop-blur-sm border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all shadow-sm"
-              />
+          {/* Mobile: Categories & Filter in separate rows */}
+          <div className="md:hidden space-y-3">
+            {/* Category Pills - Horizontal Scroll with padding */}
+            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+              <div className="flex gap-2 pb-1">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 min-w-[100px] ${
+                      selectedCategory === category.id
+                        ? 'bg-[#C8102E] text-white shadow-md'
+                        : 'bg-transparent text-gray-700 hover:bg-white/50 border border-gray-200'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Categories */}
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    selectedCategory === category.id
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-700 hover:text-gray-900'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
+            {/* Sort Dropdown - Separate row */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => setShowSortDropdown(!showSortDropdown)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-transparent border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-white/50 transition-colors"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>{sortOptions.find(opt => opt.id === sortBy)?.label}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+              </button>
 
-            {/* Sort */}
-            <div className="flex gap-2 justify-center">
-              {sortOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => setSortBy(option.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                    sortBy === option.id
-                      ? 'bg-gray-900 text-white shadow-sm'
-                      : 'bg-white text-gray-600 hover:text-gray-900 border border-gray-200'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+              <AnimatePresence>
+                {showSortDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-50"
+                  >
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => {
+                          setSortBy(option.id);
+                          setShowSortDropdown(false);
+                        }}
+                        className={`w-full text-center px-4 py-2.5 text-sm transition-colors ${
+                          sortBy === option.id
+                            ? 'bg-gray-100 text-gray-900 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

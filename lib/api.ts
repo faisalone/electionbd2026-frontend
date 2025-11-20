@@ -156,8 +156,31 @@ export interface News {
 }
 
 // Marketplace Types
+export interface Creator {
+	id: number;
+	name: string;
+	username: string; // URL slug username
+	avatar?: string;
+	phone?: string;
+	location?: string;
+	bio?: string;
+	specialties?: string[];
+	total_designs?: number;
+	rating?: number;
+	joined_date?: string;
+}
+
+export interface ProductRating {
+	id: number;
+	user_name: string;
+	rating: number; // 1-5
+	comment?: string;
+	created_at: string;
+}
+
 export interface Product {
 	id: number;
+	uid: string; // Unique identifier for URLs (e.g., "banner-election-2026-red")
 	title: string; // Bengali title
 	title_en: string; // English title
 	description: string;
@@ -170,18 +193,13 @@ export interface Product {
 		| 'handbill'
 		| 'billboard'
 		| 'social-media';
-	price: number;
 	images: string[]; // Array of image URLs
-	owner: {
-		id: number;
-		name: string;
-		avatar?: string;
-		phone?: string;
-		location?: string;
-	};
+	creator: Creator;
 	tags?: string[];
-	rating?: number;
-	reviews_count?: number;
+	rating?: number; // Average rating
+	ratings?: ProductRating[]; // All ratings
+	downloads_count?: number;
+	customization_available?: boolean;
 	created_at: string;
 	updated_at: string;
 }

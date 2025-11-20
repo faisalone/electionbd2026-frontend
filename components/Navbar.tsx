@@ -4,9 +4,8 @@ import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ShoppingBag, Sparkles } from 'lucide-react';
+import { Menu, X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from '@/lib/cart-context';
 
 const navLinks = [
   { href: '/', label: 'হোম' },
@@ -23,7 +22,6 @@ export default function Navbar() {
   const isNewsPage = pathname?.startsWith('/news');
   const isAdminPage = pathname?.startsWith('/admin');
   const isMarketPage = pathname?.startsWith('/market');
-  const { getTotalItems } = useCart();
 
   // Hide default navbar on news pages and admin pages
   if (isNewsPage || isAdminPage) {
@@ -58,7 +56,7 @@ export default function Navbar() {
                 ))}
               </div>
 
-              {/* Market/Cart Button - Right */}
+              {/* Market Button - Right */}
               <div className="hidden lg:flex items-center gap-3 shrink-0">
                 <Link href="/market">
                   <button className="flex items-center gap-2 bg-[#C8102E] text-white px-5 py-2 rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
@@ -66,32 +64,10 @@ export default function Navbar() {
                     <span>মার্কেট</span>
                   </button>
                 </Link>
-                
-                <Link href="/market/cart">
-                  <button className="relative p-2.5 hover:bg-gray-50 rounded-full transition-all">
-                    <ShoppingBag size={18} className="text-gray-700" />
-                    {getTotalItems() > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-[#C8102E] text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">
-                        {getTotalItems()}
-                      </span>
-                    )}
-                  </button>
-                </Link>
               </div>
 
               {/* Mobile Menu Button */}
               <div className="lg:hidden flex items-center gap-2">
-                <Link href="/market/cart" className="max-[360px]:hidden">
-                  <button className="relative p-2 hover:bg-gray-50 rounded-full transition-colors">
-                    <ShoppingBag size={16} className="text-gray-700" />
-                    {getTotalItems() > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-[#C8102E] text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold">
-                        {getTotalItems()}
-                      </span>
-                    )}
-                  </button>
-                </Link>
-                
                 <Link href="/market">
                   <button className="flex items-center gap-1.5 bg-[#C8102E] text-white px-3 py-1.5 rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all text-xs max-[360px]:p-2">
                     <Sparkles size={14} />

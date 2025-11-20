@@ -77,7 +77,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    // Price removed from Product interface - return 0 as cart is deprecated
+    return 0;
   };
 
   return (
