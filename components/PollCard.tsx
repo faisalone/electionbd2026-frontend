@@ -364,7 +364,7 @@ export default function PollCard({
                       }
                     }
                   }}
-                  placeholder={votingStep === 'phone' ? 'ফোন নাম্বার' : 'OTP কোড'}
+                  placeholder={votingStep === 'phone' ? 'হোয়াটসঅ্যাপ নাম্বার' : 'OTP কোড'}
                   className={`w-full px-4 pr-24 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 font-semibold transition-all text-center text-base ${
                     otpError
                       ? 'border-red-400 focus:border-red-500 focus:ring-red-100 bg-red-50'
