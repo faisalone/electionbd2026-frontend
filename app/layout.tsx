@@ -17,12 +17,30 @@ const notoSansBengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://votemamu.com"),
   title: "ভোটমামু | নির্বাচন বিষয়ক সর্বশেষ খবরাখবর | সর্বপ্রথম এআইভিত্তিক সংবাদ",
   description: "বাংলাদেশের জাতীয় নির্বাচন ২০২৬ নিয়ে নানা ধরনের খবর পাবেন আমাদের সাইটে - প্রার্থী, দল, আসন এবং জরিপ লাইভ ফলাফল",
-  keywords: "বাংলাদেশ, নির্বাচন, সংবাদ, খবর, কুইজ, জরিপ, পোল, প্রার্থী, দল, ভোট, ইলেকশন, বিএনপি, জামায়াত, এনসিপি",
+  keywords: "বাংলাদেশ, নির্বাচন, সংবাদ, খবর, কুইজ, জরিপ, পোল, প্রার্থী, দল, ভোট, ইলেকশন, বিএনপি, জামায়াত, এনসিপি",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
+  },
+  openGraph: {
+    type: "website",
+    locale: "bn_BD",
+    url: "https://votemamu.com",
+    siteName: "ভোটমামু",
+    images: [
+      {
+        url: "/votemamu-photocard-preview.jpg",
+        width: 1200,
+        height: 630,
+        alt: "ভোটমামু - বাংলাদেশের নির্বাচনী তথ্য",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
   },
   other: {
     "google-adsense-account": "ca-pub-7729379301809021",
