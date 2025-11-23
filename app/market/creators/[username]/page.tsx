@@ -8,7 +8,7 @@ type Props = {
 // Fetch creator data for metadata generation
 async function getCreator(username: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/marketplace/creators/${username}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/creators/${username}`, {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
     

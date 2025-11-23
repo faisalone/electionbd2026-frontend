@@ -8,7 +8,7 @@ type Props = {
 // Fetch product data for metadata generation
 async function getProduct(uid: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/marketplace/products/${uid}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/products/${uid}`, {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
     
