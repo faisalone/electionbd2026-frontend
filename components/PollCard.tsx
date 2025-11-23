@@ -251,7 +251,7 @@ export default function PollCard({
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-6 flex items-center min-h-0">
+      <div className="flex-1 overflow-y-auto p-6 min-h-0">
         {/* Options */}
         <div className="w-full space-y-4">
           {(() => {
@@ -327,103 +327,103 @@ export default function PollCard({
             );
           })()}
         </div>
-
-        {/* Voting Flow */}
-        {selectedOption && !voted && status === 'upcoming' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="overflow-hidden px-6 pb-3"
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={votingStep}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-2"
-              >
-                <div className="relative">
-                  <input
-                    type={votingStep === 'phone' ? 'tel' : 'text'}
-                    value={votingStep === 'phone' ? phoneNumber : otp}
-                    onChange={(e) => {
-                      if (votingStep === 'phone') {
-                        setPhoneNumber(e.target.value);
-                      } else {
-                        setOtp(e.target.value);
-                        setOtpError('');
-                      }
-                    }}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        if (votingStep === 'phone' && phoneNumber.length >= 11) {
-                          handlePhoneSubmit();
-                        } else if (votingStep === 'otp' && otp.length >= 4) {
-                          handleOtpSubmit();
-                        }
-                      }
-                    }}
-                    placeholder={votingStep === 'phone' ? 'ফোন নাম্বার' : 'OTP কোড'}
-                    className={`w-full px-4 pr-24 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 font-semibold transition-all text-center text-base ${
-                      otpError
-                        ? 'border-red-400 focus:border-red-500 focus:ring-red-100 bg-red-50'
-                        : votingStep === 'otp'
-                        ? 'border-green-400 focus:border-green-500 focus:ring-green-100 bg-green-50'
-                        : 'border-blue-400 focus:border-blue-500 focus:ring-blue-100 bg-blue-50'
-                    }`}
-                    maxLength={votingStep === 'phone' ? 11 : 4}
-                    autoFocus
-                  />
-
-                    <button
-                      onClick={votingStep === 'phone' ? handlePhoneSubmit : handleOtpSubmit}
-                      disabled={
-                        (votingStep === 'phone' && toEnglishNumber(phoneNumber).length < 11) ||
-                        (votingStep === 'otp' && (toEnglishNumber(otp).length < 4 || isVerifying))
-                      }
-                      className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 transition-all ${
-                        (votingStep === 'phone' && toEnglishNumber(phoneNumber).length >= 11) ||
-                        (votingStep === 'otp' && toEnglishNumber(otp).length >= 4 && !isVerifying)
-                          ? votingStep === 'otp'
-                            ? 'bg-green-500 hover:bg-green-600 text-white'
-                            : 'bg-[#25D366] hover:bg-[#1da851] text-white'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      {isVerifying ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /><span>...</span></>
-                      ) : votingStep === 'otp' ? (
-                        <><CheckCircle className="w-4 h-4" /><span>জমা</span></>
-                      ) : (
-                        <><Send className="w-4 h-4" /><span>পাঠান</span></>
-                      )}
-                    </button>
-                  </div>
-
-                  {otpError && (
-                    <div className="p-1.5 bg-red-50 border border-red-200 rounded text-red-700 text-[10px] font-medium flex items-center gap-1">
-                      <XCircle className="w-3 h-3" />
-                      {otpError}
-                    </div>
-                  )}
-
-                  {votingStep === 'otp' && (
-                    <button
-                      onClick={() => {
-                        setVotingStep('phone');
-                        setOtp('');
-                        setOtpError('');
-                      }}
-                      className="w-full py-1 text-[10px] text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      নম্বর পরিবর্তন করুন
-                    </button>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-          </motion.div>
-        )}
       </div>
+
+      {/* Voting Flow */}
+      {selectedOption && !voted && status === 'upcoming' && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="overflow-hidden px-6 pb-3"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={votingStep}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-2"
+            >
+              <div className="relative">
+                <input
+                  type={votingStep === 'phone' ? 'tel' : 'text'}
+                  value={votingStep === 'phone' ? phoneNumber : otp}
+                  onChange={(e) => {
+                    if (votingStep === 'phone') {
+                      setPhoneNumber(e.target.value);
+                    } else {
+                      setOtp(e.target.value);
+                      setOtpError('');
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      if (votingStep === 'phone' && phoneNumber.length >= 11) {
+                        handlePhoneSubmit();
+                      } else if (votingStep === 'otp' && otp.length >= 4) {
+                        handleOtpSubmit();
+                      }
+                    }
+                  }}
+                  placeholder={votingStep === 'phone' ? 'ফোন নাম্বার' : 'OTP কোড'}
+                  className={`w-full px-4 pr-24 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 font-semibold transition-all text-center text-base ${
+                    otpError
+                      ? 'border-red-400 focus:border-red-500 focus:ring-red-100 bg-red-50'
+                      : votingStep === 'otp'
+                      ? 'border-green-400 focus:border-green-500 focus:ring-green-100 bg-green-50'
+                      : 'border-blue-400 focus:border-blue-500 focus:ring-blue-100 bg-blue-50'
+                  }`}
+                  maxLength={votingStep === 'phone' ? 11 : 4}
+                  autoFocus
+                />
+
+                  <button
+                    onClick={votingStep === 'phone' ? handlePhoneSubmit : handleOtpSubmit}
+                    disabled={
+                      (votingStep === 'phone' && toEnglishNumber(phoneNumber).length < 11) ||
+                      (votingStep === 'otp' && (toEnglishNumber(otp).length < 4 || isVerifying))
+                    }
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 transition-all ${
+                      (votingStep === 'phone' && toEnglishNumber(phoneNumber).length >= 11) ||
+                      (votingStep === 'otp' && toEnglishNumber(otp).length >= 4 && !isVerifying)
+                        ? votingStep === 'otp'
+                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          : 'bg-[#25D366] hover:bg-[#1da851] text-white'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {isVerifying ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /><span>...</span></>
+                    ) : votingStep === 'otp' ? (
+                      <><CheckCircle className="w-4 h-4" /><span>জমা</span></>
+                    ) : (
+                      <><Send className="w-4 h-4" /><span>পাঠান</span></>
+                    )}
+                  </button>
+                </div>
+
+                {otpError && (
+                  <div className="p-1.5 bg-red-50 border border-red-200 rounded text-red-700 text-[10px] font-medium flex items-center gap-1">
+                    <XCircle className="w-3 h-3" />
+                    {otpError}
+                  </div>
+                )}
+
+                {votingStep === 'otp' && (
+                  <button
+                    onClick={() => {
+                      setVotingStep('phone');
+                      setOtp('');
+                      setOtpError('');
+                    }}
+                    className="w-full py-1 text-[10px] text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    নম্বর পরিবর্তন করুন
+                  </button>
+                )}
+              </motion.div>
+            </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* Fixed Footer */}
       {/* Vote Success */}

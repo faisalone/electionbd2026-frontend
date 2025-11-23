@@ -8,21 +8,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Download, Star, 
   X, Check, Sparkles, ChevronLeft, ChevronRight,
-  Award
+  Award, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
-import CreatorInfoCard from '@/components/CreatorInfoCard';
+import CreatorCard from '@/components/CreatorCard';
 import ProductCard from '@/components/ProductCard';
-import { getProductByUid, toBengaliNumber, categoryLabels, mockProducts } from '@/lib/mockProducts';
-import { Product, ProductRating } from '@/lib/api';
-import { theme } from '@/config/theme';
+import { toBengaliNumber, categoryLabels } from '@/lib/mockProducts';
+import { marketplaceApi, Product } from '@/lib/marketplace-api';
+import { useMarketAuth } from '@/lib/market-auth-context';
+import { getMarketplaceImageUrl, getMarketplaceImageUrlWithFallback } from '@/lib/marketplace-image-utils';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { token, isAuthenticated } = useMarketAuth();
   
   const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -51,14 +55,37 @@ export default function ProductDetailPage() {
   const [ratingSuccess, setRatingSuccess] = useState(false);
 
   useEffect(() => {
-    const uid = params.uid as string;
-    const foundProduct = getProductByUid(uid);
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const uid = params.uid as string;
+        const response = await marketplaceApi.getProduct(uid);
+        
+        // Redirect if product is explicitly not approved (status field only present for authenticated users)
+        // If status is undefined, it means user is not authenticated and backend already filtered non-approved products
+        if (response.data.status && response.data.status !== 'approved') {
+          toast.error('এই পণ্যটি এখনও অনুমোদিত হয়নি');
+          router.push('/market');
+          return;
+        }
+        
+        setProduct(response.data);
+        
+        // Fetch related products
+        const relatedResponse = await marketplaceApi.getProducts({
+          category: response.data.category,
+          per_page: 4,
+        });
+        setRelatedProducts(relatedResponse.data.filter(p => p.uid !== uid).slice(0, 3));
+      } catch (error: any) {
+        toast.error('পণ্য লোড করতে ব্যর্থ হয়েছে');
+        router.push('/market');
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (foundProduct) {
-      setProduct(foundProduct);
-    } else {
-      router.push('/market');
-    }
+    fetchProduct();
   }, [params.uid, router]);
 
   // Prevent right-click and drag on images
@@ -84,75 +111,127 @@ export default function ProductDetailPage() {
     };
   }, [isImageProtected]);
 
-  if (!product) {
+  if (loading || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C8102E]"></div>
+        <Loader2 className="w-12 h-12 animate-spin text-[#C8102E]" />
       </div>
     );
   }
 
-  const handleDownloadSubmit = (e: React.FormEvent) => {
+  const handleDownloadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product) return;
     
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-      {
-        loading: 'ডাউনলোড শুরু হচ্ছে...',
-        success: () => {
-          setDownloadSuccess(true);
-          setTimeout(() => {
-            setShowDownloadModal(false);
-            setDownloadSuccess(false);
-            setDownloadForm({ name: '', phone: '' });
-          }, 2000);
-          return 'ডাউনলোড সফল!';
-        },
-        error: 'ডাউনলোড ব্যর্থ হয়েছে',
+    try {
+      const response = await marketplaceApi.downloadProduct(product.uid, downloadForm);
+      setDownloadSuccess(true);
+      
+      // Get download URLs - backend returns array of objects with url, filename, size
+      const downloadFiles = response.data.download_urls || [];
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      
+      if (downloadFiles && downloadFiles.length > 0) {
+        // Download files without opening new tabs
+        for (const file of downloadFiles) {
+          try {
+            // Use the backend download-file endpoint to avoid CORS issues
+            // Extract the storage path from the URL (remove leading /storage/)
+            const storagePath = file.url.replace(/^\/storage\//, '');
+            const downloadUrl = `${apiUrl}/marketplace/download-file?path=${encodeURIComponent(storagePath)}`;
+            
+            // Fetch the file as blob
+            const fileResponse = await fetch(downloadUrl);
+            if (!fileResponse.ok) throw new Error('Download failed');
+            const blob = await fileResponse.blob();
+            
+            // Create download link
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = file.filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+            
+            // Small delay between downloads if multiple files
+            if (downloadFiles.length > 1) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          } catch (error) {
+            console.error('Download failed:', error);
+          }
+        }
       }
-    );
+      
+      toast.success('ডাউনলোড শুরু হয়েছে!');
+      
+      setTimeout(() => {
+        setShowDownloadModal(false);
+        setDownloadSuccess(false);
+        setDownloadForm({ name: '', phone: '' });
+      }, 2000);
+    } catch (error: any) {
+      toast.error(error.message || 'ডাউনলোড ব্যর্থ হয়েছে');
+    }
   };
 
-  const handleCustomSubmit = (e: React.FormEvent) => {
+  const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product) return;
     
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-      {
-        loading: 'অনুরোধ পাঠানো হচ্ছে...',
-        success: () => {
-          setCustomSuccess(true);
-          setTimeout(() => {
-            setShowCustomModal(false);
-            setCustomSuccess(false);
-            setCustomForm({ name: '', phone: '', details: '' });
-          }, 2000);
-          return 'আপনার অনুরোধ গৃহীত হয়েছে! শীঘ্রই যোগাযোগ করা হবে।';
-        },
-        error: 'অনুরোধ পাঠাতে ব্যর্থ হয়েছে',
-      }
-    );
+    try {
+      await marketplaceApi.createCustomOrder(product.uid, {
+        user_name: customForm.name,
+        phone_number: customForm.phone,
+        details: customForm.details,
+      });
+      
+      setCustomSuccess(true);
+      toast.success('আপনার অনুরোধ গৃহীত হয়েছে! শীঘ্রই যোগাযোগ করা হবে।');
+      
+      setTimeout(() => {
+        setShowCustomModal(false);
+        setCustomSuccess(false);
+        setCustomForm({ name: '', phone: '', details: '' });
+      }, 2000);
+    } catch (error: any) {
+      toast.error(error.message || 'অনুরোধ পাঠাতে ব্যর্থ হয়েছে');
+    }
   };
 
-  const handleRatingSubmit = (e: React.FormEvent) => {
+  const handleRatingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product) return;
     
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-      {
-        loading: 'রেটিং জমা দেওয়া হচ্ছে...',
-        success: () => {
-          setRatingSuccess(true);
-          setTimeout(() => {
-            setShowRatingModal(false);
-            setRatingSuccess(false);
-            setRatingForm({ name: '', rating: 5, comment: '' });
-          }, 2000);
-          return 'আপনার রেটিং সফলভাবে জমা হয়েছে!';
-        },
-        error: 'রেটিং জমা দিতে ব্যর্থ হয়েছে',
-      }
-    );
+    if (!token) {
+      toast.error('রেটিং দিতে লগইন করুন');
+      router.push(`/market/login?redirect=/market/${product.uid}`);
+      return;
+    }
+    
+    try {
+      await marketplaceApi.rateProduct(product.uid, {
+        user_name: ratingForm.name,
+        rating: ratingForm.rating,
+        comment: ratingForm.comment,
+      });
+      
+      setRatingSuccess(true);
+      toast.success('আপনার রেটিং সফলভাবে জমা হয়েছে! অনুমোদনের পর প্রদর্শিত হবে।');
+      
+      setTimeout(() => {
+        setShowRatingModal(false);
+        setRatingSuccess(false);
+        setRatingForm({ name: '', rating: 5, comment: '' });
+      }, 2000);
+    } catch (error: any) {
+      toast.error(error.message || 'রেটিং জমা দিতে ব্যর্থ হয়েছে');
+    }
   };
 
   const nextImage = () => {
@@ -198,7 +277,7 @@ export default function ProductDetailPage() {
               </div>
               
               <Image
-                src={product.images[selectedImage] || '/placeholder-product.jpg'}
+                src={getMarketplaceImageUrlWithFallback(product.images[selectedImage]?.thumbnail_url)}
                 alt={product.title}
                 fill
                 className="object-cover select-none"
@@ -231,31 +310,6 @@ export default function ProductDetailPage() {
                 </div>
               )}
             </motion.div>
-
-            {/* Thumbnail Images */}
-            {product.images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 transition-all ${
-                      selectedImage === index
-                        ? 'ring-2 ring-[#C8102E] scale-105'
-                        : 'opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <Image
-                      src={image}
-                      alt={`${product.title} - ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      draggable={false}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Right: Product Details */}
@@ -301,15 +355,17 @@ export default function ProductDetailPage() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <button
-                onClick={() => setShowDownloadModal(true)}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#C8102E] text-white rounded-xl font-semibold hover:bg-[#A00D27] transition-all shadow-lg hover:shadow-xl"
-              >
-                <Download className="w-5 h-5" />
-                <span>ডাউনলোড করুন</span>
-              </button>
+              {product.enable_download && (
+                <button
+                  onClick={() => setShowDownloadModal(true)}
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#C8102E] text-white rounded-xl font-semibold hover:bg-[#A00D27] transition-all shadow-lg hover:shadow-xl"
+                >
+                  <Download className="w-5 h-5" />
+                  <span>ডাউনলোড করুন</span>
+                </button>
+              )}
               
-              {product.customization_available && (
+              {product.enable_custom_order && (
                 <button
                   onClick={() => setShowCustomModal(true)}
                   className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-gray-900 border-2 border-gray-200 rounded-xl font-semibold hover:border-[#C8102E] hover:text-[#C8102E] transition-all"
@@ -328,30 +384,14 @@ export default function ProductDetailPage() {
               </button>
             </div>
 
-            {/* Tags */}
-            {product.tags && product.tags.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                  ট্যাগ
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Creator Info - Compact */}
-            <CreatorInfoCard 
-              creator={product.creator} 
-              variant="sidebar"
-            />
+            {/* Creator Info */}
+            <div className="mt-6">
+              <CreatorCard 
+                creator={product.creator} 
+                toBengaliNumber={toBengaliNumber}
+                showProductsGrid={true}
+              />
+            </div>
           </div>
         </div>
 
@@ -408,7 +448,7 @@ export default function ProductDetailPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => !downloadSuccess && setShowDownloadModal(false)}
+              onClick={() => setShowDownloadModal(false)}
             >
               <motion.div
                 initial={{ scale: 0.9, y: 20 }}
@@ -458,7 +498,7 @@ export default function ProductDetailPage() {
                           value={downloadForm.phone}
                           onChange={(e) => setDownloadForm({ ...downloadForm, phone: e.target.value })}
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] transition-all"
-                          placeholder="০১XXXXXXXXX"
+                          placeholder="ফোন নম্বর লিখুন"
                         />
                       </div>
 
@@ -499,7 +539,7 @@ export default function ProductDetailPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => !customSuccess && setShowCustomModal(false)}
+              onClick={() => setShowCustomModal(false)}
             >
               <motion.div
                 initial={{ scale: 0.9, y: 20 }}
@@ -549,7 +589,7 @@ export default function ProductDetailPage() {
                           value={customForm.phone}
                           onChange={(e) => setCustomForm({ ...customForm, phone: e.target.value })}
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] transition-all"
-                          placeholder="০১XXXXXXXXX"
+                          placeholder="ফোন নম্বর লিখুন"
                         />
                       </div>
 
@@ -713,26 +753,20 @@ export default function ProductDetailPage() {
         </AnimatePresence>
 
         {/* Related Designs Section */}
-        {product && (
+        {relatedProducts.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">সম্পর্কিত ডিজাইন</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {mockProducts
-                .filter(p => 
-                  p.id !== product.id && 
-                  p.category === product.category
-                )
-                .slice(0, 4)
-                .map((relatedProduct, index) => (
-                  <motion.div
-                    key={relatedProduct.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
-                    <ProductCard product={relatedProduct} />
-                  </motion.div>
-                ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {relatedProducts.map((relatedProduct, index) => (
+                <motion.div
+                  key={relatedProduct.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <ProductCard product={relatedProduct} />
+                </motion.div>
+              ))}
             </div>
           </div>
         )}

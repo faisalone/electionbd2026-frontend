@@ -24,7 +24,7 @@ export function ConfirmDialog({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
       <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -55,7 +55,7 @@ export function ConfirmDialog({
               onConfirm();
               onClose();
             }}
-            className="px-4 py-2 rounded-xl font-medium bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all"
+            className="px-4 py-2 rounded-xl font-medium bg-linear-to-r from-red-500 to-red-600 text-white hover:shadow-lg transition-all"
           >
             {confirmText}
           </button>

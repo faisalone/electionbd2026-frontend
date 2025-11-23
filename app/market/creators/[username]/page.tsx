@@ -5,35 +5,69 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Star, Award, Calendar, ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Package, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
-import CreatorInfoCard from '@/components/CreatorInfoCard';
-import { getCreatorByUsername, getProductsByCreator, toBengaliNumber } from '@/lib/mockProducts';
-import { Creator, Product } from '@/lib/api';
-import { theme } from '@/config/theme';
+import ProductCard from '@/components/ProductCard';
+import CreatorCard from '@/components/CreatorCard';
+import { marketplaceApi, Creator, Product } from '@/lib/marketplace-api';
+import { toBengaliNumber } from '@/lib/mockProducts';
 
-export default function CreatorPage() {
+export default function CreatorProfilePage() {
   const params = useParams();
   const router = useRouter();
   const [creator, setCreator] = useState<Creator | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    const username = params.username as string;
-    const foundCreator = getCreatorByUsername(username);
+    const fetchCreator = async () => {
+      setLoading(true);
+      try {
+        const username = params.username as string;
+        
+        // Fetch creator profile
+        const creatorResponse = await marketplaceApi.getCreator(username);
+        
+        if (!creatorResponse?.data) {
+          toast.error('ক্রিয়েটর খুঁজে পাওয়া যায়নি');
+          router.push('/market/creators');
+          return;
+        }
+        
+        setCreator(creatorResponse.data);
+        
+        // Fetch creator products
+        try {
+          const productsResponse = await marketplaceApi.getCreatorProducts(username, {
+            page: currentPage,
+            per_page: 12,
+          });
+          setProducts(productsResponse.data || []);
+          setTotalPages(productsResponse.meta?.last_page || 1);
+        } catch (productError) {
+          // If products fail, just show empty
+          setProducts([]);
+          setTotalPages(1);
+        }
+      } catch (error: any) {
+        console.error('Creator fetch error:', error);
+        toast.error(error.message || 'ক্রিয়েটর তথ্য লোড করতে ব্যর্থ হয়েছে');
+        router.push('/market/creators');
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (foundCreator) {
-      setCreator(foundCreator);
-      setProducts(getProductsByCreator(foundCreator.id));
-    } else {
-      router.push('/market');
-    }
-  }, [params.username, router]);
+    fetchCreator();
+  }, [params.username, currentPage, router]);
 
-  if (!creator) {
+  if (loading || !creator) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C8102E]"></div>
+        <Loader2 className="w-12 h-12 animate-spin text-[#C8102E]" />
       </div>
     );
   }
@@ -43,82 +77,56 @@ export default function CreatorPage() {
       <SectionWrapper>
         {/* Back Button */}
         <Link
-          href="/market"
+          href="/market/creators"
           className="inline-flex items-center gap-2 text-gray-500 hover:text-[#C8102E] mb-8 transition-colors text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>ডিজাইন মার্কেটপ্লেস</span>
+          <span>সকল ক্রিয়েটর</span>
         </Link>
 
-        {/* Simple Header - Top */}
-        <CreatorInfoCard 
-          creator={creator} 
-          variant="header"
-          className="mb-8"
-        />
-
-        {/* Creator's Products Grid */}
+        {/* Creator Header */}
         <div className="mb-12">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <span>ক্রিয়েটরের ডিজাইন</span>
-            <span className="text-[#C8102E]">({toBengaliNumber(products.length)})</span>
+          <CreatorCard creator={creator} toBengaliNumber={toBengaliNumber} clickable={false} showProductsGrid={true} />
+        </div>
+
+        {/* Products Section */}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            {creator.name} এর ডিজাইন ({toBengaliNumber(creator.total_designs)})
           </h2>
 
-          {products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <Link href={`/market/${product.uid}`}>
-                    <div className="group cursor-pointer">
-                      {/* Product Image */}
-                      <div className="relative w-full aspect-square overflow-hidden rounded-2xl bg-gray-100 mb-3">
-                        <Image
-                          src={product.images[0] || '/placeholder-product.jpg'}
-                          alt={product.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        
-                        {/* Stats Overlay */}
-                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                          <Download className="w-3.5 h-3.5 text-[#C8102E]" />
-                          <span className="text-xs font-semibold text-gray-900">
-                            {toBengaliNumber(product.downloads_count || 0)}
-                          </span>
-                        </div>
-
-                        {/* Rating Badge */}
-                        {product.rating && (
-                          <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                            <span className="text-xs font-semibold text-gray-900">
-                              {toBengaliNumber(product.rating.toFixed(1))}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="space-y-2">
-                        <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-[#C8102E] transition-colors leading-snug">
-                          {product.title}
-                        </h3>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+          {products.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-2xl">
+              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">এখনও কোন ডিজাইন আপলোড করা হয়নি</p>
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              কোনো ডিজাইন পাওয়া যায়নি
-            </div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-8">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? 'bg-[#C8102E] text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      {toBengaliNumber(page)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </SectionWrapper>

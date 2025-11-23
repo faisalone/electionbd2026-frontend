@@ -1,6 +1,7 @@
 'use client';
 
 import Logo from '@/components/Logo';
+import SocialMediaLinks from '@/components/SocialMediaLinks';
 import { usePathname } from 'next/navigation';
 
 export default function Footer() {
@@ -24,6 +25,12 @@ export default function Footer() {
             <div className="flex items-center transform hover:scale-105 transition-transform duration-300">
               <Logo height={48} alt="ভোটমামু" />
             </div>
+
+            {/* Separator */}
+            <div className="w-32 h-0.5 bg-linear-to-r from-transparent via-gray-600 to-transparent"></div>
+
+            {/* Social Media Links */}
+            <SocialMediaLinks size="w-6 h-6" />
 
             {/* Separator */}
             <div className="w-32 h-0.5 bg-linear-to-r from-transparent via-gray-600 to-transparent"></div>

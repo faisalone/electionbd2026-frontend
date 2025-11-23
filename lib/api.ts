@@ -199,7 +199,8 @@ export interface Product {
 	rating?: number; // Average rating
 	ratings?: ProductRating[]; // All ratings
 	downloads_count?: number;
-	customization_available?: boolean;
+	enable_download?: boolean;
+	enable_custom_order?: boolean;
 	created_at: string;
 	updated_at: string;
 }

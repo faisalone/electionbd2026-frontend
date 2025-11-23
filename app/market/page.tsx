@@ -3,40 +3,42 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
-import ReactPaginate from 'react-paginate';
+import { Search, SlidersHorizontal, ChevronDown, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import ProductCard from '@/components/ProductCard';
-import { mockProducts, categoryLabels, getProductsByCategory, searchProducts, toBengaliNumber } from '@/lib/mockProducts';
+import { marketplaceApi, Product } from '@/lib/marketplace-api';
+import { toBengaliNumber } from '@/lib/mockProducts';
 
 const categories = [
   { id: 'all', label: 'সব' },
   { id: 'banner', label: 'ব্যানার' },
-  { id: 'leaflet', label: 'লিফলেট' },
+  { id: 'logo', label: 'লোগো' },
   { id: 'poster', label: 'পোস্টার' },
-  { id: 'festoon', label: 'ফেস্টুন' },
-  { id: 'video', label: 'ভিডিও' },
-  { id: 'handbill', label: 'হ্যান্ডবিল' },
-  { id: 'billboard', label: 'বিলবোর্ড' },
-  { id: 'social-media', label: 'সোশ্যাল' },
+  { id: 'social_media', label: 'সোশ্যাল মিডিয়া' },
+  { id: 'flyer', label: 'ফ্লায়ার' },
+  { id: 'brochure', label: 'ব্রোশার' },
+  { id: 'business_card', label: 'বিজনেস কার্ড' },
+  { id: 'other', label: 'অন্যান্য' },
 ];
 
 const sortOptions = [
-  { id: 'newest', label: 'নতুন' },
+  { id: 'latest', label: 'নতুন' },
   { id: 'popular', label: 'জনপ্রিয়' },
-  { id: 'downloads', label: 'ডাউনলোড' },
-  { id: 'rating', label: 'রেটিং' },
+  { id: 'top_rated', label: 'রেটিং' },
 ];
 
 export default function MarketPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts);
-  const [sortBy, setSortBy] = useState('newest');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sortBy, setSortBy] = useState('latest');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
-  const itemsPerPage = 8;
+  const itemsPerPage = 12;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -50,53 +52,42 @@ export default function MarketPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Fetch products
   useEffect(() => {
-    let products = mockProducts;
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await marketplaceApi.getProducts({
+          category: selectedCategory === 'all' ? undefined : selectedCategory,
+          search: searchQuery.trim() || undefined,
+          sort: sortBy as any,
+          page: currentPage,
+          per_page: itemsPerPage,
+        });
 
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      products = getProductsByCategory(selectedCategory);
-    }
+        setProducts(response.data);
+        setTotalPages(response.meta.last_page);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+        toast.error('পণ্য লোড করতে ব্যর্থ হয়েছে');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Filter by search query
-    if (searchQuery.trim()) {
-      products = searchProducts(searchQuery);
-    }
+    fetchProducts();
+  }, [selectedCategory, searchQuery, sortBy, currentPage]);
 
-    // Sort products
-    if (sortBy === 'downloads') {
-      products = [...products].sort((a, b) => (b.downloads_count || 0) - (a.downloads_count || 0));
-    } else if (sortBy === 'rating') {
-      products = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    } else if (sortBy === 'popular') {
-      // Popular based on combination of downloads and rating
-      products = [...products].sort((a, b) => {
-        const scoreA = (a.downloads_count || 0) * (a.rating || 0);
-        const scoreB = (b.downloads_count || 0) * (b.rating || 0);
-        return scoreB - scoreA;
-      });
-    }
-
-    setFilteredProducts(products);
-    setCurrentPage(1); // Reset to first page when filters change
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [selectedCategory, searchQuery, sortBy]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
-
-  const handlePageChange = (selected: { selected: number }) => {
-    setCurrentPage(selected.selected + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   return (
     <div className="min-h-screen">
       <SectionWrapper>
         {/* Header with Background Image */}
-        <div className="mb-12 relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-3xl">
+        <div className="mb-8 sm:mb-10 md:mb-12 relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 overflow-hidden rounded-3xl">
           {/* Background Image with Gradient Overlay */}
           <div className="absolute inset-0">
             <Image
@@ -106,23 +97,23 @@ export default function MarketPage() {
               className="object-cover object-center"
               priority
             />
-            {/* Stronger Gradient Overlay - White on left to transparent on right */}
+            {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(255,255,255)_0%,rgb(255,255,255)_30%,rgba(255,255,255,0.7)_60%,rgba(255,255,255,0.2)_100%)]"></div>
           </div>
           
           {/* Header Content */}
           <div className="relative z-10 max-w-2xl">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2 sm:mb-3">
               ভোটমার্কেট
             </h1>
-            <p className="text-lg text-gray-700">
+            <p className="text-base sm:text-lg text-gray-700">
               পেশাদার নির্বাচনী ক্যাম্পেইন ডিজাইন ডাউনলোড করুন বা কাস্টম অর্ডার করুন
             </p>
           </div>
         </div>
 
-        {/* Menu Bar with Search, Categories, and Sort */}
-        <div className="mb-10 space-y-4">
+        {/* Search & Filters */}
+        <div className="mb-8 sm:mb-10 space-y-4">
           {/* Search Field - Full Width */}
           <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
@@ -131,7 +122,7 @@ export default function MarketPage() {
               placeholder="পণ্য খুঁজুন..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-transparent backdrop-blur-sm border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 transition-all text-sm"
+              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 transition-all text-sm"
             />
           </div>
 
@@ -144,10 +135,10 @@ export default function MarketPage() {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 min-w-[100px] ${
+                    className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 ${
                       selectedCategory === category.id
                         ? 'bg-[#C8102E] text-white shadow-md'
-                        : 'bg-transparent text-gray-700 hover:bg-white/50 border border-gray-200'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                     }`}
                   >
                     {category.label}
@@ -160,7 +151,7 @@ export default function MarketPage() {
             <div className="relative shrink-0" ref={sortDropdownRef}>
               <button
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-transparent border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-white/50 transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
               >
                 <SlidersHorizontal className="w-4 h-4" />
                 <span>{sortOptions.find(opt => opt.id === sortBy)?.label}</span>
@@ -198,19 +189,19 @@ export default function MarketPage() {
             </div>
           </div>
 
-          {/* Mobile: Categories & Filter in separate rows */}
+          {/* Mobile: Separate rows */}
           <div className="md:hidden space-y-3">
-            {/* Category Pills - Horizontal Scroll with padding */}
-            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-              <div className="flex gap-2 pb-1">
+            {/* Category Pills - Full width with gap */}
+            <div className="px-4 sm:px-0">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 min-w-[100px] ${
+                    className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 ${
                       selectedCategory === category.id
                         ? 'bg-[#C8102E] text-white shadow-md'
-                        : 'bg-transparent text-gray-700 hover:bg-white/50 border border-gray-200'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                     }`}
                   >
                     {category.label}
@@ -219,14 +210,16 @@ export default function MarketPage() {
               </div>
             </div>
 
-            {/* Sort Dropdown - Separate row */}
+            {/* Sort Dropdown */}
             <div className="relative" ref={sortDropdownRef}>
               <button
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-transparent border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-white/50 transition-colors"
+                className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                <SlidersHorizontal className="w-4 h-4" />
-                <span>{sortOptions.find(opt => opt.id === sortBy)?.label}</span>
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span>{sortOptions.find(opt => opt.id === sortBy)?.label}</span>
+                </div>
                 <ChevronDown className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
               </button>
 
@@ -246,7 +239,7 @@ export default function MarketPage() {
                           setSortBy(option.id);
                           setShowSortDropdown(false);
                         }}
-                        className={`w-full text-center px-4 py-2.5 text-sm transition-colors ${
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                           sortBy === option.id
                             ? 'bg-gray-100 text-gray-900 font-medium'
                             : 'text-gray-700 hover:bg-gray-50'
@@ -263,71 +256,45 @@ export default function MarketPage() {
         </div>
 
         {/* Products Grid */}
-        {currentProducts.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-[#C8102E]" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-gray-500 text-lg">কোন পণ্য পাওয়া যায়নি</p>
+          </div>
+        ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-              {currentProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <ProductCard product={product} />
-                </motion.div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center pt-8">
-                <ReactPaginate
-                  previousLabel={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  }
-                  nextLabel={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  }
-                  breakLabel="..."
-                  pageCount={totalPages}
-                  marginPagesDisplayed={1}
-                  pageRangeDisplayed={2}
-                  onPageChange={handlePageChange}
-                  forcePage={currentPage - 1}
-                  pageLabelBuilder={(page) => toBengaliNumber(page)}
-                  containerClassName="flex items-center gap-1"
-                  pageClassName="page-item"
-                  pageLinkClassName="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg font-medium text-sm transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400"
-                  previousClassName="page-item"
-                  previousLinkClassName="min-w-8 h-9 sm:h-10 px-2 sm:px-3 flex items-center justify-center rounded-lg font-medium text-sm transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
-                  nextClassName="page-item"
-                  nextLinkClassName="min-w-8 h-9 sm:h-10 px-2 sm:px-3 flex items-center justify-center rounded-lg font-medium text-sm transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
-                  breakClassName="w-9 h-9 flex items-center justify-center text-gray-400"
-                  breakLinkClassName="w-full h-full flex items-center justify-center"
-                  activeClassName="active"
-                  activeLinkClassName="!bg-gray-900 !text-white !border-gray-900 shadow-md"
-                  disabledClassName="opacity-50 cursor-not-allowed"
-                />
+              <div className="flex justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  পূর্ববর্তী
+                </button>
+                <span className="px-4 py-2 text-sm font-medium text-gray-600">
+                  পৃষ্ঠা {toBengaliNumber(currentPage)} / {toBengaliNumber(totalPages)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  পরবর্তী
+                </button>
               </div>
             )}
           </>
-        ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-500 mb-4">কোনো পণ্য পাওয়া যায়নি</p>
-            <button
-              onClick={() => {
-                setSelectedCategory('all');
-                setSearchQuery('');
-              }}
-              className="text-sm text-gray-900 hover:text-gray-600 underline"
-            >
-              সব পণ্য দেখুন
-            </button>
-          </div>
         )}
       </SectionWrapper>
     </div>

@@ -6,6 +6,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/lib/auth-context";
+import { MarketAuthProvider } from "@/lib/market-auth-context";
 
 const notoSansBengali = Noto_Sans_Bengali({
   variable: "--font-noto-sans-bengali",
@@ -45,11 +47,15 @@ export default function RootLayout({
       <body className="antialiased" suppressHydrationWarning>
         <GoogleAnalytics />
         <Toaster position="top-center" richColors />
-        <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
+        <AuthProvider>
+          <MarketAuthProvider>
+            <Navbar />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <Footer />
+          </MarketAuthProvider>
+        </AuthProvider>
       </body>
     </html>
   );
