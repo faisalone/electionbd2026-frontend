@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "ভোটমামু",
     images: [
       {
-        url: "/votemamu-photocard-preview.jpg",
+        url: "/votemamu-preview.jpg",
         width: 1200,
         height: 630,
         alt: "ভোটমামু - বাংলাদেশের নির্বাচনী তথ্য",

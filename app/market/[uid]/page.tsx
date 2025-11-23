@@ -33,9 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const imageUrl = product.images?.[0]?.url
-    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/storage/${product.images[0].url}`
-    : "/votemamu-photocard-preview.jpg";
+  const imageUrl = product.images?.[0]?.thumbnail_url
+    ? product.images[0].thumbnail_url
+    : "https://votemamu.com/votemamu-photocard-preview.jpg";
 
   const categoryLabels: Record<string, string> = {
     banner: "ব্যানার",
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "bn_BD",
       images: [
         {
-          url: imageUrl.startsWith("http") ? imageUrl : `https://votemamu.com${imageUrl}`,
+          url: imageUrl,
           width: 1200,
           height: 630,
           alt: product.title,
@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: `${product.title} | ভোটমামু মার্কেটপ্লেস`,
       description,
-      images: [imageUrl.startsWith("http") ? imageUrl : `https://votemamu.com${imageUrl}`],
+      images: [imageUrl],
     },
     alternates: {
       canonical: `https://votemamu.com/market/${product.uid}`,

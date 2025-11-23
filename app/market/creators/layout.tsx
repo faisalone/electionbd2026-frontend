@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     locale: "bn_BD",
     images: [
       {
-        url: "/votemamu-photocard-preview.jpg",
+        url: "/votemamu-preview.jpg",
         width: 1200,
         height: 630,
         alt: "ভোটমামু মার্কেটপ্লেস - পেশাদার ডিজাইনার",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "পেশাদার ডিজাইনার | ভোটমামু মার্কেটপ্লেস",
     description: "বাংলাদেশের সেরা নির্বাচনী ডিজাইনারদের সাথে যুক্ত হন",
-    images: ["/votemamu-photocard-preview.jpg"],
+    images: ["/votemamu-preview.jpg"],
   },
   alternates: {
     canonical: "https://votemamu.com/market/creators",

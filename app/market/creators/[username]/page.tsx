@@ -33,9 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const avatarUrl = creator.user?.avatar
-    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/storage/${creator.user.avatar}`
-    : "/votemamu-photocard-preview.jpg";
+  const avatarUrl = creator.avatar
+    ? `https://api.votemamu.com/storage/${creator.avatar}`
+    : "https://votemamu.com/votemamu-photocard-preview.jpg";
 
   const description = creator.bio
     ? creator.bio.slice(0, 160)
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "bn_BD",
       images: [
         {
-          url: avatarUrl.startsWith("http") ? avatarUrl : `https://votemamu.com${avatarUrl}`,
+          url: avatarUrl,
           width: 400,
           height: 400,
           alt: `${creator.name} - প্রোফাইল ছবি`,
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary",
       title: `${creator.name} | ভোটমামু মার্কেটপ্লেস`,
       description,
-      images: [avatarUrl.startsWith("http") ? avatarUrl : `https://votemamu.com${avatarUrl}`],
+      images: [avatarUrl],
     },
     alternates: {
       canonical: `https://votemamu.com/market/creators/${creator.username}`,
