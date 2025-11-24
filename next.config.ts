@@ -34,6 +34,26 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
+	// Enable compression for JSON files
+	compress: true,
+	// Add cache headers for static assets
+	async headers() {
+		return [
+			{
+				source: '/logo-animation.json',
+				headers: [
+					{
+						key: 'Cache-Control',
+						value: 'public, max-age=31536000, immutable',
+					},
+					{
+						key: 'Content-Type',
+						value: 'application/json',
+					},
+				],
+			},
+		];
+	},
 };
 
 export default nextConfig;
