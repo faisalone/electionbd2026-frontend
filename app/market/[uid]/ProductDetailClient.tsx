@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import CreatorCard from '@/components/CreatorCard';
 import ProductCard from '@/components/ProductCard';
+import DynamicIcon from '@/components/DynamicIcon';
 import { toBengaliNumber, categoryLabels } from '@/lib/mockProducts';
 import { marketplaceApi, Product } from '@/lib/marketplace-api';
 import { useMarketAuth } from '@/lib/market-auth-context';
@@ -73,7 +74,7 @@ export default function ProductDetailPage() {
         
         // Fetch related products
         const relatedResponse = await marketplaceApi.getProducts({
-          category: response.data.category,
+          category: response.data.category?.slug,
           per_page: 4,
         });
         setRelatedProducts(relatedResponse.data.filter(p => p.uid !== uid).slice(0, 3));
@@ -242,7 +243,9 @@ export default function ProductDetailPage() {
     setSelectedImage((prev) => (prev - 1 + product.images.length) % product.images.length);
   };
 
-  const categoryLabel = categoryLabels[product.category] || product.category;
+  const categoryDisplay = product.category 
+    ? (product.category.name_bn || product.category.name)
+    : 'অন্যান্য';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -316,8 +319,9 @@ export default function ProductDetailPage() {
           <div className="space-y-6">
             {/* Title & Category */}
             <div>
-              <span className="inline-block bg-[#C8102E] text-white px-4 py-1.5 rounded-full text-sm font-medium mb-4">
-                {categoryLabel}
+              <span className="inline-flex items-center gap-2 bg-[#C8102E] text-white px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+                <DynamicIcon name={product.category?.icon} className="w-4 h-4" />
+                {categoryDisplay}
               </span>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
                 {product.title}

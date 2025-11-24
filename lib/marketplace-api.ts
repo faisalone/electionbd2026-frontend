@@ -47,6 +47,22 @@ export interface ProductRating {
 	created_at: string;
 }
 
+export interface Category {
+	id: number;
+	name: string;
+	name_bn: string;
+	slug: string;
+	description?: string;
+	icon?: string;
+	banner?: string;
+	tags?: string[];
+	order: number;
+	status: boolean;
+	products_count?: number;
+	created_at: string;
+	updated_at: string;
+}
+
 export interface Product {
 	creators: any;
 	id: number;
@@ -55,21 +71,14 @@ export interface Product {
 	title_en: string;
 	description: string;
 	description_en?: string;
-	category:
-		| 'banner'
-		| 'logo'
-		| 'poster'
-		| 'social_media'
-		| 'flyer'
-		| 'brochure'
-		| 'business_card'
-		| 'invitation'
-		| 'thumbnail'
-		| 'ui_design'
-		| 'print_design'
-		| 'illustration'
-		| 'branding'
-		| 'other';
+	category_id?: number;
+	category?: {
+		id: number;
+		name: string;
+		name_bn: string;
+		slug: string;
+		icon?: string;
+	};
 	tags: string[];
 	price: number;
 	status?: 'pending' | 'approved' | 'rejected';
@@ -339,6 +348,135 @@ class MarketplaceApiClient {
 				comment: data.comment,
 			}),
 		});
+	}
+
+	// Category APIs
+	async getCategories(params?: {
+		search?: string;
+		with_count?: boolean;
+	}): Promise<ApiResponse<Category[]>> {
+		const query = new URLSearchParams();
+		if (params?.search) query.append('search', params.search);
+		if (params?.with_count) query.append('with_count', 'true');
+
+		const queryString = query.toString() ? `?${query.toString()}` : '';
+		return this.fetch<ApiResponse<Category[]>>(`/categories${queryString}`);
+	}
+
+	async getCategory(slug: string): Promise<ApiResponse<Category>> {
+		return this.fetch<ApiResponse<Category>>(`/categories/${slug}`);
+	}
+
+	// Admin Category APIs
+	async createCategory(data: FormData): Promise<ApiResponse<Category>> {
+		const token =
+			typeof window !== 'undefined'
+				? localStorage.getItem('market_token')
+				: null;
+		const response = await fetch(`${this.baseUrl}/admin/categories`, {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				...(token ? { Authorization: `Bearer ${token}` } : {}),
+			},
+			body: data,
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+			throw new Error(errorData.message || `HTTP ${response.status}`);
+		}
+
+		return await response.json();
+	}
+
+	async updateCategory(
+		id: number,
+		data: FormData | Partial<Category>
+	): Promise<ApiResponse<Category>> {
+		const isFormData = data instanceof FormData;
+
+		if (isFormData) {
+			const token =
+				typeof window !== 'undefined'
+					? localStorage.getItem('market_token')
+					: null;
+			const response = await fetch(
+				`${this.baseUrl}/admin/categories/${id}`,
+				{
+					method: 'POST',
+					headers: {
+						Accept: 'application/json',
+						...(token ? { Authorization: `Bearer ${token}` } : {}),
+					},
+					body: data,
+				}
+			);
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}));
+				throw new Error(errorData.message || `HTTP ${response.status}`);
+			}
+
+			return await response.json();
+		}
+
+		return this.fetch<ApiResponse<Category>>(`/admin/categories/${id}`, {
+			method: 'PUT',
+			body: JSON.stringify(data),
+		});
+	}
+
+	async deleteCategory(
+		id: number
+	): Promise<ApiResponse<{ message: string }>> {
+		return this.fetch<ApiResponse<{ message: string }>>(
+			`/admin/categories/${id}`,
+			{
+				method: 'DELETE',
+			}
+		);
+	}
+
+	async toggleCategoryStatus(id: number): Promise<ApiResponse<Category>> {
+		return this.fetch<ApiResponse<Category>>(
+			`/admin/categories/${id}/toggle-status`,
+			{
+				method: 'POST',
+			}
+		);
+	}
+
+	async reorderCategories(
+		categories: Array<{ id: number; order: number }>
+	): Promise<ApiResponse<{ message: string }>> {
+		return this.fetch<ApiResponse<{ message: string }>>(
+			`/admin/categories/reorder`,
+			{
+				method: 'POST',
+				body: JSON.stringify({ categories }),
+			}
+		);
+	}
+
+	async adminGetCategories(params?: {
+		search?: string;
+		status?: boolean;
+		page?: number;
+		per_page?: number;
+	}): Promise<PaginatedResponse<Category>> {
+		const query = new URLSearchParams();
+		if (params?.search) query.append('search', params.search);
+		if (params?.status !== undefined)
+			query.append('status', params.status.toString());
+		if (params?.page) query.append('page', params.page.toString());
+		if (params?.per_page)
+			query.append('per_page', params.per_page.toString());
+
+		const queryString = query.toString() ? `?${query.toString()}` : '';
+		return this.fetch<PaginatedResponse<Category>>(
+			`/admin/categories${queryString}`
+		);
 	}
 
 	// Creator APIs

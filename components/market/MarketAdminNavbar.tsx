@@ -13,7 +13,8 @@ import {
   LogOut,
   Download,
   Menu,
-  X
+  X,
+  Tags
 } from 'lucide-react';
 import { useState } from 'react';
 import { useMarketAuth } from '@/lib/market-auth-context';
@@ -51,6 +52,12 @@ export default function MarketAdminNavbar() {
       label: 'ডাউনলোড',
       icon: Download,
       show: true
+    },
+    {
+      href: '/market/dashboard/categories',
+      label: 'ক্যাটেগরি',
+      icon: Tags,
+      show: isSuperAdmin
     },
     {
       href: '/market/dashboard/creators',

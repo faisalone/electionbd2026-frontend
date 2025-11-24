@@ -7,20 +7,9 @@ import { Search, SlidersHorizontal, ChevronDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import ProductCard from '@/components/ProductCard';
-import { marketplaceApi, Product } from '@/lib/marketplace-api';
+import DynamicIcon from '@/components/DynamicIcon';
+import { marketplaceApi, Product, Category } from '@/lib/marketplace-api';
 import { toBengaliNumber } from '@/lib/mockProducts';
-
-const categories = [
-  { id: 'all', label: 'সব' },
-  { id: 'banner', label: 'ব্যানার' },
-  { id: 'logo', label: 'লোগো' },
-  { id: 'poster', label: 'পোস্টার' },
-  { id: 'social_media', label: 'সোশ্যাল মিডিয়া' },
-  { id: 'flyer', label: 'ফ্লায়ার' },
-  { id: 'brochure', label: 'ব্রোশার' },
-  { id: 'business_card', label: 'বিজনেস কার্ড' },
-  { id: 'other', label: 'অন্যান্য' },
-];
 
 const sortOptions = [
   { id: 'latest', label: 'নতুন' },
@@ -29,16 +18,35 @@ const sortOptions = [
 ];
 
 export default function MarketPage() {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [sortBy, setSortBy] = useState('latest');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 12;
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await marketplaceApi.getCategories({ with_count: true });
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        toast.error('ক্যাটেগরি লোড করতে ব্যর্থ হয়েছে');
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -130,21 +138,41 @@ export default function MarketPage() {
           <div className="hidden md:flex items-center gap-3">
             {/* Category Pills - Horizontal Scroll */}
             <div className="flex-1 overflow-x-auto scrollbar-hide">
-              <div className="flex gap-2 pb-1">
-                {categories.map((category) => (
+              {categoriesLoading ? (
+                <div className="flex gap-2 pb-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-10 w-24 bg-gray-200 rounded-full animate-pulse shrink-0" />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-2 pb-1">
+                  {/* All Category Button */}
                   <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
+                    onClick={() => setSelectedCategory('all')}
                     className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 ${
-                      selectedCategory === category.id
+                      selectedCategory === 'all'
                         ? 'bg-[#C8102E] text-white shadow-md'
                         : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                     }`}
                   >
-                    {category.label}
+                    সব
                   </button>
-                ))}
-              </div>
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.slug)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 ${
+                        selectedCategory === category.slug
+                          ? 'bg-[#C8102E] text-white shadow-md'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <DynamicIcon name={category.icon} className="w-4 h-4" />
+                      {category.name_bn || category.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Sort Dropdown */}
@@ -193,21 +221,41 @@ export default function MarketPage() {
           <div className="md:hidden space-y-3">
             {/* Category Pills - Full width with gap */}
             <div className="px-4 sm:px-0">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
-                {categories.map((category) => (
+              {categoriesLoading ? (
+                <div className="flex gap-2 pb-1 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-10 w-24 bg-gray-200 rounded-full animate-pulse shrink-0" />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {/* All Category Button */}
                   <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
+                    onClick={() => setSelectedCategory('all')}
                     className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 ${
-                      selectedCategory === category.id
+                      selectedCategory === 'all'
                         ? 'bg-[#C8102E] text-white shadow-md'
                         : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                     }`}
                   >
-                    {category.label}
+                    সব
                   </button>
-                ))}
-              </div>
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.slug)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all shrink-0 ${
+                        selectedCategory === category.slug
+                          ? 'bg-[#C8102E] text-white shadow-md'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <DynamicIcon name={category.icon} className="w-4 h-4" />
+                      {category.name_bn || category.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Sort Dropdown */}

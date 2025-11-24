@@ -6,21 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, ImageIcon, FileDown, AlertCircle, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMarketAuth } from '@/lib/market-auth-context';
-import { marketplaceApi, Product, ProductImage, ProductFile } from '@/lib/marketplace-api';
+import { marketplaceApi, Product, ProductImage, ProductFile, Category } from '@/lib/marketplace-api';
 import Image from 'next/image';
 import { getMarketplaceImageUrl } from '@/lib/marketplace-image-utils';
 import ProtectedRoute from '@/components/ProtectedRoute';
-
-const categories = [
-  { value: 'banner', label: 'ব্যানার' },
-  { value: 'leaflet', label: 'লিফলেট' },
-  { value: 'poster', label: 'পোস্টার' },
-  { value: 'festoon', label: 'ফেস্টুন' },
-  { value: 'video', label: 'ভিডিও' },
-  { value: 'handbill', label: 'হ্যান্ডবিল' },
-  { value: 'billboard', label: 'বিলবোর্ড' },
-  { value: 'social-media', label: 'সোশ্যাল মিডিয়া' },
-];
 
 function EditProductPageContent() {
   const router = useRouter();
@@ -31,6 +20,8 @@ function EditProductPageContent() {
   const [uploading, setUploading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   
   // Existing images/files from server
   const [existingPreviewImages, setExistingPreviewImages] = useState<ProductImage[]>([]);
@@ -47,7 +38,7 @@ function EditProductPageContent() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'banner',
+    category_id: '',
     enable_download: true,
     enable_custom_order: true,
   });
@@ -61,8 +52,21 @@ function EditProductPageContent() {
     
     if (!authLoading && token && uid) {
       fetchProduct();
+      fetchCategories();
     }
   }, [authLoading, token, uid]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await marketplaceApi.getCategories();
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      toast.error('ক্যাটেগরি লোড করতে ব্যর্থ হয়েছে');
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   const fetchProduct = async () => {
     try {
@@ -90,7 +94,7 @@ function EditProductPageContent() {
       setFormData({
         title: productData.title,
         description: productData.description || '',
-        category: productData.category,
+        category_id: productData.category_id?.toString() || '',
         enable_download: productData.enable_download,
         enable_custom_order: productData.enable_custom_order,
       });
@@ -212,7 +216,9 @@ function EditProductPageContent() {
       const productFormData = new FormData();
       productFormData.append('title', formData.title);
       productFormData.append('description', formData.description);
-      productFormData.append('category', formData.category);
+      if (formData.category_id) {
+        productFormData.append('category_id', formData.category_id);
+      }
       productFormData.append('enable_download', formData.enable_download ? '1' : '0');
       productFormData.append('enable_custom_order', formData.enable_custom_order ? '1' : '0');
       productFormData.append('_method', 'PUT');
@@ -344,20 +350,24 @@ function EditProductPageContent() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    ক্যাটেগরি <span className="text-red-500">*</span>
+                    ক্যাটেগরি
                   </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E]"
-                    required
-                  >
-                    {categories.map((category) => (
-                      <option key={category.value} value={category.value}>
-                        {category.label}
-                      </option>
-                    ))}
-                  </select>
+                  {categoriesLoading ? (
+                    <div className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 animate-pulse">লোড হচ্ছে...</div>
+                  ) : (
+                    <select
+                      value={formData.category_id}
+                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E]"
+                    >
+                      <option value="">ক্যাটেগরি নির্বাচন করুন (ঐচ্ছিক)</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name_bn || category.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <hr className="my-6" />
