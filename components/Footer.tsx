@@ -14,7 +14,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="mt-20 pb-0">
+    <footer className="pb-0">
       <div className="relative bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-t-[40px] py-12 px-8 overflow-hidden">
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#C8102E]/10 rounded-full blur-3xl"></div>

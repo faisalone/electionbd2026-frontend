@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import CreatorCard from '@/components/CreatorCard';
 import ProductCard from '@/components/ProductCard';
+import JoinCreatorBanner from '@/components/JoinCreatorBanner';
 import DynamicIcon from '@/components/DynamicIcon';
 import { toBengaliNumber, categoryLabels } from '@/lib/mockProducts';
 import { marketplaceApi, Product } from '@/lib/marketplace-api';
@@ -759,21 +760,16 @@ export default function ProductDetailPage() {
         {/* Related Designs Section */}
         {relatedProducts.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">সম্পর্কিত ডিজাইন</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {relatedProducts.map((relatedProduct, index) => (
-                <motion.div
-                  key={relatedProduct.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <ProductCard product={relatedProduct} />
-                </motion.div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">আরও ডিজাইন দেখুন</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <ProductCard key={relatedProduct.id} product={relatedProduct} />
               ))}
             </div>
           </div>
         )}
+
+        <JoinCreatorBanner />
       </SectionWrapper>
     </div>
   );

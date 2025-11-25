@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import ProductCard from '@/components/ProductCard';
 import DynamicIcon from '@/components/DynamicIcon';
+import JoinCreatorBanner from '@/components/JoinCreatorBanner';
 import { marketplaceApi, Product, Category } from '@/lib/marketplace-api';
 import { toBengaliNumber } from '@/lib/mockProducts';
 
@@ -344,6 +345,8 @@ export default function MarketPage() {
             )}
           </>
         )}
+
+        <JoinCreatorBanner />
       </SectionWrapper>
     </div>
   );

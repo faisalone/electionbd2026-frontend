@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import CreatorCard from '@/components/CreatorCard';
+import JoinCreatorBanner from '@/components/JoinCreatorBanner';
 import { marketplaceApi, Creator } from '@/lib/marketplace-api';
 import { toBengaliNumber } from '@/lib/mockProducts';
 
@@ -91,6 +92,8 @@ export default function CreatorsListPage() {
             )}
           </>
         )}
+
+        <JoinCreatorBanner />
       </SectionWrapper>
     </div>
   );

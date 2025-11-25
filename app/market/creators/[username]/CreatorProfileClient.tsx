@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import ProductCard from '@/components/ProductCard';
 import CreatorCard from '@/components/CreatorCard';
+import JoinCreatorBanner from '@/components/JoinCreatorBanner';
 import { marketplaceApi, Creator, Product } from '@/lib/marketplace-api';
 import { toBengaliNumber } from '@/lib/mockProducts';
 
@@ -95,37 +96,27 @@ export default function CreatorProfilePage() {
             {creator.name} এর ডিজাইন ({toBengaliNumber(creator.total_designs)})
           </h2>
 
-          {products.length === 0 ? (
+          {loading ? (
             <div className="text-center py-20 bg-white rounded-2xl">
-              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">এখনও কোন ডিজাইন আপলোড করা হয়নি</p>
+              <Loader2 className="w-12 h-12 animate-spin text-[#C8102E]" />
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Products Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-8">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? 'bg-[#C8102E] text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                      }`}
-                    >
-                      {toBengaliNumber(page)}
-                    </button>
-                  ))}
+              {products.length === 0 && !loading && (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">কোন ডিজাইন পাওয়া যায়নি</p>
                 </div>
               )}
+
+              <JoinCreatorBanner />
             </>
           )}
         </div>
