@@ -47,10 +47,9 @@ export default function PollCard({
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [rememberedVote, setRememberedVote] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [votingStep, setVotingStep] = useState<'select' | 'phone' | 'otp'>('select');
+  const [votingStep, setVotingStep] = useState<'select' | 'phone'>('select');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpError, setOtpError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [liveVoteCount, setLiveVoteCount] = useState(totalVotes);
   const [animatedVoteCount, setAnimatedVoteCount] = useState(totalVotes);
@@ -155,45 +154,26 @@ export default function PollCard({
       setSelectedOption(optionId);
       setVotingStep('phone');
       setPhoneNumber('');
-      setOtp('');
-      setOtpError('');
+      setSubmitError('');
     }
   };
 
-  const handlePhoneSubmit = async () => {
-    const englishPhone = toEnglishNumber(phoneNumber);
-    if (englishPhone.length >= 11) {
-      setIsVerifying(true);
-      try {
-        await api.sendOTP({
-          phone_number: englishPhone,
-          purpose: 'poll_vote',
-          poll_id: pollId,
-        });
-        setVotingStep('otp');
-        setOtpError('');
-      } catch (error) {
-        setOtpError('OTP পাঠাতে ব্যর্থ। আবার চেষ্টা করুন।');
-      } finally {
-        setIsVerifying(false);
-      }
-    }
-  };
-
-  const handleOtpSubmit = async () => {
+  const handleVoteSubmit = async () => {
     if (!selectedOption) return;
     
+    const englishPhone = toEnglishNumber(phoneNumber);
+    if (englishPhone.length < 11) {
+      setSubmitError('সঠিক ফোন নম্বর লিখুন (১১ ডিজিট)');
+      return;
+    }
+    
     setIsVerifying(true);
-    setOtpError('');
+    setSubmitError('');
     
     try {
-      const englishPhone = toEnglishNumber(phoneNumber);
-      const englishOtp = toEnglishNumber(otp);
-      
       await api.votePoll(pollId, {
         option_id: parseInt(selectedOption),
         phone_number: englishPhone,
-        otp_code: englishOtp,
       });
       
       // Mark as voted and remember the voted option
@@ -207,7 +187,7 @@ export default function PollCard({
       // Don't reset votingStep - keep selected option visible
       setLiveVoteCount(prev => prev + 1);
     } catch (error: any) {
-      setOtpError(error.message || 'ভুল OTP! আবার চেষ্টা করুন।');
+      setSubmitError(error.message || 'ভোট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {
       setIsVerifying(false);
     }
@@ -336,92 +316,54 @@ export default function PollCard({
           animate={{ opacity: 1, height: 'auto' }}
           className="overflow-hidden px-6 pb-3"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={votingStep}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-2"
-            >
+          <div className="space-y-2">
               <div className="relative">
                 <input
-                  type={votingStep === 'phone' ? 'tel' : 'text'}
-                  value={votingStep === 'phone' ? phoneNumber : otp}
+                type="tel"
+                value={phoneNumber}
                   onChange={(e) => {
-                    if (votingStep === 'phone') {
-                      setPhoneNumber(e.target.value);
-                    } else {
-                      setOtp(e.target.value);
-                      setOtpError('');
-                    }
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      if (votingStep === 'phone' && phoneNumber.length >= 11) {
-                        handlePhoneSubmit();
-                      } else if (votingStep === 'otp' && otp.length >= 4) {
-                        handleOtpSubmit();
-                      }
-                    }
-                  }}
-                  placeholder={votingStep === 'phone' ? 'হোয়াটসঅ্যাপ নাম্বার' : 'OTP কোড'}
-                  className={`w-full px-4 pr-24 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 font-semibold transition-all text-center text-base ${
-                    otpError
-                      ? 'border-red-400 focus:border-red-500 focus:ring-red-100 bg-red-50'
-                      : votingStep === 'otp'
-                      ? 'border-green-400 focus:border-green-500 focus:ring-green-100 bg-green-50'
-                      : 'border-blue-400 focus:border-blue-500 focus:ring-blue-100 bg-blue-50'
-                  }`}
-                  maxLength={votingStep === 'phone' ? 11 : 4}
+                  setPhoneNumber(e.target.value);
+                  setSubmitError('');
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && toEnglishNumber(phoneNumber).length >= 11) {
+                    handleVoteSubmit();
+                  }
+                }}
+                placeholder="হোয়াটসঅ্যাপ নাম্বার"
+                className="w-full px-4 pr-24 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 font-semibold transition-all text-center text-base border-blue-400 focus:border-blue-500 focus:ring-blue-100 bg-blue-50"
+                maxLength={11}
                   autoFocus
                 />
 
                   <button
-                    onClick={votingStep === 'phone' ? handlePhoneSubmit : handleOtpSubmit}
-                    disabled={
-                      (votingStep === 'phone' && toEnglishNumber(phoneNumber).length < 11) ||
-                      (votingStep === 'otp' && (toEnglishNumber(otp).length < 4 || isVerifying))
-                    }
+                    onClick={handleVoteSubmit}
+                    disabled={toEnglishNumber(phoneNumber).length < 11 || isVerifying}
                     className={`absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 transition-all ${
-                      (votingStep === 'phone' && toEnglishNumber(phoneNumber).length >= 11) ||
-                      (votingStep === 'otp' && toEnglishNumber(otp).length >= 4 && !isVerifying)
-                        ? votingStep === 'otp'
-                          ? 'bg-green-500 hover:bg-green-600 text-white'
-                          : 'bg-[#25D366] hover:bg-[#1da851] text-white'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
+                  toEnglishNumber(phoneNumber).length >= 11 && !isVerifying
+                    ? 'bg-[#25D366] hover:bg-[#1da851] text-white'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
                   >
-                    {isVerifying ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /><span>...</span></>
-                    ) : votingStep === 'otp' ? (
-                      <><CheckCircle className="w-4 h-4" /><span>জমা</span></>
-                    ) : (
-                      <><Send className="w-4 h-4" /><span>পাঠান</span></>
-                    )}
+                {isVerifying ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /><span>...</span></>
+                ) : (
+                  <><Send className="w-4 h-4" /><span>জমা</span></>
+                )}
                   </button>
                 </div>
 
-                {otpError && (
+                {submitError && (
                   <div className="p-1.5 bg-red-50 border border-red-200 rounded text-red-700 text-[10px] font-medium flex items-center gap-1">
                     <XCircle className="w-3 h-3" />
-                    {otpError}
+                    {submitError}
                   </div>
                 )}
 
-                {votingStep === 'otp' && (
-                  <button
-                    onClick={() => {
-                      setVotingStep('phone');
-                      setOtp('');
-                      setOtpError('');
-                    }}
-                    className="w-full py-1 text-[10px] text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    নম্বর পরিবর্তন করুন
-                  </button>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                <div className="p-2 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium text-center">
+                  আপনি হোয়াটসঅ্যাপে নিশ্চিতকরণ বার্তা পাবেন এবং জিতলে যোগাযোগ করা হবে...
+                </div>
+              </div>
         </motion.div>
       )}
 

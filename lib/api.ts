@@ -412,7 +412,6 @@ class ApiClient {
 		data: {
 			option_id: number;
 			phone_number: string;
-			otp_code: string;
 		}
 	): Promise<ApiResponse<{ message: string }>> {
 		return this.fetch<ApiResponse<{ message: string }>>(
