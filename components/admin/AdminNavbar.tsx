@@ -16,7 +16,8 @@ import {
   Menu,
   X,
   UserCircle,
-  Hash
+  Hash,
+  MessageCircle
 } from 'lucide-react';
 import { useState } from 'react';
 import { logout as logoutApi } from '@/lib/admin/api';
@@ -29,6 +30,7 @@ const navLinks = [
   { href: '/admin/symbols', label: 'Symbols', icon: Hash },
   { href: '/admin/polls', label: 'Polls', icon: BarChart3 },
   { href: '/admin/news', label: 'News', icon: Newspaper },
+  { href: '/admin/messages', label: 'Messages', icon: MessageCircle },
   { href: '/admin/timeline', label: 'Timeline', icon: FileText },
 ];
 
