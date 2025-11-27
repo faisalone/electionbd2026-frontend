@@ -23,6 +23,8 @@ export default function Logo({ height = 40, className = '', alt = 'ভোটম�
   const style: CSSProperties = useMemo(() => ({
     height: computedHeight,
     width: 'auto',
+    maxWidth: '100%',
+    display: 'block',
   }), [computedHeight]);
 
   const lottieOptions = useMemo(() => ({
@@ -30,7 +32,7 @@ export default function Logo({ height = 40, className = '', alt = 'ভোটম�
     loop: true,
     autoplay: true,
     rendererSettings: {
-      preserveAspectRatio: 'xMidYMid slice',
+      preserveAspectRatio: 'xMinYMid meet',
       progressiveLoad: true, // Enable progressive loading
       hideOnTransparent: true,
     }
