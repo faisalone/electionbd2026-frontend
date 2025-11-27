@@ -46,8 +46,8 @@ export default function CreatePollButton() {
     newOptions[index] = { ...newOptions[index], text: value };
     setOptions(newOptions);
 
-    // Auto-add new empty option when user types in the last input (max 5 options)
-    if (index === options.length - 1 && value.trim() && options.length < 5) {
+    // Auto-add new empty option when user types in the last input
+    if (index === options.length - 1 && value.trim()) {
       setOptions([...newOptions, { id: Date.now().toString(), text: '' }]);
     }
   };
@@ -60,7 +60,7 @@ export default function CreatePollButton() {
 
   const handleOptionsNext = () => {
     const filledOptions = options.filter(o => o.text.trim());
-    if (filledOptions.length >= 2 && filledOptions.length <= 5) {
+    if (filledOptions.length >= 2) {
       setStep('details');
     }
   };
