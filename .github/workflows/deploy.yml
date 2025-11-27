@@ -51,6 +51,8 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
+          timeout: 60s
+          command_timeout: 15m
           script: |
             # Navigate to project directory
             cd /var/www/electionbd2026-frontend
