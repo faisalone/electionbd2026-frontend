@@ -17,9 +17,11 @@ import {
   X,
   UserCircle,
   Hash,
-  MessageCircle
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { logout as logoutApi } from '@/lib/admin/api';
 
 const navLinks = [
@@ -39,6 +41,34 @@ export default function AdminNavbar() {
   const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, []);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 200;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScroll, 300);
+    }
+  };
 
   const handleLogout = async () => {
     if (token) {
@@ -59,29 +89,43 @@ export default function AdminNavbar() {
                 <Logo height={40} className="hover:scale-105 transition-transform" alt="ভোটমামু Admin" />
               </Link>
 
-              {/* Navigation - Center (Desktop only) */}
-              <div className="hidden lg:flex items-center gap-1 flex-1 justify-center mx-8">
-                {navLinks.map((link) => {
-                  const Icon = link.icon;
-                  const isActive = pathname === link.href || (link.href !== '/admin' && pathname?.startsWith(link.href));
-                  
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`
-                        flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-300 whitespace-nowrap text-sm
-                        ${isActive 
-                          ? 'bg-[#C8102E]/10 text-[#C8102E]' 
-                          : 'text-gray-700 hover:bg-white/50 hover:scale-105'
-                        }
-                      `}
-                    >
-                      <Icon size={16} />
-                      <span>{link.label}</span>
-                    </Link>
-                  );
-                })}
+              {/* Navigation - Center (Desktop only) with Horizontal Scroll */}
+              <div className="hidden lg:block flex-1 mx-4 max-w-2xl">
+                {/* Scrollable Navigation Container */}
+                <div
+                  ref={scrollContainerRef}
+                  onScroll={checkScroll}
+                  className="overflow-x-auto scrollbar-hide"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+                    maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  <div className="flex items-center gap-2 justify-start px-8 min-w-max">
+                    {navLinks.map((link) => {
+                      const isActive = pathname === link.href || (link.href !== '/admin' && pathname?.startsWith(link.href));
+                      
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className={`
+                            px-4 py-2 rounded-full font-medium transition-all duration-300 whitespace-nowrap text-sm shrink-0
+                            ${isActive 
+                              ? 'bg-[#C8102E]/10 text-[#C8102E]' 
+                              : 'text-gray-700 hover:bg-white/50 hover:scale-105'
+                            }
+                          `}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {/* Desktop Profile - Right */}
