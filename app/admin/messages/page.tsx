@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ProtectedRoute from '@/components/admin/ProtectedRoute';
 import { useAdmin } from '@/lib/admin/context';
+import { getWhatsAppConversations, getWhatsAppMessages, sendWhatsAppReply } from '@/lib/admin/api';
 import { MessageCircle, Send, Search, CheckCheck, Check, Clock, Phone, X } from 'lucide-react';
 
 interface Conversation {
@@ -43,36 +44,38 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:8000/api/admin';
-
   useEffect(() => {
+    if (!token) return;
+    
     fetchConversations();
-    const interval = setInterval(fetchConversations, 5000); // Poll every 5 seconds
+    const interval = setInterval(fetchConversations, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    if (selectedConversation) {
+    if (selectedConversation && token) {
       fetchMessages(selectedConversation.phone_number);
       const interval = setInterval(() => fetchMessages(selectedConversation.phone_number), 3000);
       return () => clearInterval(interval);
     }
-  }, [selectedConversation]);
+  }, [selectedConversation, token]);
 
+  // Only scroll on initial load or when sending a message
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [selectedConversation]); // Only scroll when conversation changes
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const fetchConversations = async () => {
+    if (!token) return;
+    
     try {
-      const response = await fetch(`${API_BASE}/whatsapp/conversations`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
+      const data = await getWhatsAppConversations(token);
       if (data.success) {
         setConversations(data.data);
       }
@@ -84,11 +87,10 @@ export default function MessagesPage() {
   };
 
   const fetchMessages = async (phoneNumber: string) => {
+    if (!token) return;
+    
     try {
-      const response = await fetch(`${API_BASE}/whatsapp/conversations/${phoneNumber}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
+      const data = await getWhatsAppMessages(phoneNumber, token);
       if (data.success) {
         setMessages(data.data);
       }
@@ -98,33 +100,28 @@ export default function MessagesPage() {
   };
 
   const sendReply = async () => {
-    if (!replyText.trim() || !selectedConversation) return;
+    if (!replyText.trim() || !selectedConversation || !token) return;
 
+    const messageToSend = replyText;
+    setReplyText(''); // Clear immediately for better UX
     setSending(true);
-    try {
-      const response = await fetch(`${API_BASE}/whatsapp/reply`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone_number: selectedConversation.phone_number,
-          message: replyText,
-        }),
-      });
 
-      const data = await response.json();
+    try {
+      const data = await sendWhatsAppReply(selectedConversation.phone_number, messageToSend, token);
       if (data.success) {
+        // Add the sent message to the list
         setMessages([...messages, data.data]);
-        setReplyText('');
-        fetchConversations();
+        // Scroll to bottom after sending
+        setTimeout(() => scrollToBottom(), 100);
+        fetchConversations(); // Update conversation list
       } else {
         alert('Failed to send message: ' + (data.message || 'Unknown error'));
+        setReplyText(messageToSend); // Restore message on error
       }
     } catch (error) {
       console.error('Failed to send reply:', error);
       alert('Failed to send message');
+      setReplyText(messageToSend); // Restore message on error
     } finally {
       setSending(false);
     }
@@ -166,15 +163,17 @@ export default function MessagesPage() {
       <div className="py-6">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
-              <MessageCircle className="text-white" size={20} />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+              <MessageCircle className="text-white" size={24} />
             </div>
-            <h1 className="text-3xl font-bold bg-linear-to-rrom-gray-800 to-gray-600 bg-clip-text text-transparent">
-              WhatsApp Messages
-            </h1>
+            <div>
+              <h1 className="text-3xl font-bold bg-linear-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                WhatsApp Messages
+              </h1>
+              <p className="text-gray-600 text-sm mt-0.5">Manage customer conversations and send replies</p>
+            </div>
           </div>
-          <p className="text-gray-600 ml-13">Manage customer conversations and send replies</p>
         </div>
 
         {/* Main Content */}
@@ -243,7 +242,7 @@ export default function MessagesPage() {
             {selectedConversation ? (
               <div className="flex-1 flex flex-col">
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200 bg-linear-to-rrom-green-50 to-emerald-50">
+                <div className="p-4 border-b border-gray-200 bg-linear-to-r from-green-50 to-emerald-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-linear-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-bold">
@@ -273,7 +272,7 @@ export default function MessagesPage() {
                       <div
                         className={`max-w-[70%] rounded-2xl px-4 py-3 ${
                           msg.direction === 'outgoing'
-                            ? 'bg-linear-to-brrom-green-500 to-emerald-600 text-white'
+                            ? 'bg-linear-to-br from-green-500 to-emerald-600 text-white'
                             : 'bg-white border border-gray-200 text-gray-900'
                         }`}
                       >
@@ -301,8 +300,9 @@ export default function MessagesPage() {
 
                 {/* Reply Input */}
                 <div className="p-4 bg-white border-t border-gray-200">
-                  <div className="flex gap-3">
-                    <textarea
+                  <div className="relative">
+                    <input
+                      type="text"
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       onKeyDown={(e) => {
@@ -312,16 +312,20 @@ export default function MessagesPage() {
                         }
                       }}
                       placeholder="Type your message... (Shift+Enter for new line)"
-                      rows={2}
-                      className="flex-1 px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                      className="w-full pl-4 pr-14 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      disabled={sending}
                     />
                     <button
                       onClick={sendReply}
-                      disabled={!replyText.trim() || sending}
-                      className="px-6 bg-linear-to-br from-green-500 to-emerald-600 text-white rounded-2xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      disabled={sending || !replyText.trim()}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-linear-to-r from-green-500 to-green-600 text-white rounded-full hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md hover:shadow-lg"
+                      title={sending ? "Sending..." : "Send message"}
                     >
-                      <Send size={20} />
-                      {sending ? 'Sending...' : 'Send'}
+                      {sending ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Send size={16} />
+                      )}
                     </button>
                   </div>
                 </div>

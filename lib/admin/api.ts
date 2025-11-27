@@ -178,3 +178,66 @@ export const runNewsCronjob = async (token: string) => {
 	});
 	return response.json();
 };
+
+// WhatsApp Messages
+export const getWhatsAppConversations = async (token: string) => {
+	const response = await fetch(`${ADMIN_API_BASE}/whatsapp/conversations`, {
+		headers: createAuthHeaders(token),
+	});
+	return response.json();
+};
+
+export const getWhatsAppMessages = async (
+	phoneNumber: string,
+	token: string
+) => {
+	const response = await fetch(
+		`${ADMIN_API_BASE}/whatsapp/conversations/${phoneNumber}`,
+		{
+			headers: createAuthHeaders(token),
+		}
+	);
+	return response.json();
+};
+
+export const sendWhatsAppReply = async (
+	phoneNumber: string,
+	message: string,
+	token: string
+) => {
+	const response = await fetch(`${ADMIN_API_BASE}/whatsapp/reply`, {
+		method: 'POST',
+		headers: createAuthHeaders(token),
+		body: JSON.stringify({ phone_number: phoneNumber, message }),
+	});
+	return response.json();
+};
+
+export const markWhatsAppAsRead = async (
+	phoneNumber: string,
+	token: string
+) => {
+	const response = await fetch(
+		`${ADMIN_API_BASE}/whatsapp/conversations/${phoneNumber}/mark-read`,
+		{
+			method: 'POST',
+			headers: createAuthHeaders(token),
+		}
+	);
+	return response.json();
+};
+
+export const getWhatsAppUnreadCount = async (token: string) => {
+	const response = await fetch(`${ADMIN_API_BASE}/whatsapp/unread-count`, {
+		headers: createAuthHeaders(token),
+	});
+	return response.json();
+};
+
+export const deleteWhatsAppMessage = async (id: number, token: string) => {
+	const response = await fetch(`${ADMIN_API_BASE}/whatsapp/messages/${id}`, {
+		method: 'DELETE',
+		headers: createAuthHeaders(token),
+	});
+	return response.json();
+};
