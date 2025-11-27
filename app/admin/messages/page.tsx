@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/admin/ProtectedRoute';
 import { useAdmin } from '@/lib/admin/context';
 import { getWhatsAppConversations, getWhatsAppMessages, sendWhatsAppReply } from '@/lib/admin/api';
 import { MessageCircle, Send, Search, CheckCheck, Check, Clock, Phone, X } from 'lucide-react';
+import echo from '@/lib/echo';
 
 interface Conversation {
   phone_number: string;
@@ -48,13 +49,54 @@ export default function MessagesPage() {
     if (!token) return;
     
     fetchConversations();
-    // Removed auto-refresh - will implement WebSocket later
-  }, [token]);
+    
+    // Real-time updates via WebSocket
+    if (!echo) return;
+    
+    const channel = echo.channel('whatsapp.messages');
+    channel.listen('.message.received', (data: any) => {
+      // Update conversations list
+      setConversations(prev => {
+        const existingIndex = prev.findIndex(c => c.phone_number === data.conversation.phone_number);
+        if (existingIndex >= 0) {
+          // Update existing conversation
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            last_message: data.conversation.last_message,
+            last_message_time: data.conversation.last_message_time,
+            unread_count: data.message.direction === 'incoming' 
+              ? (updated[existingIndex].unread_count || 0) + 1 
+              : updated[existingIndex].unread_count,
+          };
+          // Move to top
+          updated.unshift(updated.splice(existingIndex, 1)[0]);
+          return updated;
+        } else {
+          // New conversation
+          return [data.conversation, ...prev];
+        }
+      });
+
+      // If this message is for the currently selected conversation, add it to messages
+      if (selectedConversation && 
+          (data.message.from === selectedConversation.phone_number || 
+           data.message.to === selectedConversation.phone_number)) {
+        setMessages(prev => [...prev, data.message]);
+        setTimeout(() => scrollToBottom(), 100);
+      }
+    });
+
+    return () => {
+      if (echo) {
+        echo.leaveChannel('whatsapp.messages');
+      }
+    };
+  }, [token, selectedConversation]);
 
   useEffect(() => {
     if (selectedConversation && token) {
       fetchMessages(selectedConversation.phone_number);
-      // Removed auto-refresh - will implement WebSocket later
     }
   }, [selectedConversation, token]);
 
