@@ -43,7 +43,7 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace('/v1', '/admin') || 'http://localhost:8000/api/admin';
+  const API_BASE = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:8000/api/admin';
 
   useEffect(() => {
     fetchConversations();
