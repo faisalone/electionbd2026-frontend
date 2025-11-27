@@ -44,6 +44,7 @@ export default function MessagesPage() {
   const [replyText, setReplyText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -58,6 +59,8 @@ export default function MessagesPage() {
       // Update conversations list
       setConversations(prev => {
         const existingIndex = prev.findIndex(c => c.phone_number === data.conversation.phone_number);
+        const isSelectedConversation = selectedConversation?.phone_number === data.conversation.phone_number;
+        
         if (existingIndex >= 0) {
           // Update existing conversation
           const updated = [...prev];
@@ -65,9 +68,10 @@ export default function MessagesPage() {
             ...updated[existingIndex],
             last_message: data.conversation.last_message,
             last_message_time: data.conversation.last_message_time,
-            unread_count: data.message.direction === 'incoming' 
+            // Don't increment unread count if conversation is currently selected and message is incoming
+            unread_count: data.message.direction === 'incoming' && !isSelectedConversation
               ? (updated[existingIndex].unread_count || 0) + 1 
-              : updated[existingIndex].unread_count,
+              : isSelectedConversation ? 0 : updated[existingIndex].unread_count,
           };
           // Move to top
           updated.unshift(updated.splice(existingIndex, 1)[0]);
@@ -83,7 +87,7 @@ export default function MessagesPage() {
           (data.message.from === selectedConversation.phone_number || 
            data.message.to === selectedConversation.phone_number)) {
         setMessages(prev => [...prev, data.message]);
-        setTimeout(() => scrollToBottom(), 100);
+        setTimeout(() => scrollToBottomIfNeeded(), 100);
       }
     });
 
@@ -103,12 +107,29 @@ export default function MessagesPage() {
   // Only scroll on initial load or when sending a message
   useEffect(() => {
     if (messages.length > 0) {
-      scrollToBottom();
+      scrollToBottomIfNeeded();
     }
   }, [selectedConversation]); // Only scroll when conversation changes
 
+  const scrollToBottomIfNeeded = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    
+    // Check if there's overflow (scrollbar exists)
+    const hasOverflow = container.scrollHeight > container.clientHeight;
+    
+    if (hasOverflow) {
+      // Only scroll the container, not the page
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Force scroll (used when sending messages) - scroll the container, not the page
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   };
 
   const fetchConversations = async () => {
@@ -133,6 +154,14 @@ export default function MessagesPage() {
       const data = await getWhatsAppMessages(phoneNumber, token);
       if (data.success) {
         setMessages(data.data);
+        // Reset unread count for this conversation
+        setConversations(prev => 
+          prev.map(conv => 
+            conv.phone_number === phoneNumber 
+              ? { ...conv, unread_count: 0 }
+              : conv
+          )
+        );
       }
     } catch (error) {
       console.error('Failed to fetch messages:', error);
@@ -303,7 +332,7 @@ export default function MessagesPage() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
