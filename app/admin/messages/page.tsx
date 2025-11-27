@@ -48,15 +48,13 @@ export default function MessagesPage() {
     if (!token) return;
     
     fetchConversations();
-    const interval = setInterval(fetchConversations, 5000);
-    return () => clearInterval(interval);
+    // Removed auto-refresh - will implement WebSocket later
   }, [token]);
 
   useEffect(() => {
     if (selectedConversation && token) {
       fetchMessages(selectedConversation.phone_number);
-      const interval = setInterval(() => fetchMessages(selectedConversation.phone_number), 3000);
-      return () => clearInterval(interval);
+      // Removed auto-refresh - will implement WebSocket later
     }
   }, [selectedConversation, token]);
 
