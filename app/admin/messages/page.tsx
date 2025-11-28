@@ -82,10 +82,12 @@ export default function MessagesPage() {
         }
       });
 
-      // If this message is for the currently selected conversation, add it to messages
-      if (selectedConversation && 
-          (data.message.from === selectedConversation.phone_number || 
-           data.message.to === selectedConversation.phone_number)) {
+      // Only append incoming user messages for the selected conversation
+      if (
+        selectedConversation &&
+        data.message.direction === 'incoming' &&
+        data.message.from === selectedConversation.phone_number
+      ) {
         setMessages(prev => [...prev, data.message]);
         setTimeout(() => scrollToBottomIfNeeded(), 100);
       }
