@@ -149,9 +149,19 @@ export default function PollsPage() {
 
   const handleOpenEditModal = (poll: Poll) => {
     setEditingPoll(poll);
+
+    let endDateLocal = '';
+    if (poll.end_date) {
+      const d = new Date(poll.end_date);
+      const pad = (n: number) => String(n).padStart(2, '0');
+      endDateLocal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+        d.getHours()
+      )}:${pad(d.getMinutes())}`;
+    }
+
     setFormData({
       question: poll.question,
-      end_date: poll.end_date ? new Date(poll.end_date).toISOString().slice(0, 16) : '',
+      end_date: endDateLocal,
       options: poll.options.map(opt => ({
         id: opt.id,
         text: opt.text,

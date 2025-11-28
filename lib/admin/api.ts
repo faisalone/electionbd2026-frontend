@@ -213,6 +213,22 @@ export const sendWhatsAppReply = async (
 	return response.json();
 };
 
+export const searchWhatsAppUsers = async (query: string, token: string) => {
+	const params = new URLSearchParams();
+	if (query.trim()) {
+		params.set('q', query.trim());
+	}
+	const response = await fetch(
+		`${ADMIN_API_BASE}/whatsapp/users${
+			params.toString() ? `?${params.toString()}` : ''
+		}`,
+		{
+			headers: createAuthHeaders(token),
+		}
+	);
+	return response.json();
+};
+
 export const markWhatsAppAsRead = async (
 	phoneNumber: string,
 	token: string

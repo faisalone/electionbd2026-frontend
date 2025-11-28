@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import ProtectedRoute from '@/components/admin/ProtectedRoute';
 import { useAdmin } from '@/lib/admin/context';
-import { getWhatsAppConversations, getWhatsAppMessages, sendWhatsAppReply } from '@/lib/admin/api';
-import { MessageCircle, Send, Search, CheckCheck, Check, Clock, Phone, X } from 'lucide-react';
+import { getWhatsAppConversations, getWhatsAppMessages, searchWhatsAppUsers, sendWhatsAppReply } from '@/lib/admin/api';
+import { MessageCircle, Send, Search, CheckCheck, Check, Clock, Phone, X, Plus, Loader2 } from 'lucide-react';
 import echo from '@/lib/echo';
 
 interface Conversation {
@@ -26,12 +26,30 @@ interface Message {
   direction: 'incoming' | 'outgoing';
   type: string;
   content: string;
-  metadata: any;
+  metadata?: Record<string, unknown> | null;
   status: string | null;
   message_timestamp: string;
   is_read: boolean;
   admin_name: string | null;
   formatted_time: string;
+}
+
+interface MessageReceivedPayload {
+  message: Message;
+  conversation: Conversation;
+}
+
+interface MessageStatusPayload {
+  message_id: string;
+  status: 'sent' | 'delivered' | 'read' | string;
+  phone_number: string;
+}
+
+interface UserSearchResult {
+  id: number;
+  name: string;
+  phone_number: string;
+  avatar?: string | null;
 }
 
 export default function MessagesPage() {
@@ -43,19 +61,83 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [userSearchError, setUserSearchError] = useState('');
+  const [manualPhone, setManualPhone] = useState('');
+  const [manualName, setManualName] = useState('');
+  const [startError, setStartError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  const scrollToBottomIfNeeded = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const hasOverflow = container.scrollHeight > container.clientHeight;
+    if (hasOverflow) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, []);
+
+  const fetchConversations = useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await getWhatsAppConversations(token);
+      if (data.success) {
+        setConversations(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  const fetchMessages = useCallback(async (phoneNumber: string) => {
+    if (!token) return;
+    try {
+      const data = await getWhatsAppMessages(phoneNumber, token);
+      if (data.success) {
+        setMessages(data.data);
+        setConversations(prev =>
+          prev.map(conv =>
+            conv.phone_number === phoneNumber
+              ? { ...conv, unread_count: 0 }
+              : conv
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  }, [token]);
+
   useEffect(() => {
     if (!token) return;
-    
     fetchConversations();
-    
-    // Real-time updates via WebSocket
-    if (!echo) return;
-    
-    const channel = echo.channel('whatsapp.messages');
-    channel.listen('.message.received', (data: any) => {
+  }, [token, fetchConversations]);
+
+  useEffect(() => {
+    if (!selectedConversation?.phone_number) return;
+    fetchMessages(selectedConversation.phone_number);
+  }, [selectedConversation?.phone_number, fetchMessages]);
+
+  useEffect(() => {
+    const echoInstance = echo;
+    const channelName = 'whatsapp.messages';
+    if (!token || !echoInstance) return;
+    const channel = echoInstance.channel(channelName);
+
+    const handleMessageReceived = (data: MessageReceivedPayload) => {
       // Update conversations list
       setConversations(prev => {
         const existingIndex = prev.findIndex(c => c.phone_number === data.conversation.phone_number);
@@ -91,83 +173,128 @@ export default function MessagesPage() {
         setMessages(prev => [...prev, data.message]);
         setTimeout(() => scrollToBottomIfNeeded(), 100);
       }
-    });
+    };
+
+    const handleMessageStatus = (data: MessageStatusPayload) => {
+      setMessages(prev =>
+        prev.map(message =>
+          message.message_id === data.message_id
+            ? { ...message, status: data.status }
+            : message
+        )
+      );
+    };
+
+    channel.listen('.message.received', handleMessageReceived);
+    channel.listen('.message.status', handleMessageStatus);
 
     return () => {
-      if (echo) {
-        echo.leaveChannel('whatsapp.messages');
-      }
+      channel.stopListening('.message.received');
+      channel.stopListening('.message.status');
+      echoInstance.leaveChannel(channelName);
     };
-  }, [token, selectedConversation]);
+  }, [token, selectedConversation?.phone_number, scrollToBottomIfNeeded]);
 
   useEffect(() => {
-    if (selectedConversation && token) {
-      fetchMessages(selectedConversation.phone_number);
+    if (!showStartModal || !token) {
+      return;
     }
-  }, [selectedConversation, token]);
 
-  // Only scroll on initial load or when sending a message
+    if (!userSearch.trim()) {
+      setUserResults([]);
+      setSearchingUsers(false);
+      setUserSearchError('');
+      return;
+    }
+
+    setSearchingUsers(true);
+    const handler = setTimeout(async () => {
+      try {
+        const response = await searchWhatsAppUsers(userSearch, token);
+        if (response.success) {
+          setUserResults(response.data);
+          setUserSearchError('');
+        } else {
+          setUserSearchError(response.message || 'ব্যবহারকারী খুঁজে পাওয়া যায়নি');
+        }
+      } catch (error) {
+        console.error('Failed to search users:', error);
+        setUserSearchError('ইউজার তালিকা লোড করতে ব্যর্থ');
+      } finally {
+        setSearchingUsers(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [userSearch, token, showStartModal]);
+
+  useEffect(() => {
+    if (selectedConversation) {
+      scrollToBottomIfNeeded();
+    }
+  }, [selectedConversation, scrollToBottomIfNeeded]);
+
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottomIfNeeded();
     }
-  }, [selectedConversation]); // Only scroll when conversation changes
+  }, [messages.length, scrollToBottomIfNeeded]);
 
-  const scrollToBottomIfNeeded = () => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    
-    // Check if there's overflow (scrollbar exists)
-    const hasOverflow = container.scrollHeight > container.clientHeight;
-    
-    if (hasOverflow) {
-      // Only scroll the container, not the page
-      container.scrollTop = container.scrollHeight;
-    }
+  const normalizePhone = (value: string) => value.replace(/[^0-9+]/g, '');
+
+  const closeStartModal = () => {
+    setShowStartModal(false);
+    setUserSearch('');
+    setUserResults([]);
+    setUserSearchError('');
+    setManualPhone('');
+    setManualName('');
+    setStartError('');
   };
 
-  const scrollToBottom = () => {
-    // Force scroll (used when sending messages) - scroll the container, not the page
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  };
+  const startConversationForPhone = (rawPhone: string, displayName?: string) => {
+    const normalized = normalizePhone(rawPhone);
 
-  const fetchConversations = async () => {
-    if (!token) return;
-    
-    try {
-      const data = await getWhatsAppConversations(token);
-      if (data.success) {
-        setConversations(data.data);
+    if (normalized.length < 10) {
+      setStartError('সঠিক ফোন নম্বর লিখুন');
+      return;
+    }
+
+    let conversationToSelect: Conversation | null = null;
+
+    setConversations(prev => {
+      const existingIndex = prev.findIndex(c => c.phone_number === normalized);
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        const existing = {
+          ...updated[existingIndex],
+          name: displayName || updated[existingIndex].name || 'Unknown',
+        };
+        updated[existingIndex] = existing;
+        conversationToSelect = existing;
+        updated.unshift(updated.splice(existingIndex, 1)[0]);
+        return updated;
       }
-    } catch (error) {
-      console.error('Failed to fetch conversations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchMessages = async (phoneNumber: string) => {
-    if (!token) return;
-    
-    try {
-      const data = await getWhatsAppMessages(phoneNumber, token);
-      if (data.success) {
-        setMessages(data.data);
-        // Reset unread count for this conversation
-        setConversations(prev => 
-          prev.map(conv => 
-            conv.phone_number === phoneNumber 
-              ? { ...conv, unread_count: 0 }
-              : conv
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Failed to fetch messages:', error);
+      const newConversation: Conversation = {
+        phone_number: normalized,
+        name: displayName || 'Unknown',
+        last_message: 'New conversation',
+        last_message_time: new Date().toISOString(),
+        message_count: 0,
+        unread_count: 0,
+        last_message_type: 'text',
+      };
+      conversationToSelect = newConversation;
+      return [newConversation, ...prev];
+    });
+
+    if (conversationToSelect) {
+      setSelectedConversation(conversationToSelect);
+      setMessages([]);
     }
+
+    closeStartModal();
   };
 
   const sendReply = async () => {
@@ -181,7 +308,7 @@ export default function MessagesPage() {
       const data = await sendWhatsAppReply(selectedConversation.phone_number, messageToSend, token);
       if (data.success) {
         // Add the sent message to the list
-        setMessages([...messages, data.data]);
+        setMessages(prev => [...prev, data.data]);
         // Scroll to bottom after sending
         setTimeout(() => scrollToBottom(), 100);
         fetchConversations(); // Update conversation list
@@ -234,16 +361,26 @@ export default function MessagesPage() {
       <div className="py-6">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
-              <MessageCircle className="text-white" size={24} />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                <MessageCircle className="text-white" size={24} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-linear-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  WhatsApp Messages
+                </h1>
+                <p className="text-gray-600 text-sm mt-0.5">Manage customer conversations and send replies</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-linear-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                WhatsApp Messages
-              </h1>
-              <p className="text-gray-600 text-sm mt-0.5">Manage customer conversations and send replies</p>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowStartModal(true)}
+              className="inline-flex items-center gap-2 rounded-2xl bg-linear-to-r from-green-500 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:from-green-600 hover:to-emerald-700"
+            >
+              <Plus size={16} />
+              নতুন কনভার্সেশন
+            </button>
           </div>
         </div>
 
@@ -412,6 +549,119 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
+
+      {showStartModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-emerald-600">Start Conversation</p>
+                <h2 className="text-2xl font-bold text-gray-900">Send a new WhatsApp message</h2>
+                <p className="mt-1 text-sm text-gray-500">Find a registered user or start with any Bangladeshi phone number.</p>
+              </div>
+              <button onClick={closeStartModal} className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-800">Search registered users</h3>
+                  <span className="text-xs text-gray-500">Up to 15 results</span>
+                </div>
+                <div className="mt-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      value={userSearch}
+                      onChange={(e) => {
+                        setUserSearch(e.target.value);
+                        setUserSearchError('');
+                      }}
+                      placeholder="Search by name or phone"
+                      className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+                  {userSearchError && <p className="mt-2 text-sm text-red-500">{userSearchError}</p>}
+                </div>
+                <div className="mt-4 max-h-64 space-y-3 overflow-y-auto pr-1">
+                  {searchingUsers ? (
+                    <div className="flex items-center justify-center rounded-2xl border border-dashed border-emerald-200 py-6 text-emerald-600">
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Searching users...
+                    </div>
+                  ) : userResults.length > 0 ? (
+                    userResults.map((user) => {
+                      const existingConversation = conversations.find((conv) => conv.phone_number === user.phone_number);
+                      return (
+                        <div
+                          key={`${user.id}-${user.phone_number}`}
+                          className="flex items-center justify-between rounded-2xl border border-white bg-white/70 px-3 py-3 shadow-sm"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-linear-to-br from-emerald-400 to-green-500 text-sm font-bold text-white flex items-center justify-center">
+                              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{user.name || 'Unnamed user'}</p>
+                              <p className="text-sm text-gray-500">{user.phone_number}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => startConversationForPhone(user.phone_number, user.name)}
+                            className="rounded-full border border-emerald-200 px-4 py-1.5 text-sm font-semibold text-emerald-600 transition hover:border-emerald-300 hover:bg-emerald-50"
+                          >
+                            {existingConversation ? 'Open chat' : 'Start chat'}
+                          </button>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-500">
+                      {userSearch.trim() ? 'No users found. Try a different search.' : 'Start typing to search registered users.'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-100 bg-white p-4">
+                <h3 className="text-sm font-semibold text-gray-800">Start with a phone number</h3>
+                <p className="mt-1 text-sm text-gray-500">Send a proactive WhatsApp message to any Bangladeshi number.</p>
+                <div className="mt-4 space-y-3">
+                  <input
+                    type="text"
+                    value={manualPhone}
+                    onChange={(e) => {
+                      setManualPhone(normalizePhone(e.target.value));
+                      setStartError('');
+                    }}
+                    placeholder="Phone number (e.g. 017XXXXXXXX)"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                  />
+                  <input
+                    type="text"
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    placeholder="Contact name (optional)"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                  />
+                  {startError && <p className="text-sm text-red-500">{startError}</p>}
+                  <button
+                    type="button"
+                    onClick={() => startConversationForPhone(manualPhone, manualName || undefined)}
+                    className="w-full rounded-2xl bg-linear-to-r from-green-500 to-emerald-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:from-green-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={!manualPhone}
+                  >
+                    Start conversation
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }
