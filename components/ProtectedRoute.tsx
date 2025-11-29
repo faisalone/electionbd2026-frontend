@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMarketAuth } from '@/lib/market-auth-context';
 import AccessDenied from '@/components/AccessDenied';
@@ -25,46 +25,42 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, isAuthenticated, isLoading } = useMarketAuth();
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
+
+  // Calculate access status using useMemo to avoid setState in effect
+  const accessStatus = useMemo(() => {
+    if (isLoading) return { allowed: false, checking: true };
+    if (!isAuthenticated || !user) return { allowed: false, checking: false };
+
+    // Check role-based access
+    if (requireAdmin) {
+      const isAdmin = user.role === 'admin' || user.role === 'super_admin';
+      if (!isAdmin) return { allowed: false, checking: false };
+    }
+
+    if (requireCreator) {
+      const isCreator = user.role === 'creator' || user.role === 'admin' || user.role === 'super_admin';
+      if (!isCreator) return { allowed: false, checking: false };
+    }
+
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+      return { allowed: false, checking: false };
+    }
+
+    return { allowed: true, checking: false };
+  }, [isLoading, isAuthenticated, user, requireAdmin, requireCreator, allowedRoles]);
 
   useEffect(() => {
-    if (!isLoading) {
-      // Check authentication
+    if (!accessStatus.checking && !accessStatus.allowed && !isLoading) {
       if (!isAuthenticated || !user) {
         router.push('/market/login');
-        return;
+      } else {
+        router.push(fallbackPath);
       }
-
-      // Check role-based access
-      if (requireAdmin) {
-        const isAdmin = user.role === 'admin' || user.role === 'super_admin';
-        if (!isAdmin) {
-          setIsChecking(false);
-          return;
-        }
-      }
-
-      if (requireCreator) {
-        const isCreator = user.role === 'creator' || user.role === 'admin' || user.role === 'super_admin';
-        if (!isCreator) {
-          setIsChecking(false);
-          return;
-        }
-      }
-
-      if (allowedRoles && allowedRoles.length > 0) {
-        if (!allowedRoles.includes(user.role)) {
-          setIsChecking(false);
-          return;
-        }
-      }
-
-      setIsChecking(false);
     }
-  }, [isAuthenticated, user, isLoading, requireCreator, requireAdmin, allowedRoles, router]);
+  }, [accessStatus, isLoading, isAuthenticated, user, router, fallbackPath]);
 
   // Loading state
-  if (isLoading || isChecking) {
+  if (isLoading || accessStatus.checking) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
@@ -75,50 +71,12 @@ export default function ProtectedRoute({
     );
   }
 
-  // Not authenticated
-  if (!isAuthenticated || !user) {
-    return null; // Router will redirect
-  }
-
-  // Check admin access
-  if (requireAdmin) {
-    const isAdmin = user.role === 'admin' || user.role === 'super_admin';
-    if (!isAdmin) {
-      return (
-        <AccessDenied
-          message="এই পৃষ্ঠাটি শুধুমাত্র অ্যাডমিনদের জন্য"
-          requiredRole="অ্যাডমিন"
-          redirectPath={fallbackPath}
-        />
-      );
+  // Not authenticated or access denied
+  if (!accessStatus.allowed) {
+    if (!isAuthenticated || !user) {
+      return null; // Router will redirect
     }
-  }
-
-  // Check creator access
-  if (requireCreator) {
-    const isCreatorOrAdmin = user.role === 'creator' || user.role === 'admin' || user.role === 'super_admin';
-    if (!isCreatorOrAdmin) {
-      return (
-        <AccessDenied
-          message="এই পৃষ্ঠাটি শুধুমাত্র ক্রিয়েটরদের জন্য। অনুগ্রহ করে আপনার প্রোফাইল সম্পূর্ণ করুন।"
-          requiredRole="ক্রিয়েটর"
-          redirectPath="/market/dashboard/settings"
-        />
-      );
-    }
-  }
-
-  // Check specific role access
-  if (allowedRoles && allowedRoles.length > 0) {
-    if (!allowedRoles.includes(user.role)) {
-      return (
-        <AccessDenied
-          message="আপনার এই পৃষ্ঠা অ্যাক্সেস করার অনুমতি নেই"
-          requiredRole={allowedRoles.join(', ')}
-          redirectPath={fallbackPath}
-        />
-      );
-    }
+    return <AccessDenied />;
   }
 
   return <>{children}</>;
