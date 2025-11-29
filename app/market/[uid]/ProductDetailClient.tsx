@@ -15,6 +15,7 @@ import SectionWrapper from '@/components/SectionWrapper';
 import CreatorCard from '@/components/CreatorCard';
 import ProductCard from '@/components/ProductCard';
 import JoinCreatorBanner from '@/components/JoinCreatorBanner';
+import MarketBackground from '@/components/market/MarketBackground';
 import DynamicIcon from '@/components/DynamicIcon';
 import { toBengaliNumber, categoryLabels } from '@/lib/mockProducts';
 import { marketplaceApi, Product } from '@/lib/marketplace-api';
@@ -249,7 +250,8 @@ export default function ProductDetailPage() {
     : 'অন্যান্য';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative overflow-hidden">
+      <MarketBackground />
       <SectionWrapper>
         {/* Back Button */}
         <Link

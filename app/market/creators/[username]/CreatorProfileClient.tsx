@@ -11,6 +11,7 @@ import SectionWrapper from '@/components/SectionWrapper';
 import ProductCard from '@/components/ProductCard';
 import CreatorCard from '@/components/CreatorCard';
 import JoinCreatorBanner from '@/components/JoinCreatorBanner';
+import MarketBackground from '@/components/market/MarketBackground';
 import { marketplaceApi, Creator, Product } from '@/lib/marketplace-api';
 import { toBengaliNumber } from '@/lib/mockProducts';
 
@@ -74,7 +75,8 @@ export default function CreatorProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative overflow-hidden">
+      <MarketBackground />
       <SectionWrapper>
         {/* Back Button */}
         <Link

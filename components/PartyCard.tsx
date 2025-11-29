@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Users, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/admin/api';
+import { toBengaliNumber } from '@/lib/utils';
 
 interface PartyCardProps {
   id: number;
@@ -95,7 +96,7 @@ export default function PartyCard({
               <div className="flex items-center justify-center gap-1.5">
                 <Users className="w-4 h-4" style={{ color: color }} />
                 <p className="text-sm font-bold" style={{ color: color }}>
-                  {candidatesCount} জন
+                  {toBengaliNumber(candidatesCount)} জন
                 </p>
               </div>
             </div>

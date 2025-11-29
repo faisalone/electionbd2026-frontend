@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import SectionWrapper from '@/components/SectionWrapper';
 import CreatorCard from '@/components/CreatorCard';
 import JoinCreatorBanner from '@/components/JoinCreatorBanner';
+import MarketBackground from '@/components/market/MarketBackground';
 import { marketplaceApi, Creator } from '@/lib/marketplace-api';
 import { toBengaliNumber } from '@/lib/mockProducts';
 
@@ -42,7 +43,8 @@ export default function CreatorsListPage() {
   }, [currentPage]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative overflow-hidden">
+      <MarketBackground />
       <SectionWrapper>
         {/* Header */}
         <div className="mb-8">

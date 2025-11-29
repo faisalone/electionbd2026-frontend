@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ProtectedRoute from '@/components/admin/ProtectedRoute';
 import { useAdmin } from '@/lib/admin/context';
-import { getWhatsAppConversations, getWhatsAppMessages, searchWhatsAppUsers, sendWhatsAppReply } from '@/lib/admin/api';
-import { MessageCircle, Send, Search, CheckCheck, Check, Clock, Phone, X, Plus, Loader2 } from 'lucide-react';
+import { getWhatsAppConversations, getWhatsAppMessages, searchWhatsAppUsers, sendWhatsAppReply, startWhatsAppConversation } from '@/lib/admin/api';
+import { MessageCircle, Send, Search, CheckCheck, Check, Clock, Phone, X, Plus, Loader2, Sparkles } from 'lucide-react';
 import echo from '@/lib/echo';
 
 interface Conversation {
@@ -69,6 +69,7 @@ export default function MessagesPage() {
   const [manualPhone, setManualPhone] = useState('');
   const [manualName, setManualName] = useState('');
   const [startError, setStartError] = useState('');
+  const [sendingWelcome, setSendingWelcome] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -252,7 +253,7 @@ export default function MessagesPage() {
     setStartError('');
   };
 
-  const startConversationForPhone = (rawPhone: string, displayName?: string) => {
+  const startConversationForPhone = async (rawPhone: string, displayName?: string, skipWelcome: boolean = false) => {
     const normalized = normalizePhone(rawPhone);
 
     if (normalized.length < 10) {
@@ -260,40 +261,70 @@ export default function MessagesPage() {
       return;
     }
 
-    let conversationToSelect: Conversation | null = null;
-
-    setConversations(prev => {
-      const existingIndex = prev.findIndex(c => c.phone_number === normalized);
-      if (existingIndex >= 0) {
-        const updated = [...prev];
-        const existing = {
-          ...updated[existingIndex],
-          name: displayName || updated[existingIndex].name || 'Unknown',
-        };
-        updated[existingIndex] = existing;
-        conversationToSelect = existing;
-        updated.unshift(updated.splice(existingIndex, 1)[0]);
-        return updated;
-      }
-
-      const newConversation: Conversation = {
-        phone_number: normalized,
-        name: displayName || 'Unknown',
-        last_message: 'New conversation',
-        last_message_time: new Date().toISOString(),
-        message_count: 0,
-        unread_count: 0,
-        last_message_type: 'text',
-      };
-      conversationToSelect = newConversation;
-      return [newConversation, ...prev];
-    });
-
-    if (conversationToSelect) {
-      setSelectedConversation(conversationToSelect);
-      setMessages([]);
+    // Check if conversation already exists
+    const existingConversation = conversations.find(c => c.phone_number === normalized);
+    
+    if (existingConversation) {
+      // Just open existing conversation
+      setSelectedConversation(existingConversation);
+      closeStartModal();
+      return;
     }
 
+    // For new conversations, send welcome template first
+    if (!skipWelcome && token) {
+      setSendingWelcome(true);
+      setStartError('');
+      
+      try {
+        const result = await startWhatsAppConversation(normalized, token);
+        
+        if (result.success) {
+          // Create conversation entry
+          const newConversation: Conversation = {
+            phone_number: normalized,
+            name: displayName || 'Unknown',
+            last_message: 'Welcome message sent',
+            last_message_time: new Date().toISOString(),
+            message_count: 1,
+            unread_count: 0,
+            last_message_type: 'template',
+          };
+          
+          setConversations(prev => [newConversation, ...prev]);
+          setSelectedConversation(newConversation);
+          
+          // Fetch actual messages
+          await fetchMessages(normalized);
+          await fetchConversations();
+          
+          closeStartModal();
+        } else {
+          setStartError(result.message || 'Failed to send welcome message');
+        }
+      } catch (error) {
+        console.error('Failed to start conversation:', error);
+        setStartError('Failed to start conversation. Please try again.');
+      } finally {
+        setSendingWelcome(false);
+      }
+      return;
+    }
+
+    // Fallback: just create conversation locally (old behavior)
+    const newConversation: Conversation = {
+      phone_number: normalized,
+      name: displayName || 'Unknown',
+      last_message: 'New conversation',
+      last_message_time: new Date().toISOString(),
+      message_count: 0,
+      unread_count: 0,
+      last_message_type: 'text',
+    };
+    
+    setConversations(prev => [newConversation, ...prev]);
+    setSelectedConversation(newConversation);
+    setMessages([]);
     closeStartModal();
   };
 
@@ -651,11 +682,24 @@ export default function MessagesPage() {
                   <button
                     type="button"
                     onClick={() => startConversationForPhone(manualPhone, manualName || undefined)}
-                    className="w-full rounded-2xl bg-linear-to-r from-green-500 to-emerald-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:from-green-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={!manualPhone}
+                    className="w-full rounded-2xl bg-linear-to-r from-green-500 to-emerald-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:from-green-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center gap-2"
+                    disabled={!manualPhone || sendingWelcome}
                   >
-                    Start conversation
+                    {sendingWelcome ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Sending welcome message...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={16} />
+                        Send Welcome & Start Chat
+                      </>
+                    )}
                   </button>
+                  <p className="text-xs text-center text-gray-500 mt-2">
+                    ✨ Sends Bengali welcome template to open 24-hour free messaging window
+                  </p>
                 </div>
               </div>
             </div>

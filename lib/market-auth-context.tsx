@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { marketplaceApi } from './marketplace-api';
 
 interface MarketUser {
@@ -30,6 +31,8 @@ interface MarketAuthContextType {
 const MarketAuthContext = createContext<MarketAuthContextType | undefined>(undefined);
 
 export function MarketAuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<MarketUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +76,29 @@ export function MarketAuthProvider({ children }: { children: React.ReactNode }) 
     };
 
     initializeAuth();
-  }, [refreshUser]);
+
+    // Listen for storage changes (logout in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'market_token' && e.newValue === null) {
+        // Token removed, clear state and redirect
+        setToken(null);
+        setUser(null);
+        if (pathname?.startsWith('/market/dashboard')) {
+          router.push('/market/login');
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [refreshUser, router, pathname]);
+
+  // Redirect from dashboard if not authenticated
+  useEffect(() => {
+    if (!isLoading && !token && pathname?.startsWith('/market/dashboard')) {
+      router.push('/market/login');
+    }
+  }, [isLoading, token, pathname, router]);
 
   const login = (authToken: string, userData: MarketUser) => {
     localStorage.setItem('market_token', authToken);
@@ -83,12 +108,29 @@ export function MarketAuthProvider({ children }: { children: React.ReactNode }) 
     refreshUser().catch(() => null);
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    // Clear localStorage
     localStorage.removeItem('market_token');
     localStorage.removeItem('market_user');
+    
+    // Clear state
     setToken(null);
     setUser(null);
-  };
+    
+    // Dispatch custom storage event for cross-tab synchronization
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'market_token',
+      newValue: null,
+      oldValue: localStorage.getItem('market_token'),
+      storageArea: localStorage,
+      url: window.location.href
+    }));
+    
+    // Navigate away from protected routes
+    if (pathname?.startsWith('/market/dashboard')) {
+      router.push('/market/login');
+    }
+  }, [router, pathname]);
 
   return (
     <MarketAuthContext.Provider 

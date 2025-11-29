@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Logo from '@/components/Logo';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Sparkles, LogIn, Home, BarChart3, Users, Briefcase, Newspaper, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,11 +17,44 @@ const navLinks = [
 //   { href: '/generate', label: 'পোস্টার তৈরি', icon: ImagePlus },
 ];
 
+const marketNavLinks = [
+  { href: '/market', label: 'মার্কেট', icon: ImagePlus },
+  { href: '/market/creators', label: 'সকল ক্রিয়েটর', icon: Users },
+  { href: '/market/about', label: 'আমাদের সম্পর্কে', icon: Briefcase },
+];
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
   const pathname = usePathname();
   const { user, logout } = useMarketAuth();
+
+  // Track active section on home page
+  useEffect(() => {
+    if (pathname !== '/') return;
+
+    const handleScroll = () => {
+      const sections = ['poll', 'divisions', 'parties'];
+      const scrollPosition = window.scrollY + 200;
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(section);
+            return;
+          }
+        }
+      }
+      setActiveSection('');
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
   
   const isNewsPage = pathname?.startsWith('/news');
   const isAdminPage = pathname?.startsWith('/admin');
@@ -50,16 +83,29 @@ export default function Navbar() {
 
               {/* Desktop Navigation - Center */}
               <div className="hidden lg:flex items-center gap-1 flex-1 justify-center mx-8">
-                {navLinks.map((link) => {
+                {(isMarketPage ? marketNavLinks : navLinks).map((link) => {
                   const Icon = link.icon;
-                  const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+                  // Check if active based on pathname and section
+                  let isActive = false;
+                  if (isMarketPage) {
+                    isActive = pathname === link.href || (link.href !== '/market' && pathname?.startsWith(link.href));
+                  } else {
+                    if (link.href === '/') {
+                      isActive = pathname === '/' && !activeSection;
+                    } else if (link.href.startsWith('/#')) {
+                      const section = link.href.substring(2);
+                      isActive = pathname === '/' && activeSection === section;
+                    } else {
+                      isActive = pathname?.startsWith(link.href);
+                    }
+                  }
                   
                   return (
                     <Link
                       key={link.href}
                       href={link.href}
                       className={`
-                        flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-300 whitespace-nowrap text-sm
+                        flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-300 whitespace-nowrap text-sm cursor-pointer
                         ${isActive 
                           ? 'bg-[#C8102E]/10 text-[#C8102E]' 
                           : 'text-gray-700 hover:bg-white/50 hover:scale-105'
@@ -86,9 +132,8 @@ export default function Navbar() {
                 
                 {isMarketPage && !user && (
                   <Link href="/market/login">
-                    <button className="flex items-center gap-2 bg-blue-500 text-white px-5 py-2 rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
-                      <LogIn size={16} />
-                      <span>লগইন</span>
+                    <button className="flex items-center justify-center p-2 text-[#C8102E] hover:bg-[#C8102E]/10 rounded-full transition-all cursor-pointer">
+                      <LogIn size={20} />
                     </button>
                   </Link>
                 )}
@@ -186,9 +231,8 @@ export default function Navbar() {
 
                 {isMarketPage && !user && (
                   <Link href="/market/login">
-                    <button className="flex items-center gap-1.5 bg-blue-500 text-white px-3 py-1.5 rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all text-xs">
-                      <LogIn size={14} />
-                      <span className="max-[360px]:hidden">লগইন</span>
+                    <button className="flex items-center justify-center p-2 text-[#C8102E] hover:bg-[#C8102E]/10 rounded-full transition-all cursor-pointer">
+                      <LogIn size={18} />
                     </button>
                   </Link>
                 )}
@@ -261,9 +305,22 @@ export default function Navbar() {
 
                 <div className="px-4 py-4">
                   <div className="flex flex-col gap-1">
-                    {navLinks.map((link, index) => {
+                    {(isMarketPage ? marketNavLinks : navLinks).map((link, index) => {
                       const Icon = link.icon;
-                      const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+                      // Check if active based on pathname and section
+                      let isActive = false;
+                      if (isMarketPage) {
+                        isActive = pathname === link.href || (link.href !== '/market' && pathname?.startsWith(link.href));
+                      } else {
+                        if (link.href === '/') {
+                          isActive = pathname === '/' && !activeSection;
+                        } else if (link.href.startsWith('/#')) {
+                          const section = link.href.substring(2);
+                          isActive = pathname === '/' && activeSection === section;
+                        } else {
+                          isActive = pathname?.startsWith(link.href);
+                        }
+                      }
                       
                       return (
                         <motion.div
@@ -276,7 +333,7 @@ export default function Navbar() {
                             href={link.href}
                             onClick={() => setIsOpen(false)}
                             className={`
-                              flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-sm
+                              flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-sm cursor-pointer
                               ${isActive 
                                 ? 'bg-[#C8102E]/10 text-[#C8102E]' 
                                 : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'

@@ -9,6 +9,7 @@ import SectionWrapper from '@/components/SectionWrapper';
 import ProductCard from '@/components/ProductCard';
 import DynamicIcon from '@/components/DynamicIcon';
 import JoinCreatorBanner from '@/components/JoinCreatorBanner';
+import MarketBackground from '@/components/market/MarketBackground';
 import { marketplaceApi, Product, Category } from '@/lib/marketplace-api';
 import { toBengaliNumber } from '@/lib/mockProducts';
 
@@ -93,7 +94,8 @@ export default function MarketPage() {
   }, [selectedCategory, searchQuery, sortBy]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative overflow-hidden">
+      <MarketBackground />
       <SectionWrapper>
         {/* Header with Background Image */}
         <div className="mb-8 sm:mb-10 md:mb-12 relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 overflow-hidden rounded-3xl">

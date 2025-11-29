@@ -185,7 +185,7 @@ export default function PollCard({
         }
       } catch (e) {}
       // Don't reset votingStep - keep selected option visible
-      setLiveVoteCount(prev => prev + 1);
+      // Removed optimistic update - wait for websocket response
     } catch (error: any) {
       setSubmitError(error.message || 'ভোট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {

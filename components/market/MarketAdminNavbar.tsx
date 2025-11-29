@@ -74,8 +74,9 @@ export default function MarketAdminNavbar() {
   ];
 
   const handleLogout = () => {
+    setShowDropdown(false);
+    setShowMobileMenu(false);
     logout();
-    window.location.href = '/market/login';
   };
 
   const getImageUrl = (url: string) => {

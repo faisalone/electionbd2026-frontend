@@ -257,3 +257,18 @@ export const deleteWhatsAppMessage = async (id: number, token: string) => {
 	});
 	return response.json();
 };
+
+export const startWhatsAppConversation = async (
+	phoneNumber: string,
+	token: string
+) => {
+	const response = await fetch(
+		`${ADMIN_API_BASE}/whatsapp/start-conversation`,
+		{
+			method: 'POST',
+			headers: createAuthHeaders(token),
+			body: JSON.stringify({ phone_number: phoneNumber }),
+		}
+	);
+	return response.json();
+};

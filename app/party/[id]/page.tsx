@@ -5,8 +5,10 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Calendar, Users, MapPin, Phone, Mail, Globe, Building, User } from 'lucide-react';
 import CandidateCard from '@/components/CandidateCard';
+import Pagination from '@/components/Pagination';
 import { api, type Party, type Candidate } from '@/lib/api';
 import { getImageUrl } from '@/lib/admin/api';
+import { toBengaliNumber } from '@/lib/utils';
 
 export default function PartyDetailsPage() {
 	const params = useParams();
@@ -16,6 +18,8 @@ export default function PartyDetailsPage() {
 	const [candidates, setCandidates] = useState<Candidate[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [candidatesLoading, setCandidatesLoading] = useState(true);
+	const [currentPage, setCurrentPage] = useState(1);
+	const candidatesPerPage = 12;
 
 	useEffect(() => {
 		const fetchPartyData = async () => {
@@ -219,24 +223,24 @@ export default function PartyDetailsPage() {
 									</div>
 								</div>
 							)}
-							{(party as any).phone && (
-								<div className="flex items-start gap-3">
-									<Phone className="w-5 h-5 text-gray-400 mt-0.5" />
-									<div>
-										<p className="text-sm text-gray-500">ফোন</p>
-										<p className="font-medium text-gray-900">{(party as any).phone}</p>
-									</div>
+						{(party as any).phone && (
+							<div className="flex items-start gap-3">
+								<Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+								<div>
+									<p className="text-sm text-gray-500">ফোন</p>
+									<a href={`tel:${(party as any).phone}`} className="font-medium text-gray-900" data-en={(party as any).phone}>{toBengaliNumber((party as any).phone)}</a>
 								</div>
-							)}
-							{(party as any).mobile && (
-								<div className="flex items-start gap-3">
-									<Phone className="w-5 h-5 text-gray-400 mt-0.5" />
-									<div>
-										<p className="text-sm text-gray-500">মোবাইল</p>
-										<p className="font-medium text-gray-900">{(party as any).mobile}</p>
-									</div>
+							</div>
+						)}
+						{(party as any).mobile && (
+							<div className="flex items-start gap-3">
+								<Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+								<div>
+									<p className="text-sm text-gray-500">মোবাইল</p>
+									<a href={`tel:${(party as any).mobile}`} className="font-medium text-gray-900" data-en={(party as any).mobile}>{toBengaliNumber((party as any).mobile)}</a>
 								</div>
-							)}
+							</div>
+						)}
 							{(party as any).email && (
 								<div className="flex items-start gap-3">
 									<Mail className="w-5 h-5 text-gray-400 mt-0.5" />
@@ -300,8 +304,13 @@ export default function PartyDetailsPage() {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.3, duration: 0.4 }}
 				>
-					<h2 className="text-3xl font-bold text-gray-900 mb-6">প্রার্থীবৃন্দ</h2>
-					{candidatesLoading ? (
+				<div className="flex items-center justify-between mb-6">
+					<h2 className="text-3xl font-bold text-gray-900">প্রার্থীবৃন্দ</h2>
+					{candidates.length > 0 && (
+						<p className="text-gray-600">মোট {toBengaliNumber(candidates.length)} জন</p>
+					)}
+				</div>
+				{candidatesLoading ? (
 						<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{Array.from({ length: 6 }).map((_, i) => (
 								<div key={i} className="bg-white rounded-xl shadow-md p-4 animate-pulse">
@@ -312,8 +321,11 @@ export default function PartyDetailsPage() {
 							))}
 						</div>
 					) : candidates.length > 0 ? (
-						<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{candidates.map((candidate) => {
+						<>
+							<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								{candidates
+									.slice((currentPage - 1) * candidatesPerPage, currentPage * candidatesPerPage)
+									.map((candidate) => {
 								const seat = candidate.seat;
 								const district = seat?.district;
 								
@@ -343,9 +355,17 @@ export default function PartyDetailsPage() {
 										experience={candidate.experience || ''}
 										image={''}
 									/>
-								);
-							})}
-						</div>
+									);
+								})}
+							</div>
+							
+							{/* Pagination */}
+							<Pagination
+								totalPages={Math.ceil(candidates.length / candidatesPerPage)}
+								currentPage={currentPage}
+								onPageChange={setCurrentPage}
+							/>
+						</>
 					) : (
 						<div className="text-center py-12 bg-white rounded-xl shadow-md">
 							<p className="text-gray-500">এই দলের কোন প্রার্থী নেই</p>
