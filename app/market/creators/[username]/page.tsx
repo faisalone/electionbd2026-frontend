@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const avatarUrl = creator.avatar
     ? `https://api.votemamu.com/storage/${creator.avatar}`
-    : "https://votemamu.com/votemamu-photocard-preview.jpg";
+    : "https://votemamu.com/preview/preview-1.jpg";
 
   const description = creator.bio
     ? creator.bio.slice(0, 160)

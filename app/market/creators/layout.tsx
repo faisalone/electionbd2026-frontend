@@ -13,18 +13,18 @@ export const metadata: Metadata = {
     locale: "bn_BD",
     images: [
       {
-        url: "/votemamu-preview.jpg",
+        url: "/preview/preview-1.jpg",
         width: 1200,
         height: 630,
-        alt: "ভোটমামু মার্কেটপ্লেস - পেশাদার ক্রিয়েটর",
+        alt: "ভোটমামু মার্কেটপ্লেস - পেশাদার ক্রিয়েটর",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "পেশাদার ক্রিয়েটর | ভোটমামু মার্কেটপ্লেস",
-    description: "বাংলাদেশের সেরা নির্বাচনী ক্রিয়েটরদের সাথে যুক্ত হন",
-    images: ["/votemamu-preview.jpg"],
+    title: "পেশাদার ক্রিয়েটর | ভোটমামু মার্কেটপ্লেস",
+    description: "বাংলাদেশের সেরা নির্বাচনী ক্রিয়েটরদের সাথে যুক্ত হন",
+    images: ["/preview/preview-1.jpg"],
   },
   alternates: {
     canonical: "https://votemamu.com/market/creators",

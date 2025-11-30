@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const imageUrl = product.images?.[0]?.thumbnail_url
     ? product.images[0].thumbnail_url
-    : "https://votemamu.com/votemamu-photocard-preview.jpg";
+    : "https://votemamu.com/preview/preview-1.jpg";
 
   const categoryLabels: Record<string, string> = {
     banner: "ব্যানার",
