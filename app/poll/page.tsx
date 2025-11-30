@@ -9,42 +9,52 @@ export const metadata: Metadata = {
 };
 
 async function PollList() {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/polls`, {
-    next: { revalidate: 60 },
-  });
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/polls`, {
+      next: { revalidate: 60 },
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-red-600">জরিপ লোড করতে সমস্যা হয়েছে</p>
+        </div>
+      );
+    }
+
+    const result = await response.json();
+    const polls = result.data || [];
+
+    if (polls.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-600">কোনো জরিপ পাওয়া যায়নি</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {polls.map((poll: any) => (
+          <Link key={poll.id} href={`/poll/${poll.uid || poll.id}`}>
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer">
+              <h3 className="text-xl font-bold mb-2">{poll.question}</h3>
+              <p className="text-gray-600 mb-4">মোট ভোট: {poll.total_votes}</p>
+              <div className="text-blue-600 font-medium">বিস্তারিত দেখুন →</div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    );
+  } catch (error) {
+    // Gracefully handle fetch errors during build time
+    console.error('Failed to fetch polls during build:', error);
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">জরিপ লোড করতে সমস্যা হয়েছে</p>
+        <p className="text-gray-600">জরিপ লোড হচ্ছে...</p>
       </div>
     );
   }
-
-  const result = await response.json();
-  const polls = result.data || [];
-
-  if (polls.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">কোনো জরিপ পাওয়া যায়নি</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {polls.map((poll: any) => (
-        <Link key={poll.id} href={`/poll/${poll.uid || poll.id}`}>
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <h3 className="text-xl font-bold mb-2">{poll.question}</h3>
-            <p className="text-gray-600 mb-4">মোট ভোট: {poll.total_votes}</p>
-            <div className="text-blue-600 font-medium">বিস্তারিত দেখুন →</div>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
 }
 
 export default function PollPage() {
