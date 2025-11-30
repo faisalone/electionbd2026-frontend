@@ -17,11 +17,13 @@ import {
   Heart,
   Zap,
   Award,
-  Target
+  Target,
+  ArrowRight
 } from 'lucide-react';
 import SectionWrapper from '@/components/SectionWrapper';
 import JoinCreatorBanner from '@/components/JoinCreatorBanner';
 import MarketBackground from '@/components/market/MarketBackground';
+import ServiceChargeBanner from '@/components/ServiceChargeBanner';
 
 export default function AboutMarketPage() {
   const fadeInUp = {
@@ -30,7 +32,7 @@ export default function AboutMarketPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       <MarketBackground />
       
       {/* Content with relative positioning */}
@@ -44,7 +46,7 @@ export default function AboutMarketPage() {
         >
           <div className="inline-flex items-center gap-2 bg-[#C8102E]/10 text-[#C8102E] px-4 py-2 rounded-full mb-6">
             <Sparkles size={20} />
-            <span className="font-medium">বাংলাদেশের প্রথম নির্বাচনী ডিজাইন মার্কেটপ্লেস</span>
+            <span className="font-medium">বাংলাদেশের প্রথম নির্বাচনী মার্কেটপ্লেস</span>
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -59,8 +61,13 @@ export default function AboutMarketPage() {
         </motion.div>
       </SectionWrapper>
 
+	  {/* Service Charge Section */}
+      <div className="container mx-auto px-4">
+        <ServiceChargeBanner />
+      </div>
+
       {/* Platform Overview */}
-      <SectionWrapper className="bg-white">
+      <SectionWrapper>
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -73,7 +80,7 @@ export default function AboutMarketPage() {
           </h2>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <div className="bg-linear-to-br from-blue-50 to-blue-100/50 p-8 rounded-2xl border border-blue-200">
+            <div className="backdrop-blur-sm bg-blue-50/30 p-8 rounded-2xl border border-blue-200">
               <div className="bg-blue-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
                 <Users className="text-white" size={28} />
               </div>
@@ -84,52 +91,22 @@ export default function AboutMarketPage() {
               </p>
             </div>
 
-            <div className="bg-linear-to-br from-green-50 to-green-100/50 p-8 rounded-2xl border border-green-200">
+            <div className="backdrop-blur-sm bg-green-50/30 p-8 rounded-2xl border border-green-200">
               <div className="bg-green-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
                 <Download className="text-white" size={28} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">ক্রেতাদের জন্য</h3>
               <p className="text-gray-700 leading-relaxed">
                 প্রফেশনাল ডিজাইন সংগ্রহ করুন সহজেই। ফ্রি ডাউনলোড করুন অথবা কাস্টম অর্ডার করুন। 
-                বাংলাদেশের সেরা ডিজাইনারদের কাজ এক জায়গায় পাবেন।
+                বাংলাদেশের সেরা ক্রিয়েটরদের কাজ এক জায়গায় পাবেন।
               </p>
             </div>
           </div>
         </motion.div>
       </SectionWrapper>
 
-      {/* Service Charge Section */}
-      <SectionWrapper>
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          transition={{ delay: 0.3 }}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <div className="bg-[#C8102E]/5 border border-[#C8102E]/20 rounded-2xl p-8">
-            <DollarSign className="mx-auto text-[#C8102E] mb-4" size={48} />
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">স্বচ্ছ মূল্য নীতি</h2>
-            <p className="text-xl text-gray-700 mb-6">
-              সকল লেনদেনে <span className="text-[#C8102E] font-bold">মাত্র ১০% সার্ভিস চার্জ</span>
-            </p>
-            <div className="grid md:grid-cols-2 gap-4 text-left">
-              <div className="bg-white p-4 rounded-xl">
-                <CheckCircle2 className="text-green-600 mb-2" size={24} />
-                <p className="text-gray-700"><strong>ক্রিয়েটর:</strong> প্রতিটি বিক্রয় থেকে ১০% চার্জ</p>
-              </div>
-              <div className="bg-white p-4 rounded-xl">
-                <CheckCircle2 className="text-green-600 mb-2" size={24} />
-                <p className="text-gray-700"><strong>ক্রেতা:</strong> প্রতিটি ক্রয়ে ১০% সার্ভিস চার্জ</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </SectionWrapper>
-
       {/* How It Works for Customers */}
-      <SectionWrapper className="bg-linear-to-br from-blue-50 to-indigo-50">
+      <SectionWrapper>
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -142,7 +119,7 @@ export default function AboutMarketPage() {
           </h2>
           
           <div className="max-w-4xl mx-auto space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="backdrop-blur-sm bg-white/70 p-6 rounded-2xl shadow-md border border-gray-200">
               <div className="flex items-start gap-4">
                 <div className="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shrink-0">১</div>
                 <div>
@@ -158,7 +135,7 @@ export default function AboutMarketPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="backdrop-blur-sm bg-white/70 p-6 rounded-2xl shadow-md border border-gray-200">
               <div className="flex items-start gap-4">
                 <div className="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shrink-0">২</div>
                 <div>
@@ -179,7 +156,7 @@ export default function AboutMarketPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="backdrop-blur-sm bg-white/70 p-6 rounded-2xl shadow-md border border-gray-200">
               <div className="flex items-start gap-4">
                 <div className="bg-purple-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shrink-0">৩</div>
                 <div>
@@ -212,7 +189,7 @@ export default function AboutMarketPage() {
           </h2>
           
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="backdrop-blur-sm bg-white/60 p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
               <Target className="text-[#C8102E] mb-4" size={36} />
               <h3 className="text-xl font-bold text-gray-900 mb-3">নির্বাচন কেন্দ্রিক</h3>
               <p className="text-gray-700">
@@ -220,7 +197,7 @@ export default function AboutMarketPage() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="backdrop-blur-sm bg-white/60 p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
               <Award className="text-blue-600 mb-4" size={36} />
               <h3 className="text-xl font-bold text-gray-900 mb-3">প্রফেশনাল কোয়ালিটি</h3>
               <p className="text-gray-700">
@@ -228,7 +205,7 @@ export default function AboutMarketPage() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="backdrop-blur-sm bg-white/60 p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
               <Download className="text-green-600 mb-4" size={36} />
               <h3 className="text-xl font-bold text-gray-900 mb-3">ফ্রি ডাউনলোড</h3>
               <p className="text-gray-700">
@@ -236,7 +213,7 @@ export default function AboutMarketPage() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="backdrop-blur-sm bg-white/60 p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
               <Edit3 className="text-purple-600 mb-4" size={36} />
               <h3 className="text-xl font-bold text-gray-900 mb-3">কাস্টমাইজেশন</h3>
               <p className="text-gray-700">
@@ -244,7 +221,7 @@ export default function AboutMarketPage() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="backdrop-blur-sm bg-white/60 p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
               <Shield className="text-indigo-600 mb-4" size={36} />
               <h3 className="text-xl font-bold text-gray-900 mb-3">নিরাপদ লেনদেন</h3>
               <p className="text-gray-700">
@@ -252,7 +229,7 @@ export default function AboutMarketPage() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+            <div className="backdrop-blur-sm bg-white/60 p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
               <Heart className="text-rose-600 mb-4" size={36} />
               <h3 className="text-xl font-bold text-gray-900 mb-3">দেশীয় প্ল্যাটফর্ম</h3>
               <p className="text-gray-700">
@@ -264,7 +241,7 @@ export default function AboutMarketPage() {
       </SectionWrapper>
 
       {/* Creator Benefits */}
-      <SectionWrapper className="bg-linear-to-br from-purple-50 to-pink-50">
+      <SectionWrapper>
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -277,7 +254,7 @@ export default function AboutMarketPage() {
           </h2>
           
           <div className="max-w-4xl mx-auto space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="backdrop-blur-sm bg-white/70 p-6 rounded-2xl shadow-md border border-gray-200">
               <div className="flex items-start gap-4">
                 <div className="bg-linear-to-br from-green-500 to-emerald-600 text-white p-3 rounded-xl shrink-0">
                   <TrendingUp size={28} />
@@ -304,7 +281,7 @@ export default function AboutMarketPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="backdrop-blur-sm bg-white/70 p-6 rounded-2xl shadow-md border border-gray-200">
               <div className="flex items-start gap-4">
                 <div className="bg-linear-to-br from-blue-500 to-indigo-600 text-white p-3 rounded-xl shrink-0">
                   <Eye size={28} />
@@ -319,7 +296,7 @@ export default function AboutMarketPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="backdrop-blur-sm bg-white/70 p-6 rounded-2xl shadow-md border border-gray-200">
               <div className="flex items-start gap-4">
                 <div className="bg-linear-to-br from-purple-500 to-pink-600 text-white p-3 rounded-xl shrink-0">
                   <Zap size={28} />
@@ -334,7 +311,7 @@ export default function AboutMarketPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="backdrop-blur-sm bg-white/70 p-6 rounded-2xl shadow-md border border-gray-200">
               <div className="flex items-start gap-4">
                 <div className="bg-linear-to-br from-amber-500 to-orange-600 text-white p-3 rounded-xl shrink-0">
                   <Award size={28} />
@@ -342,7 +319,7 @@ export default function AboutMarketPage() {
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">পরিচিতি ও সুনাম</h3>
                   <p className="text-gray-700">
-                    নিজের ব্র্যান্ড তৈরি করুন, রিভিউ সংগ্রহ করুন এবং একজন প্রফেশনাল ডিজাইনার হিসেবে 
+                    নিজের ব্র্যান্ড তৈরি করুন, রিভিউ সংগ্রহ করুন এবং একজন প্রফেশনাল ক্রিয়েটর হিসেবে 
                     নিজেকে প্রতিষ্ঠিত করুন। আপনার পোর্টফোলিও তৈরি করুন এক জায়গায়।
                   </p>
                 </div>
@@ -353,7 +330,7 @@ export default function AboutMarketPage() {
       </SectionWrapper>
 
       {/* How to Become a Creator */}
-      <SectionWrapper className="bg-white">
+      <SectionWrapper>
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -361,154 +338,178 @@ export default function AboutMarketPage() {
           variants={fadeInUp}
           transition={{ delay: 0.7 }}
         >
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
-            কিভাবে ক্রিয়েটর হবেন?
-          </h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            সহজ কয়েকটি ধাপে ক্রিয়েটর হিসেবে যুক্ত হন এবং আয় শুরু করুন
-          </p>
-          
-          <div className="max-w-3xl mx-auto space-y-4">
-            <div className="relative">
-              <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-linear-to-b from-[#C8102E] to-transparent hidden md:block"></div>
-              
-              <div className="bg-linear-to-r from-blue-50 to-white p-6 rounded-2xl border-l-4 border-blue-600 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shrink-0">১</div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                      <UserPlus size={24} className="text-blue-600" />
-                      লগইন/সাইনআপ করুন
-                    </h3>
-                    <p className="text-gray-700">
-                      প্রথমে <Link href="/market/login" className="text-[#C8102E] font-semibold hover:underline">লগইন পেজে</Link> যান। 
-                      নতুন ইউজার হলে আপনার ফোন নম্বর দিয়ে সাইনআপ করুন। আপনার নাম এবং প্রয়োজনীয় তথ্য প্রদান করুন।
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-linear-to-b from-[#C8102E] to-transparent hidden md:block"></div>
-              
-              <div className="bg-linear-to-r from-purple-50 to-white p-6 rounded-2xl border-l-4 border-purple-600 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="bg-purple-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shrink-0">২</div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                      <Edit3 size={24} className="text-purple-600" />
-                      প্রোফাইল আপডেট করুন
-                    </h3>
-                    <p className="text-gray-700">
-                      প্রোফাইল সেটিংস থেকে &quot;ক্রিয়েটর হতে চাই&quot; অপশন সিলেক্ট করুন। আপনার পূর্ণ নাম, ঠিকানা, 
-                      জাতীয় পরিচয়পত্র নম্বর এবং অন্যান্য প্রয়োজনীয় তথ্য প্রদান করুন। পোর্টফোলিও লিংক থাকলে যুক্ত করুন।
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-linear-to-b from-[#C8102E] to-transparent hidden md:block"></div>
-              
-              <div className="bg-linear-to-r from-amber-50 to-white p-6 rounded-2xl border-l-4 border-amber-600 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="bg-amber-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shrink-0">৩</div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                      <Shield size={24} className="text-amber-600" />
-                      অ্যাডমিন যাচাইকরণ
-                    </h3>
-                    <p className="text-gray-700">
-                      আপনার তথ্য জমা দেওয়ার পর আমাদের অ্যাডমিন টিম আপনার প্রোফাইল যাচাই করবে। 
-                      সাধারণত ২৪-৪৮ ঘন্টার মধ্যে যাচাইকরণ সম্পন্ন হয়। আপনার প্রদত্ত তথ্যের সত্যতা নিশ্চিত করা হবে।
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-linear-to-r from-green-50 to-white p-6 rounded-2xl border-l-4 border-green-600 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="bg-green-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shrink-0">৪</div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    <CheckCircle2 size={24} className="text-green-600" />
-                    ডিজাইন আপলোড শুরু করুন
-                  </h3>
-                  <p className="text-gray-700 mb-3">
-                    অ্যাপ্রুভাল পেয়ে গেলে আপনি ক্রিয়েটর হিসেবে ডিজাইন আপলোড করতে পারবেন। আপনার সেরা কাজগুলো 
-                    আপলোড করুন এবং বিক্রয় শুরু করুন। প্রতিটি ডিজাইন ভালোভাবে ট্যাগ করুন যাতে ক্রেতারা সহজেই খুঁজে পান।
-                  </p>
-                  <div className="bg-green-100 border border-green-300 rounded-lg p-4">
-                    <p className="text-sm text-green-800 font-medium">
-                      <CheckCircle2 className="inline mr-2" size={16} />
-                      অভিনন্দন! এখন আপনি আয় করা শুরু করতে পারবেন।
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </SectionWrapper>
-
-      {/* Election 2026 Focus */}
-      <SectionWrapper className="bg-linear-to-br from-red-50 to-rose-50">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          transition={{ delay: 0.8 }}
-          className="max-w-4xl mx-auto text-center"
-        >
-          <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-[#C8102E]/20 shadow-lg">
-            <div className="bg-[#C8102E] text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Target size={36} />
-            </div>
-            
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              বাংলাদেশ নির্বাচন ২০২৬ কেন্দ্রিক প্ল্যাটফর্ম
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="inline-block bg-[#C8102E]/10 px-6 py-2 rounded-full border border-[#C8102E]/20 mb-4"
+            >
+              <p className="text-sm font-semibold text-[#C8102E]">সহজ প্রক্রিয়া</p>
+            </motion.div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              কিভাবে <span className="text-[#C8102E]">ক্রিয়েটর</span> হবেন?
             </h2>
-            
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              ভোটমামু মার্কেট বাংলাদেশের প্রথম এবং একমাত্র নির্বাচন কেন্দ্রিক ডিজিটাল মার্কেটপ্লেস। 
-              আসন্ন ২০২৬ সালের জাতীয় নির্বাচনকে কেন্দ্র করে তৈরি এই প্ল্যাটফর্মে পাবেন:
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              মাত্র চারটি ধাপে যুক্ত হন এবং আয় শুরু করুন
             </p>
-            
-            <div className="grid md:grid-cols-2 gap-4 text-left">
-              <div className="bg-white p-4 rounded-xl border border-gray-200">
-                <CheckCircle2 className="text-[#C8102E] mb-2" size={24} />
-                <p className="text-gray-800">নির্বাচনী পোস্টার ও ব্যানার ডিজাইন</p>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-gray-200">
-                <CheckCircle2 className="text-[#C8102E] mb-2" size={24} />
-                <p className="text-gray-800">প্রচারণা সামগ্রী ও সোশ্যাল মিডিয়া পোস্ট</p>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-gray-200">
-                <CheckCircle2 className="text-[#C8102E] mb-2" size={24} />
-                <p className="text-gray-800">সকল দল ও প্রার্থীর জন্য বিশেষায়িত ডিজাইন</p>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-gray-200">
-                <CheckCircle2 className="text-[#C8102E] mb-2" size={24} />
-                <p className="text-gray-800">বাংলা ভাষায় সম্পূর্ণ সাপোর্ট ও সেবা</p>
-              </div>
-            </div>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            {/* Modern Vertical Timeline */}
+            <div className="relative">
+              {/* Vertical gradient line */}
+              <div className="absolute left-10 top-8 bottom-8 w-0.5 bg-linear-to-b from-[#C8102E]/60 via-[#C8102E] to-[#C8102E]/60 rounded-full"></div>
+              
+              {/* Step 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="relative flex items-start gap-6 pb-16"
+              >
+                {/* Number Badge */}
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 bg-[#C8102E] rounded-full blur-lg opacity-20"></div>
+                  <div className="relative bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl shadow-xl border-4 border-white">
+                    ১
+                  </div>
+                </div>
+                
+                {/* Content Card */}
+                <div className="flex-1 backdrop-blur-sm bg-white/70 rounded-2xl p-6 border border-[#C8102E]/20 shadow-lg hover:shadow-xl transition-all duration-300 mt-2">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white p-3 rounded-xl shrink-0 shadow-md">
+                      <UserPlus size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        লগইন/সাইনআপ করুন
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed">
+                        প্রথমে <Link href="/market/login" className="text-[#C8102E] font-semibold hover:underline inline-flex items-center gap-1">
+                          লগইন পেজে
+                          <ArrowRight size={16} />
+                        </Link> যান। ফোন নম্বর দিয়ে সাইনআপ করুন এবং প্রয়োজনীয় তথ্য প্রদান করুন।
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
 
-            <div className="mt-8 p-6 bg-linear-to-r from-[#C8102E]/10 to-rose-100 rounded-xl">
-              <p className="text-gray-800 font-medium">
-                আমরা বিশ্বাস করি, বাংলাদেশের নির্বাচনী প্রচারণায় আধুনিক ডিজাইন এবং ডিজিটাল প্রযুক্তির ব্যবহার 
-                আরও সহজ, সাশ্রয়ী এবং কার্যকর হওয়া উচিত। ভোটমামু মার্কেট সেই লক্ষ্যেই কাজ করছে।
-              </p>
+              {/* Step 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="relative flex items-start gap-6 pb-16"
+              >
+                {/* Number Badge */}
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 bg-[#C8102E] rounded-full blur-lg opacity-20"></div>
+                  <div className="relative bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl shadow-xl border-4 border-white">
+                    ২
+                  </div>
+                </div>
+                
+                {/* Content Card */}
+                <div className="flex-1 backdrop-blur-sm bg-white/70 rounded-2xl p-6 border border-[#C8102E]/20 shadow-lg hover:shadow-xl transition-all duration-300 mt-2">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white p-3 rounded-xl shrink-0 shadow-md">
+                      <Edit3 size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        প্রোফাইল আপডেট করুন
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed">
+                        প্রোফাইল সেটিংস থেকে &quot;ক্রিয়েটর হতে চাই&quot; অপশন সিলেক্ট করুন। পূর্ণ নাম, ঠিকানা, জাতীয় পরিচয়পত্র এবং পোর্টফোলিও যুক্ত করুন।
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="relative flex items-start gap-6 pb-16"
+              >
+                {/* Number Badge */}
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 bg-[#C8102E] rounded-full blur-lg opacity-20"></div>
+                  <div className="relative bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl shadow-xl border-4 border-white">
+                    ৩
+                  </div>
+                </div>
+                
+                {/* Content Card */}
+                <div className="flex-1 backdrop-blur-sm bg-white/70 rounded-2xl p-6 border border-[#C8102E]/20 shadow-lg hover:shadow-xl transition-all duration-300 mt-2">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white p-3 rounded-xl shrink-0 shadow-md">
+                      <Shield size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        অ্যাডমিন যাচাইকরণ
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed">
+                        আমাদের টিম ২৪-৪৮ ঘন্টার মধ্যে আপনার প্রোফাইল যাচাই করবে। আপনার তথ্যের সত্যতা নিশ্চিত করা হবে।
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Step 4 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="relative flex items-start gap-6"
+              >
+                {/* Number Badge */}
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 bg-[#C8102E] rounded-full blur-lg opacity-20"></div>
+                  <div className="relative bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl shadow-xl border-4 border-white">
+                    ৪
+                  </div>
+                </div>
+                
+                {/* Content Card */}
+                <div className="flex-1 backdrop-blur-sm bg-white/70 rounded-2xl p-6 border border-[#C8102E]/20 shadow-lg hover:shadow-xl transition-all duration-300 mt-2">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-linear-to-br from-[#C8102E] to-[#8B0A1F] text-white p-3 rounded-xl shrink-0 shadow-md">
+                      <CheckCircle2 size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        ডিজাইন আপলোড শুরু করুন
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed mb-4">
+                        অ্যাপ্রুভাল পেলে আপনি ডিজাইন আপলোড এবং বিক্রয় শুরু করতে পারবেন। প্রতিটি ডিজাইন ভালোভাবে ট্যাগ করুন।
+                      </p>
+                      <div className="bg-[#C8102E]/10 border border-[#C8102E]/30 rounded-xl p-4">
+                        <p className="text-[#8B0A1F] font-semibold flex items-center gap-2">
+                          <Sparkles size={20} className="text-[#C8102E]" />
+                          অভিনন্দন! এখন আপনি আয় করা শুরু করতে পারবেন।
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </motion.div>
-
-        {/* CTA Banner */}
-        <JoinCreatorBanner />
       </SectionWrapper>
+      
+      {/* Join Creator Banner */}
+      <div className="container mx-auto px-4">
+        <JoinCreatorBanner />
+      </div>
       </div>
     </div>
   );

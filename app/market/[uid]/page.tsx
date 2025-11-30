@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = categoryLabels[product.category] || product.category;
   const description = product.description
     ? product.description.slice(0, 160)
-    : `${product.title} - ${category} ডিজাইন টেমপ্লেট। ${product.creator?.name || "পেশাদার ডিজাইনার"} দ্বারা তৈরি।`;
+    : `${product.title} - ${category} ডিজাইন টেমপ্লেট। ${product.creator?.name || "পেশাদার ক্রিয়েটর"} দ্বারা তৈরি।`;
 
   return {
     title: `${product.title} | ভোটমামু মার্কেটপ্লেস`,

@@ -94,12 +94,27 @@ a {
     animation: shimmer-sweep 2s linear infinite;
   }
   
+  @keyframes blob {
+    0%, 100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    25% {
+      transform: translate(40px, -80px) scale(1.15);
+    }
+    50% {
+      transform: translate(-40px, 40px) scale(0.85);
+    }
+    75% {
+      transform: translate(80px, 80px) scale(1.1);
+    }
+  }
+  
   .animate-blink {
     animation: blink 1s step-end infinite;
   }
 
   .animate-blob {
-    animation: blob 7s infinite;
+    animation: blob 10s ease-in-out infinite;
   }
 
   .animation-delay-2000 {
@@ -343,26 +358,6 @@ select.select-compact {
   font-size: 0.875rem;
   border-radius: 0.625rem;
 }
-
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
 .animation-delay-2000 {
   animation-delay: 2s;
 }

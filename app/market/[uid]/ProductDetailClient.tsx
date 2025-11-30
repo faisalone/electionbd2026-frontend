@@ -259,7 +259,7 @@ export default function ProductDetailPage() {
           className="inline-flex items-center gap-2 text-gray-500 hover:text-[#C8102E] mb-8 transition-colors text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>ডিজাইন মার্কেটপ্লেস</span>
+          <span>মার্কেট</span>
         </Link>
 
         {/* Main Content Grid */}

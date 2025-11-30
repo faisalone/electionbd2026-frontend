@@ -48,8 +48,8 @@ export default function CreatorsListPage() {
       <SectionWrapper>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">পেশাদার ডিজাইনার</h1>
-          <p className="text-gray-600 text-lg">দক্ষ ডিজাইনারদের সাথে কাজ করুন</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">পেশাদার ক্রিয়েটর</h1>
+          <p className="text-gray-600 text-lg">দক্ষ ক্রিয়েটরদের সাথে কাজ করুন</p>
         </div>
 
         {/* Creators Grid */}

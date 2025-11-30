@@ -98,28 +98,34 @@ export default function MarketPage() {
       <MarketBackground />
       <SectionWrapper>
         {/* Header with Background Image */}
-        <div className="mb-8 sm:mb-10 md:mb-12 relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 overflow-hidden rounded-3xl">
+        <div className="mb-8 sm:mb-10 md:mb-12 relative overflow-hidden rounded-3xl">
           {/* Background Image with Gradient Overlay */}
           <div className="absolute inset-0">
             <Image
-              src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=300&fit=crop&q=80"
+              src="/banners/market-banner-1.jpg"
               alt="Marketplace Background"
               fill
               className="object-cover object-center"
               priority
             />
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(255,255,255)_0%,rgb(255,255,255)_30%,rgba(255,255,255,0.7)_60%,rgba(255,255,255,0.2)_100%)]"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(200,16,46,0.95)_0%,rgba(200,16,46,0.85)_40%,rgba(200,16,46,0.6)_70%,rgba(200,16,46,0.2)_100%)]"></div>
           </div>
           
-          {/* Header Content */}
-          <div className="relative z-10 max-w-2xl">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2 sm:mb-3">
-              ভোটমার্কেট
-            </h1>
-            <p className="text-base sm:text-lg text-gray-700">
-              পেশাদার নির্বাচনী ক্যাম্পেইন ডিজাইন ডাউনলোড করুন বা কাস্টম অর্ডার করুন
-            </p>
+          {/* Two Column Layout */}
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4 py-12 sm:py-16 md:py-20 px-6 sm:px-8 md:px-12">
+            {/* Left Column - Text Content */}
+            <div className="flex flex-col justify-center">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
+                ভোটমার্কেট
+              </h1>
+              <p className="text-base sm:text-lg text-white/90 max-w-md">
+                পেশাদার নির্বাচনী ক্যাম্পেইন ডিজাইন ডাউনলোড করুন বা কাস্টম অর্ডার করুন
+              </p>
+            </div>
+            
+            {/* Right Column - Empty (for image visibility) */}
+            <div className="hidden md:block"></div>
           </div>
         </div>
 

@@ -1,10 +1,10 @@
 export default function MarketBackground() {
   return (
-    <div className="fixed inset-0 pointer-events-none -z-10">
+    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
       {/* Floating Blobs */}
-      <div className="absolute top-20 -left-20 w-72 h-72 bg-blue-400/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-      <div className="absolute top-40 -right-20 w-72 h-72 bg-purple-400/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-20 left-1/2 w-72 h-72 bg-pink-400/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+      <div className="absolute top-20 -left-20 w-96 h-96 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+      <div className="absolute top-40 -right-20 w-96 h-96 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-20 left-1/2 w-96 h-96 bg-pink-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
       
       {/* Decorative Circles */}
       <div className="absolute top-1/4 right-1/4 w-2 h-2 bg-[#C8102E]/20 rounded-full"></div>

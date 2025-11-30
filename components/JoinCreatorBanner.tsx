@@ -63,7 +63,7 @@ export default function JoinCreatorBanner() {
               transition={{ delay: 0.1 }}
               className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight"
             >
-              আপনার ডিজাইন দিয়ে <br/>
+              আপনার ক্রিয়েটিভিটি দিয়ে <br/>
               <span className="text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/70">
                 আয় করুন সহজেই
               </span>

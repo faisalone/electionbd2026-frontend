@@ -34,7 +34,7 @@ export const mockCreators: Creator[] = [
 		avatar: 'https://i.pravatar.cc/150?img=1',
 		phone: '০১৭১২৩৪৫৬৭৮',
 		location: 'ঢাকা, বাংলাদেশ',
-		bio: 'পেশাদার গ্রাফিক ডিজাইনার, ৫+ বছরের অভিজ্ঞতা নির্বাচনী প্রচারণা ডিজাইনে',
+		bio: 'পেশাদার গ্রাফিক ক্রিয়েটর, ৫+ বছরের অভিজ্ঞতা নির্বাচনী প্রচারণা ডিজাইনে',
 		specialties: ['ব্যানার', 'পোস্টার', 'বিলবোর্ড'],
 		total_designs: 42,
 		rating: 4.8,
@@ -60,7 +60,7 @@ export const mockCreators: Creator[] = [
 		avatar: 'https://i.pravatar.cc/150?img=12',
 		phone: '০১৯১২৩৪৫৬৭৮',
 		location: 'সিলেট, বাংলাদেশ',
-		bio: 'ক্রিয়েটিভ ডিজাইনার, আধুনিক এবং ঐতিহ্যবাহী ডিজাইনের মিশ্রণে পারদর্শী',
+		bio: 'ক্রিয়েটিভ ক্রিয়েটর, আধুনিক এবং ঐতিহ্যবাহী ডিজাইনের মিশ্রণে পারদর্শী',
 		specialties: ['পোস্টার', 'ব্যানার', 'সোশ্যাল মিডিয়া'],
 		total_designs: 38,
 		rating: 4.7,
@@ -86,7 +86,7 @@ export const mockCreators: Creator[] = [
 		avatar: 'https://i.pravatar.cc/150?img=13',
 		phone: '০১৫১২৩৪৫৬৭৮',
 		location: 'খুলনা, বাংলাদেশ',
-		bio: 'মাল্টিমিডিয়া ডিজাইনার, ভিডিও এবং এনিমেশনে বিশেষজ্ঞ',
+		bio: 'মাল্টিমিডিয়া ক্রিয়েটর, ভিডিও এবং এনিমেশনে বিশেষজ্ঞ',
 		specialties: ['ভিডিও', 'এনিমেশন', 'সোশ্যাল মিডিয়া'],
 		total_designs: 51,
 		rating: 4.9,
@@ -302,7 +302,9 @@ export const mockProducts: Product[] = [
 		description:
 			'উচ্চ মানের পেশাদার ব্যানার টেমপ্লেট। সম্পূর্ণ কাস্টমাইজেবল এবং প্রিন্ট রেডি।',
 		category: 'banner',
-		images: ['https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800',
+		],
 		creator: mockCreators[0],
 		tags: ['ব্যানার', 'টেমপ্লেট', 'পেশাদার'],
 		rating: 4.7,
@@ -320,7 +322,9 @@ export const mockProducts: Product[] = [
 		description:
 			'আধুনিক এবং আকর্ষণীয় নির্বাচনী পোস্টার ডিজাইন। A3 এবং A4 উভয় সাইজে উপলব্ধ।',
 		category: 'poster',
-		images: ['https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800',
+		],
 		creator: mockCreators[2],
 		tags: ['পোস্টার', 'আধুনিক', 'নির্বাচন'],
 		rating: 4.8,
@@ -338,7 +342,9 @@ export const mockProducts: Product[] = [
 		description:
 			'প্রভাবশালী ক্যাম্পেইন লিফলেট ডিজাইন। দ্রুত প্রিন্ট সেবা সহ উপলব্ধ।',
 		category: 'leaflet',
-		images: ['https://images.unsplash.com/photo-1586281380117-5a60ae2050cc?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1586281380117-5a60ae2050cc?w=800',
+		],
 		creator: mockCreators[1],
 		tags: ['লিফলেট', 'ক্যাম্পেইন', 'প্রচারণা'],
 		rating: 4.6,
@@ -356,7 +362,9 @@ export const mockProducts: Product[] = [
 		description:
 			'অতি বড় সাইজের আউটডোর ফেস্টুন ডিজাইন। দূর থেকে দৃশ্যমান এবং প্রভাবশালী।',
 		category: 'festoon',
-		images: ['https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800',
+		],
 		creator: mockCreators[3],
 		tags: ['ফেস্টুন', 'আউটডোর', 'মেগা'],
 		rating: 4.9,
@@ -374,7 +382,9 @@ export const mockProducts: Product[] = [
 		description:
 			'সম্পূর্ণ সোশ্যাল মিডিয়া ক্যাম্পেইন কিট। ২০+ ডিজাইন টেমপ্লেট সহ।',
 		category: 'social-media',
-		images: ['https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800',
+		],
 		creator: mockCreators[7],
 		tags: ['সোশ্যাল মিডিয়া', 'ক্যাম্পেইন', 'কিট'],
 		rating: 4.8,
@@ -392,7 +402,9 @@ export const mockProducts: Product[] = [
 		description:
 			'গণ বিতরণের জন্য হ্যান্ডবিল ডিজাইন প্যাক। ১০০০+ পিস অর্ডারে ছাড়।',
 		category: 'handbill',
-		images: ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800',
+		],
 		creator: mockCreators[5],
 		tags: ['হ্যান্ডবিল', 'বিতরণ', 'প্যাক'],
 		rating: 4.5,
@@ -410,7 +422,9 @@ export const mockProducts: Product[] = [
 		description:
 			'হাইওয়ের জন্য বিশেষভাবে ডিজাইন করা বিলবোর্ড। দূর থেকে পঠনযোগ্য।',
 		category: 'billboard',
-		images: ['https://images.unsplash.com/photo-1551817958-20d90a602d7f?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1551817958-20d90a602d7f?w=800',
+		],
 		creator: mockCreators[6],
 		tags: ['বিলবোর্ড', 'হাইওয়ে', 'বহিরঙ্গন'],
 		rating: 4.7,
@@ -428,7 +442,9 @@ export const mockProducts: Product[] = [
 		description:
 			'৩০ সেকেন্ডের সংক্ষিপ্ত ক্যাম্পেইন ভিডিও। সোশ্যাল মিডিয়ার জন্য অপটিমাইজড।',
 		category: 'video',
-		images: ['https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800',
+		],
 		creator: mockCreators[4],
 		tags: ['ভিডিও', 'সংক্ষিপ্ত', 'ক্যাম্পেইন'],
 		rating: 4.9,
@@ -446,7 +462,9 @@ export const mockProducts: Product[] = [
 		description:
 			'সাশ্রয়ী মূল্যে মানসম্মত নির্বাচনী ব্যানার। স্থানীয় প্রচারণার জন্য আদর্শ।',
 		category: 'banner',
-		images: ['https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800',
+		],
 		creator: mockCreators[0],
 		tags: ['ব্যানার', 'সাশ্রয়ী', 'স্থানীয়'],
 		rating: 4.4,
@@ -464,7 +482,9 @@ export const mockProducts: Product[] = [
 		description:
 			'দেয়ালে সাঁটানোর জন্য বিশেষ পোস্টার ডিজাইন। দীর্ঘস্থায়ী ম্যাটেরিয়াল।',
 		category: 'poster',
-		images: ['https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?w=800',
+		],
 		creator: mockCreators[2],
 		tags: ['পোস্টার', 'ওয়াল', 'দীর্ঘস্থায়ী'],
 		rating: 4.6,
@@ -482,7 +502,9 @@ export const mockProducts: Product[] = [
 		description:
 			'ঘরে ঘরে বিতরণের জন্য লিফলেট ডিজাইন। সহজ এবং কার্যকর মেসেজিং।',
 		category: 'leaflet',
-		images: ['https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800',
+		],
 		creator: mockCreators[1],
 		tags: ['লিফলেট', 'ডোর টু ডোর', 'বিতরণ'],
 		rating: 4.7,
@@ -500,7 +522,9 @@ export const mockProducts: Product[] = [
 		description:
 			'র্যালি এবং মিছিলের জন্য ফেস্টুন ডিজাইন। হালকা এবং বহনযোগ্য।',
 		category: 'festoon',
-		images: ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800'],
+		images: [
+			'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+		],
 		creator: mockCreators[3],
 		tags: ['ফেস্টুন', 'র্যালি', 'মিছিল'],
 		rating: 4.8,

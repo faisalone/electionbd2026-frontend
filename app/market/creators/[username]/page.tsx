@@ -39,12 +39,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description = creator.bio
     ? creator.bio.slice(0, 160)
-    : `${creator.name} - পেশাদার ডিজাইনার। ${creator.total_products || 0}+ ডিজাইন টেমপ্লেট এবং ${creator.total_downloads || 0}+ ডাউনলোড সহ অভিজ্ঞ ক্রিয়েটর।`;
+    : `${creator.name} - পেশাদার ক্রিয়েটর। ${creator.total_products || 0}+ ডিজাইন টেমপ্লেট এবং ${creator.total_downloads || 0}+ ডাউনলোড সহ অভিজ্ঞ ক্রিয়েটর।`;
 
   return {
-    title: `${creator.name} | পেশাদার ডিজাইনার | ভোটমামু মার্কেটপ্লেস`,
+    title: `${creator.name} | পেশাদার ক্রিয়েটর | ভোটমামু মার্কেটপ্লেস`,
     description,
-    keywords: `${creator.name}, ${creator.username}, পেশাদার ডিজাইনার, নির্বাচনী ডিজাইন, গ্রাফিক ডিজাইনার, বাংলাদেশ`,
+    keywords: `${creator.name}, ${creator.username}, পেশাদার ক্রিয়েটর, নির্বাচনী ডিজাইন, গ্রাফিক ক্রিয়েটর, বাংলাদেশ`,
     openGraph: {
       title: `${creator.name} | ভোটমামু মার্কেটপ্লেস`,
       description,

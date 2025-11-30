@@ -24,7 +24,7 @@ export default function SectionWrapper({
     <section
       id={id}
       className={cn(
-        'py-16 md:py-24 px-4',
+        'py-10 md:py-12 px-4',
         className
       )}
     >
