@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "পেশাদার ক্রিয়েটর | ভোটমামু মার্কেটপ্লেস",
-  description: "বাংলাদেশের সেরা নির্বাচনী ক্রিয়েটরদের সাথে যুক্ত হন। অভিজ্ঞ ক্রিয়েটরদের থেকে পেশাদার ডিজাইন সেবা নিন - ব্যানার, পোস্টার, লোগো এবং আরও অনেক কিছু।",
+  metadataBase: new URL('https://www.votemamu.com'),
+  title: "পেশাদার ক্রিয়েটর | ভোটমামু মার্কেটপ্লেস",
+  description: "বাংলাদেশের সেরা নির্বাচনী ক্রিয়েটরদের সাথে যুক্ত হন। অভিজ্ঞ ক্রিয়েটরদের থেকে পেশাদার ডিজাইন সেবা নিন - ব্যানার, পোস্টার, লোগো এবং আরও অনেক কিছু।",
   keywords: "পেশাদার ক্রিয়েটর, গ্রাফিক ক্রিয়েটর, নির্বাচনী ক্রিয়েটর, ক্রিয়েটর, বাংলাদেশ, ফ্রিল্যান্স ক্রিয়েটর",
   openGraph: {
     title: "পেশাদার ক্রিয়েটর | ভোটমামু মার্কেটপ্লেস",
     description: "বাংলাদেশের সেরা নির্বাচনী ক্রিয়েটরদের সাথে যুক্ত হন। অভিজ্ঞ ক্রিয়েটরদের থেকে পেশাদার ডিজাইন সেবা নিন।",
     type: "website",
-    url: "https://votemamu.com/market/creators",
+    url: "https://www.votemamu.com/market/creators",
     siteName: "ভোটমামু",
     locale: "bn_BD",
     images: [
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     images: ["/preview/preview-1.jpg"],
   },
   alternates: {
-    canonical: "https://votemamu.com/market/creators",
+    canonical: "https://www.votemamu.com/market/creators",
   },
   robots: {
     index: true,

@@ -17,7 +17,7 @@ const notoSansBengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://votemamu.com"),
+  metadataBase: new URL("https://www.votemamu.com"),
   title: "ভোটমামু | নির্বাচন বিষয়ক সর্বশেষ খবরাখবর | সর্বপ্রথম এআইভিত্তিক সংবাদ",
   description: "বাংলাদেশের জাতীয় নির্বাচন ২০২৬ নিয়ে নানা ধরনের খবর পাবেন আমাদের সাইটে - প্রার্থী, দল, আসন এবং জরিপ লাইভ ফলাফল",
   keywords: "বাংলাদেশ, নির্বাচন, সংবাদ, খবর, কুইজ, জরিপ, পোল, প্রার্থী, দল, ভোট, ইলেকশন, বিএনপি, জামায়াত, এনসিপি",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "bn_BD",
-    url: "https://votemamu.com",
+    url: "https://www.votemamu.com",
     siteName: "ভোটমামু",
     images: [
       {

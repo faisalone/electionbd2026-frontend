@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://votemamu.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.votemamu.com';
 
 export const metadata: Metadata = {
   title: 'আগামীর রাষ্ট্রনায়ক তারেক রহমানের জন্মদিনের ফটোকার্ড | ভোটমামু',

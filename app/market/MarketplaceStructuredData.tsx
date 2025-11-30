@@ -4,12 +4,12 @@ export default function MarketplaceStructuredData() {
     "@type": "WebPage",
     "name": "মার্কেটপ্লেস | ভোটমামু",
     "description": "বাংলাদেশের নির্বাচনী ক্যাম্পেইনের জন্য পেশাদার ডিজাইন টেমপ্লেট",
-    "url": "https://votemamu.com/market",
+    "url": "https://www.votemamu.com/market",
     "inLanguage": "bn-BD",
     "isPartOf": {
       "@type": "WebSite",
       "name": "ভোটমামু",
-      "url": "https://votemamu.com"
+      "url": "https://www.votemamu.com"
     }
   };
 

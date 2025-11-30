@@ -3,14 +3,15 @@ import { MarketAuthProvider } from '@/lib/market-auth-context';
 import MarketplaceStructuredData from './MarketplaceStructuredData';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.votemamu.com'),
   title: "মার্কেটপ্লেস | ভোটমামু | নির্বাচনী ডিজাইন ও টেমপ্লেট",
-  description: "বাংলাদেশের নির্বাচনী ক্যাম্পেইনের জন্য পেশাদার ডিজাইন টেমপ্লেট - ব্যানার, পোস্টার, লোগো, ফ্লায়ার এবং আরও অনেক কিছু। দক্ষ ক্রিয়েটরদের থেকে সরাসরি কিনুন।",
+  description: "বাংলাদেশের নির্বাচনী ক্যাম্পেইনের জন্য পেশাদার ডিজাইন টেমপ্লেট - ব্যানার, পোস্টার, লোগো, ফ্লায়ার এবং আরও অনেক কিছু। দক্ষ ক্রিয়েটরদের থেকে সরাসরি কিনুন।",
   keywords: "নির্বাচনী ডিজাইন, ব্যানার, পোস্টার, লোগো, ফ্লায়ার, সোশ্যাল মিডিয়া পোস্ট, রাজনৈতিক ক্যাম্পেইন, প্রচারণা ডিজাইন, বাংলাদেশ",
   openGraph: {
     title: "মার্কেটপ্লেস | ভোটমামু",
     description: "বাংলাদেশের নির্বাচনী ক্যাম্পেইনের জন্য পেশাদার ডিজাইন টেমপ্লেট - ব্যানার, পোস্টার, লোগো, ফ্লায়ার এবং আরও অনেক কিছু।",
     type: "website",
-    url: "https://votemamu.com/market",
+    url: "https://www.votemamu.com/market",
     siteName: "ভোটমামু",
     locale: "bn_BD",
     images: [
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     images: ["/preview/preview-1.jpg"],
   },
   alternates: {
-    canonical: "https://votemamu.com/market",
+    canonical: "https://www.votemamu.com/market",
   },
   robots: {
     index: true,

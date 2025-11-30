@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const imageUrl = product.images?.[0]?.thumbnail_url
     ? product.images[0].thumbnail_url
-    : "https://votemamu.com/preview/preview-1.jpg";
+    : "https://www.votemamu.com/preview/preview-1.jpg";
 
   const categoryLabels: Record<string, string> = {
     banner: "ব্যানার",
@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${product.title} | ভোটমামু মার্কেটপ্লেস`,
       description,
       type: "website",
-      url: `https://votemamu.com/market/${product.uid}`,
+      url: `https://www.votemamu.com/market/${product.uid}`,
       siteName: "ভোটমামু",
       locale: "bn_BD",
       images: [
@@ -80,7 +80,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [imageUrl],
     },
     alternates: {
-      canonical: `https://votemamu.com/market/${product.uid}`,
+      canonical: `https://www.votemamu.com/market/${product.uid}`,
     },
     robots: {
       index: true,
